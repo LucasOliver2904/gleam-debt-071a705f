@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { CalendarCheck, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CalendarCheck, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, type Debt, type DebtType } from "@/lib/finance";
@@ -68,6 +68,7 @@ function Dividas() {
             <Section type="parcelada" title="Parceladas" />
             <Section type="fixa" title="Fixas (todo mês)" />
             <Section type="unica" title="Só um mês" />
+            <TxsSection months={months} q={q} />
             <SummaryRow label="Soma total" months={months} get={(m) => monthSummary(s, m).out} />
             <tr className="border-t border-border font-semibold">
               <td className="sticky left-0 bg-card px-3 py-2">Salário / entradas</td>
@@ -83,12 +84,51 @@ function Dividas() {
         </table>
       </div>
       <div className="mt-3 hidden md:flex gap-4 text-xs text-muted-foreground">
-        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-success" /> Pago</span>
-        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-destructive" /> Pendente</span>
+        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-success" /> Pago / Entrada</span>
+        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-destructive" /> Pendente / Saída</span>
       </div>
       {open && <NewDebt onClose={() => setOpen(false)} />}
       {editing && <EditDebt debt={editing} onClose={() => setEditing(null)} />}
     </AppShell>
+  );
+}
+
+function TxsSection({ months, q }: { months: string[]; q: string }) {
+  const s = useFinance();
+  const txs = s.txs
+    .filter((t) => t.description.toLowerCase().includes(q.toLowerCase()))
+    .slice()
+    .sort((a, b) => a.date.localeCompare(b.date));
+  if (txs.length === 0) return null;
+  return (
+    <>
+      <tr><td colSpan={months.length + 3} className="bg-accent px-3 py-2 font-display text-sm font-bold uppercase tracking-widest text-accent-foreground">Lançamentos avulsos</td></tr>
+      {txs.map((t) => {
+        const tm = t.date.slice(0, 7);
+        const entrada = t.kind === "entrada";
+        return (
+          <tr key={t.id} className="border-t border-border">
+            <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">
+              <span>{t.description}</span>
+              <span className="text-xs text-muted-foreground"> · {t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}</span>
+            </td>
+            {months.map((m) => (
+              <td key={m} className="p-0.5">
+                {m === tm ? (
+                  <div className={`w-full rounded-md px-2 py-1.5 text-right tabular-nums ${entrada ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"}`}>
+                    {entrada ? "+" : "−"} {brl(t.amount)}
+                  </div>
+                ) : <div className="h-8" />}
+              </td>
+            ))}
+            <td />
+            <td className="pr-2">
+              <button onClick={() => confirm(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+            </td>
+          </tr>
+        );
+      })}
+    </>
   );
 }
 
@@ -410,6 +450,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const [f, setF] = useState<"todas" | "pendentes" | DebtType>("todas");
   const items = s.debts.filter((d) => d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : d.type === f)))
     .sort((a, b) => Number(a.payments[m]!.paid) - Number(b.payments[m]!.paid) || (a.due ?? 99) - (b.due ?? 99));
+  const monthTxs = s.txs.filter((t) => t.date.startsWith(m)).sort((a, b) => a.date.localeCompare(b.date));
   const chips: [typeof f, string][] = [["todas", "Todas"], ["pendentes", "Pendentes"], ["parcelada", "Parceladas"], ["fixa", "Fixas"], ["unica", "Únicas"]];
   return (
     <div className="mt-4 md:hidden">
@@ -458,6 +499,30 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
           );
         })}
       </ul>
+
+      {monthTxs.length > 0 && (
+        <>
+          <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-muted-foreground">Lançamentos do mês</p>
+          <ul className="mt-2 space-y-2">
+            {monthTxs.map((t) => {
+              const entrada = t.kind === "entrada";
+              return (
+                <li key={t.id} className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3">
+                  <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${entrada ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"}`}>
+                    {entrada ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{t.description}</p>
+                    <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}</p>
+                  </div>
+                  <p className={`font-semibold tabular-nums ${entrada ? "text-success" : "text-destructive"}`}>{entrada ? "+" : "−"} {brl(t.amount)}</p>
+                  <button onClick={() => confirm(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
