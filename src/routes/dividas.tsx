@@ -441,12 +441,41 @@ function EditDebt({ debt, onClose }: { debt: Debt; onClose: () => void }) {
   );
 }
 
+function BreakdownItem({ label, value, color }: { label: string; value: number; color: string }) {
+  const zero = value === 0;
+  return (
+    <div className="flex items-center justify-between gap-2 rounded-xl bg-secondary/60 px-2.5 py-2">
+      <span className="flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
+        <i className="h-2 w-2 shrink-0 rounded-full" style={{ background: color }} />
+        <span className="truncate">{label}</span>
+      </span>
+      <span className={`shrink-0 text-sm font-semibold tabular-nums ${zero ? "text-muted-foreground/60" : ""}`}>{brl(value)}</span>
+    </div>
+  );
+}
+
 function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const s = useFinance();
   const months = allMonths(s);
   const [m, setM] = useState(() => (months.includes(currentMonth()) ? currentMonth() : months[0] ?? currentMonth()));
   const i = months.indexOf(m);
   const sum = monthSummary(s, m);
+
+  // Detalhamento de "a pagar" por tipo (pendentes do mês selecionado)
+  const breakdown = (() => {
+    let parcelada = 0, fixa = 0, unica = 0;
+    s.debts.forEach((d) => {
+      const p = d.payments[m];
+      if (p && !p.paid) {
+        if (d.type === "parcelada") parcelada += p.amount;
+        else if (d.type === "fixa") fixa += p.amount;
+        else unica += p.amount;
+      }
+    });
+    const avulsas = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "saida").reduce((a, t) => a + t.amount, 0);
+    return { parcelada, fixa, unica, avulsas, total: parcelada + fixa + unica + avulsas };
+  })();
+
   const [f, setF] = useState<"todas" | "pendentes" | DebtType>("todas");
   const items = s.debts.filter((d) => d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : d.type === f)))
     .sort((a, b) => Number(a.payments[m]!.paid) - Number(b.payments[m]!.paid) || (a.due ?? 99) - (b.due ?? 99));
@@ -459,11 +488,36 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
         <span className="font-display text-lg font-bold">{monthLabel(m, true)}</span>
         <button disabled={i >= months.length - 1} onClick={() => setM(months[i + 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">›</button>
       </div>
-      <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-        <div className="rounded-xl bg-card p-2"><p className="text-[11px] text-muted-foreground">A pagar</p><p className="text-sm font-bold text-destructive">{brl(sum.pending)}</p></div>
-        <div className="rounded-xl bg-card p-2"><p className="text-[11px] text-muted-foreground">Entradas</p><p className="text-sm font-bold text-success">{brl(sum.income)}</p></div>
-        <div className="rounded-xl bg-card p-2"><p className="text-[11px] text-muted-foreground">Sobra</p><p className={`text-sm font-bold ${sum.balance >= 0 ? "text-success" : "text-destructive"}`}>{brl(sum.balance)}</p></div>
+
+      {/* Resumo do mês */}
+      <div className="mt-3 space-y-2.5">
+        {/* A pagar total + detalhamento */}
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">A pagar total</span>
+            <span className="font-display text-2xl font-bold tabular-nums text-destructive">{brl(breakdown.total)}</span>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-1.5">
+            <BreakdownItem label="Parceladas" value={breakdown.parcelada} color="var(--chart-1)" />
+            <BreakdownItem label="Fixas" value={breakdown.fixa} color="var(--chart-2)" />
+            <BreakdownItem label="Únicas" value={breakdown.unica} color="var(--chart-3)" />
+            <BreakdownItem label="Avulsas" value={breakdown.avulsas} color="var(--chart-4)" />
+          </div>
+        </div>
+
+        {/* Entradas e Sobra */}
+        <div className="grid grid-cols-2 gap-2.5">
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Entradas</p>
+            <p className="mt-1 font-display text-lg font-bold tabular-nums text-success">{brl(sum.income)}</p>
+          </div>
+          <div className="rounded-2xl border border-border bg-card p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Sobra do mês</p>
+            <p className={`mt-1 font-display text-lg font-bold tabular-nums ${sum.balance >= 0 ? "text-success" : "text-destructive"}`}>{brl(sum.balance)}</p>
+          </div>
+        </div>
       </div>
+
       <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {chips.map(([k, l]) => (
           <button key={k} onClick={() => setF(k)} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${f === k ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}>{l}</button>
