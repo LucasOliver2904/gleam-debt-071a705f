@@ -85,11 +85,16 @@ function Dividas() {
   );
 }
 
-function Row({ d, months, cm }: { d: Debt; months: string[]; cm: string }) {
+function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string; onEdit: () => void }) {
   const r = debtRemaining(d);
   return (
     <tr className="border-t border-border">
-      <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">{d.name} <span className="text-xs text-muted-foreground">{d.due ? `· dia ${d.due} ` : ""}({r.count}x)</span></td>
+      <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">
+        <button onClick={onEdit} className="group inline-flex items-center gap-1.5 hover:text-primary">
+          {d.name} <Pencil size={12} className="text-muted-foreground group-hover:text-primary" />
+        </button>
+        <span className="text-xs text-muted-foreground"> {d.due ? `· dia ${d.due} ` : ""}({r.count}x)</span>
+      </td>
       {months.map((m) => {
         const p = d.payments[m];
         return (
