@@ -32,24 +32,24 @@ function Dashboard() {
 
   return (
     <AppShell>
-      <h1 className="font-display text-3xl font-bold">Olá, Lucas 👋</h1>
+      <h1 className="font-display text-2xl md:text-3xl font-bold">Olá, Lucas 👋</h1>
       <p className="mt-1 text-muted-foreground">Resumo de {monthLabel(cm, true)}</p>
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Stat label="Total que ainda devo" value={brl(totalRemaining)} tone="neg" />
         <Stat label="A pagar neste mês" value={brl(now.pending)} />
         <Stat label="Entradas do mês" value={brl(now.income)} tone="pos" />
         <Stat label="Sobra do mês" value={brl(now.balance)} tone={now.balance >= 0 ? "pos" : "neg"} />
       </div>
 
-      <section className="mt-8 rounded-2xl border border-border bg-card p-5">
+      <section className="mt-8 rounded-2xl border border-border bg-card p-4 md:p-5">
         <h2 className="font-display text-lg font-semibold">Entradas x Saídas</h2>
-        <div className="mt-4 h-72">
+        <div className="mt-4 h-56 md:h-72">
           <ResponsiveContainer>
             <BarChart data={chart}>
               <CartesianGrid stroke="var(--border)" vertical={false} />
               <XAxis dataKey="mes" stroke="var(--muted-foreground)" fontSize={12} />
-              <YAxis stroke="var(--muted-foreground)" fontSize={12} />
+              <YAxis width={45} stroke="var(--muted-foreground)" fontSize={12} />
               <Tooltip formatter={(v: number) => brl(v)} contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 12 }} />
               <Legend />
               <Bar dataKey="Entradas" fill="var(--success)" radius={[6, 6, 0, 0]} />
@@ -60,7 +60,7 @@ function Dashboard() {
       </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-5">
+        <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
           <h2 className="font-display text-lg font-semibold">Próximos meses</h2>
           <table className="mt-4 w-full text-sm">
             <thead className="text-left text-muted-foreground">
@@ -82,7 +82,7 @@ function Dashboard() {
           </table>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5">
+        <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display text-lg font-semibold">Maiores dívidas restantes</h2>
             <Link to="/dividas" className="text-sm text-primary hover:underline">Ver todas</Link>
@@ -91,7 +91,7 @@ function Dashboard() {
             {top.map(({ d, r }) => (
               <li key={d.id}>
                 <div className="flex justify-between text-sm">
-                  <span className="font-medium">{d.name}</span>
+                  <span className="font-medium">{d.name}{d.due ? <span className="text-xs text-muted-foreground"> · dia {d.due}</span> : null}</span>
                   <span>{brl(r.remaining)} <span className="text-muted-foreground">· {r.left}x</span></span>
                 </div>
                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-secondary">

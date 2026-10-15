@@ -2,10 +2,11 @@ import { useSyncExternalStore } from "react";
 
 export type DebtType = "parcelada" | "fixa";
 export type Payment = { amount: number; paid: boolean };
-export type Debt = { id: string; name: string; type: DebtType; payments: Record<string, Payment> };
+export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; payments: Record<string, Payment> };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida" };
 export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[] };
 
+export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
 const KEY = "minhas-financas-v1";
 const CURRENT = "2026-10";
 
@@ -37,7 +38,7 @@ function seed(): State {
       const m = addMonths(start, i);
       payments[m] = { amount: v, paid: m <= CURRENT };
     });
-    return { id: uid(), name, type, payments };
+    return fixDue({ id: uid(), name, type, payments });
   };
   const r = (v: number, n: number) => Array(n).fill(v);
   const debts = [
@@ -69,6 +70,14 @@ function seed(): State {
   return { debts, income, txs: [] };
 }
 
+// "Shopee (16)" => name "Shopee", due 16. "(16) B" => name "Shopee B".
+export function fixDue(d: Debt): Debt {
+  const m = d.name.match(/\s*\((\d{1,2})\)\s*/);
+  if (!m || d.due) return d;
+  const name = d.name.replace(m[0], " ").replace(/\s+/g, " ").trim();
+  return { ...d, name, due: Number(m[1]) };
+}
+
 let state: State | null = null;
 const listeners = new Set<() => void>();
 function load(): State {
@@ -76,6 +85,7 @@ function load(): State {
   try {
     const raw = localStorage.getItem(KEY);
     state = raw ? JSON.parse(raw) : seed();
+    state = { ...state!, debts: state!.debts.map(fixDue) };
   } catch {
     state = seed();
   }
