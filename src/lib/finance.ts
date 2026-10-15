@@ -179,10 +179,23 @@ function load(): State {
   }
   return state!;
 }
+let syncHandler: ((s: State) => void) | null = null;
+export function setSyncHandler(h: ((s: State) => void) | null) {
+  syncHandler = h;
+}
+export function getState() {
+  return load();
+}
+export function applyRemote(s: State) {
+  state = normalize(s);
+  localStorage.setItem(KEY, JSON.stringify(state));
+  listeners.forEach((l) => l());
+}
 export function setState(fn: (s: State) => State) {
   state = normalize(fn(load()));
   localStorage.setItem(KEY, JSON.stringify(state));
   listeners.forEach((l) => l());
+  syncHandler?.(state);
 }
 const EMPTY: State = { debts: [], income: {}, txs: [] };
 export function useFinance(): State & { ready: boolean } {
