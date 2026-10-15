@@ -301,6 +301,10 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
                   <p className={`text-[11px] ${p.paid ? "text-success" : "text-destructive"}`}>{p.paid ? "Pago" : "Pendente"}</p>
                 </div>
               </button>
+              <button onClick={() => onEdit(d)} aria-label={`Editar ${d.name}`}
+                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <Pencil size={14} />
+              </button>
             </li>
           );
         })}
