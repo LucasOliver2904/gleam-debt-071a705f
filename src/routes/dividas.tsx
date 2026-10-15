@@ -17,7 +17,10 @@ export const Route = createFileRoute("/dividas")({
 });
 
 function togglePaid(id: string, m: string) {
-  setState((s) => ({ ...s, debts: s.debts.map((d) => d.id !== id ? d : { ...d, payments: { ...d.payments, [m]: { ...d.payments[m], paid: !d.payments[m].paid } } }) }));
+  setState((s) => ({ ...s, debts: s.debts.map((d) => {
+    const p = d.payments[m];
+    return d.id !== id || !p ? d : { ...d, payments: { ...d.payments, [m]: { amount: p.amount, paid: !p.paid } } };
+  }) }));
 }
 
 function Dividas() {
