@@ -1,8 +1,15 @@
 import { useSyncExternalStore } from "react";
 
-export type DebtType = "parcelada" | "fixa";
+export type DebtType = "parcelada" | "fixa" | "unica";
+export const TYPE_INFO: Record<DebtType, { label: string; short: string; desc: string }> = {
+  parcelada: { label: "Parcelada", short: "Parcelada", desc: "Compra dividida em X parcelas" },
+  fixa: { label: "Fixa (todo mês)", short: "Fixa", desc: "Conta recorrente, repete todos os meses" },
+  unica: { label: "Só este mês", short: "Única", desc: "Paga uma única vez, em um mês" },
+};
+export const CATEGORIES = ["Cartão", "Empréstimo", "Compras", "Moradia", "Contas da casa", "Assinaturas", "Transporte", "Saúde", "Educação", "Lazer", "Pessoas", "Outros"] as const;
+export type Recurring = { amount: number; start: string; end?: string | undefined };
 export type Payment = { amount: number; paid: boolean };
-export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; payments: Record<string, Payment> };
+export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; category?: string | undefined; note?: string | undefined; recurring?: Recurring | undefined; skipped?: string[] | undefined; payments: Record<string, Payment> };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida" };
 export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[] };
 
@@ -78,6 +85,88 @@ export function fixDue(d: Debt): Debt {
   return { ...d, name, due: Number(m[1]) };
 }
 
+const HORIZON = 12; // meses à frente gerados para contas fixas
+function normalizeDebt(d0: Debt): Debt {
+  let d = fixDue(d0);
+  if (!d.category) d = { ...d, category: guessCategory(d) };
+  if (d.type !== "fixa") return d.recurring ? { ...d, recurring: undefined } : d;
+  const keys = Object.keys(d.payments).sort();
+  let rec = d.recurring;
+  if (!rec) {
+    const last = keys[keys.length - 1];
+    rec = { amount: last ? d.payments[last]!.amount : 0, start: keys[0] ?? currentMonth() };
+    d = { ...d, recurring: rec };
+  }
+  const limit = addMonths(currentMonth(), HORIZON);
+  const stop = rec.end && rec.end < limit ? rec.end : limit;
+  const skip = new Set(d.skipped ?? []);
+  let payments = d.payments;
+  // remove meses depois do encerramento
+  if (rec.end) for (const k of keys) if (k > rec.end && !payments[k]!.paid) { if (payments === d.payments) payments = { ...payments }; delete payments[k]; }
+  for (let m = rec.start; m <= stop; m = addMonths(m, 1)) {
+    if (!payments[m] && !skip.has(m)) { if (payments === d.payments) payments = { ...payments }; payments[m] = { amount: rec.amount, paid: false }; }
+  }
+  return payments === d.payments ? d : { ...d, payments };
+}
+function guessCategory(d: Debt) {
+  const n = d.name.toLowerCase();
+  if (/spotify|netflix|prime|disney|hbo|youtube/.test(n)) return "Assinaturas";
+  if (/tim|vivo|claro|oi |luz|água|agua|internet|energia/.test(n)) return "Contas da casa";
+  if (/shopee|mercado|amazon|magalu/.test(n)) return "Compras";
+  if (/card|cartão|cartao|nubank|itaú|itau|nacional/.test(n)) return "Cartão";
+  if (/sicredi|empr|banco/.test(n)) return "Empréstimo";
+  if (/aula|curso|escola/.test(n)) return "Educação";
+  if (/\(/.test(d0name(d))) return "Pessoas";
+  return "Outros";
+}
+const d0name = (d: Debt) => d.name;
+function normalize(s: State): State {
+  return { ...s, debts: s.debts.map(normalizeDebt) };
+}
+
+export function skipMonth(id: string, m: string) {
+  setState((s) => ({ ...s, debts: s.debts.map((d) => {
+    if (d.id !== id) return d;
+    const payments = { ...d.payments }; delete payments[m];
+    return { ...d, payments, skipped: d.type === "fixa" ? [...new Set([...(d.skipped ?? []), m])] : d.skipped };
+  }) }));
+}
+
+export function exportBackup() {
+  return JSON.stringify(load(), null, 2);
+}
+export function importBackup(json: string) {
+  const data = JSON.parse(json) as State;
+  if (!Array.isArray(data.debts) || typeof data.income !== "object" || !Array.isArray(data.txs)) throw new Error("Arquivo inválido");
+  setState(() => data);
+}
+export function resetAll(withExample: boolean) {
+  setState(() => (withExample ? seed() : { debts: [], income: {}, txs: [] }));
+}
+
+export type Alert = { d: Debt; m: string; amount: number; status: "atrasada" | "hoje" | "breve" };
+export function alerts(s: State): Alert[] {
+  const today = new Date();
+  const cm = currentMonth();
+  const day = today.getDate();
+  const out: Alert[] = [];
+  s.debts.forEach((d) => Object.entries(d.payments).forEach(([m, p]) => {
+    if (p.paid || m > cm) return;
+    const dd = d.due ?? 31;
+    if (m < cm || dd < day) out.push({ d, m, amount: p.amount, status: "atrasada" });
+    else if (dd === day) out.push({ d, m, amount: p.amount, status: "hoje" });
+    else if (dd - day <= 7) out.push({ d, m, amount: p.amount, status: "breve" });
+  }));
+  const rank = { atrasada: 0, hoje: 1, breve: 2 };
+  return out.sort((a, b) => rank[a.status] - rank[b.status] || a.m.localeCompare(b.m) || (a.d.due ?? 99) - (b.d.due ?? 99));
+}
+
+export function debtFreeMonth(s: State) {
+  let last = "";
+  s.debts.forEach((d) => { if (d.type === "fixa") return; Object.entries(d.payments).forEach(([m, p]) => { if (!p.paid && m > last) last = m; }); });
+  return last || null;
+}
+
 let state: State | null = null;
 const listeners = new Set<() => void>();
 function load(): State {
@@ -85,14 +174,14 @@ function load(): State {
   try {
     const raw = localStorage.getItem(KEY);
     state = raw ? JSON.parse(raw) : seed();
-    state = { ...state!, debts: state!.debts.map(fixDue) };
+    state = normalize(state!);
   } catch {
     state = seed();
   }
   return state!;
 }
 export function setState(fn: (s: State) => State) {
-  state = fn(load());
+  state = normalize(fn(load()));
   localStorage.setItem(KEY, JSON.stringify(state));
   listeners.forEach((l) => l());
 }
@@ -127,7 +216,7 @@ export function monthSummary(s: State, m: string) {
 }
 
 export function debtRemaining(d: Debt) {
-  const ps = Object.values(d.payments);
+  const ps = Object.entries(d.payments).filter(([m]) => d.type !== "fixa" || m <= currentMonth()).map(([, p]) => p);
   const open = ps.filter((p) => !p.paid);
   return { total: ps.reduce((a, p) => a + p.amount, 0), remaining: open.reduce((a, p) => a + p.amount, 0), left: open.length, count: ps.length };
 }
