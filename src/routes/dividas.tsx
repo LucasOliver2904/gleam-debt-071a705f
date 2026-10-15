@@ -48,7 +48,7 @@ function Dividas() {
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova dívida</button>
       </div>
 
-      <MobileList />
+      <MobileList onEdit={setEditing} />
       <div className="mt-6 hidden md:block overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full min-w-max text-sm">
           <thead>
@@ -80,6 +80,7 @@ function Dividas() {
         <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-destructive" /> Pendente</span>
       </div>
       {open && <NewDebt onClose={() => setOpen(false)} />}
+      {editing && <EditDebt debt={editing} onClose={() => setEditing(null)} />}
     </AppShell>
   );
 }
