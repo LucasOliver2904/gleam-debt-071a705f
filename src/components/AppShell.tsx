@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { LayoutDashboard, CreditCard, ArrowLeftRight, Wallet } from "lucide-react";
+import { LayoutDashboard, CreditCard, ArrowLeftRight, Wallet, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 
 const nav = [
   { to: "/", label: "Painel", icon: LayoutDashboard },
   { to: "/dividas", label: "Dívidas", icon: CreditCard },
   { to: "/lancamentos", label: "Lançamentos", icon: ArrowLeftRight },
+  { to: "/ajustes", label: "Ajustes", icon: Settings },
 ] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -29,7 +30,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 pt-5 pb-28 md:py-8">{children}</main>
-      <nav style={{ paddingBottom: "env(safe-area-inset-bottom)" }} className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-3 border-t border-border bg-background/95 backdrop-blur md:hidden">
+      <nav style={{ paddingBottom: "env(safe-area-inset-bottom)" }} className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-border bg-background/95 backdrop-blur md:hidden">
         {nav.map((n) => (
           <Link key={n.to} to={n.to} activeOptions={{ exact: true }}
             className="flex flex-col items-center gap-1 py-2.5 text-xs text-muted-foreground"
