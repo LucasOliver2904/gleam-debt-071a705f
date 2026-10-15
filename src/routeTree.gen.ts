@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as DividasRouteImport } from './routes/dividas'
 import { Route as LancamentosRouteImport } from './routes/lancamentos'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AjustesRoute = AjustesRouteImport.update({
+  id: '/ajustes',
+  path: '/ajustes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DividasRoute = DividasRouteImport.update({
@@ -31,30 +37,34 @@ const LancamentosRoute = LancamentosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
   '/lancamentos': typeof LancamentosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
   '/lancamentos': typeof LancamentosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
   '/lancamentos': typeof LancamentosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dividas' | '/lancamentos'
+  fullPaths: '/' | '/ajustes' | '/dividas' | '/lancamentos'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dividas' | '/lancamentos'
-  id: '__root__' | '/' | '/dividas' | '/lancamentos'
+  to: '/' | '/ajustes' | '/dividas' | '/lancamentos'
+  id: '__root__' | '/' | '/ajustes' | '/dividas' | '/lancamentos'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AjustesRoute: typeof AjustesRoute
   DividasRoute: typeof DividasRoute
   LancamentosRoute: typeof LancamentosRoute
 }
@@ -66,6 +76,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ajustes': {
+      id: '/ajustes'
+      path: '/ajustes'
+      fullPath: '/ajustes'
+      preLoaderRoute: typeof AjustesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dividas': {
@@ -87,6 +104,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AjustesRoute: AjustesRoute,
   DividasRoute: DividasRoute,
   LancamentosRoute: LancamentosRoute,
 }
