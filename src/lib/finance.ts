@@ -2,7 +2,7 @@ import { useSyncExternalStore } from "react";
 
 export type DebtType = "parcelada" | "fixa";
 export type Payment = { amount: number; paid: boolean };
-export type Debt = { id: string; name: string; type: DebtType; due?: number; payments: Record<string, Payment> };
+export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; payments: Record<string, Payment> };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida" };
 export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[] };
 
