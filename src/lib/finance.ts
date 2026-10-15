@@ -12,7 +12,7 @@ const CURRENT = "2026-10";
 export const uid = () => Math.random().toString(36).slice(2, 10);
 
 export function addMonths(m: string, n: number) {
-  const [y, mo] = m.split("-").map(Number);
+  const [y = 2026, mo = 1] = m.split("-").map(Number);
   const d = new Date(y, mo - 1 + n, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
@@ -23,7 +23,7 @@ export function currentMonth() {
 const MESES = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const MESES_L = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 export const monthLabel = (m: string, long = false) => {
-  const [y, mo] = m.split("-").map(Number);
+  const [y = 2026, mo = 1] = m.split("-").map(Number);
   return `${(long ? MESES_L : MESES)[mo - 1]}/${String(y).slice(long ? 0 : 2)}`;
 };
 export const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
