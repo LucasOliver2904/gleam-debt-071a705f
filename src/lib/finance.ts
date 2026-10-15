@@ -116,10 +116,9 @@ function guessCategory(d: Debt) {
   if (/card|cartão|cartao|nubank|itaú|itau|nacional/.test(n)) return "Cartão";
   if (/sicredi|empr|banco/.test(n)) return "Empréstimo";
   if (/aula|curso|escola/.test(n)) return "Educação";
-  if (/\(/.test(d0name(d))) return "Pessoas";
+  if (/\(/.test(d.name)) return "Pessoas";
   return "Outros";
 }
-const d0name = (d: Debt) => d.name;
 function normalize(s: State): State {
   return { ...s, debts: s.debts.map(normalizeDebt) };
 }
