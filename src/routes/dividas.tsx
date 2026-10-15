@@ -26,6 +26,7 @@ function togglePaid(id: string, m: string) {
 function Dividas() {
   const s = useFinance();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Debt | null>(null);
   if (!s.ready) return <AppShell><div /></AppShell>;
   const months = allMonths(s);
   const cm = currentMonth();
@@ -33,7 +34,7 @@ function Dividas() {
   const Section = ({ type, title }: { type: DebtType; title: string }) => (
     <>
       <tr><td colSpan={months.length + 3} className="bg-accent px-3 py-2 font-display text-sm font-bold uppercase tracking-widest text-accent-foreground">{title}</td></tr>
-      {s.debts.filter((d) => d.type === type).map((d) => <Row key={d.id} d={d} months={months} cm={cm} />)}
+      {s.debts.filter((d) => d.type === type).map((d) => <Row key={d.id} d={d} months={months} cm={cm} onEdit={() => setEditing(d)} />)}
     </>
   );
 
