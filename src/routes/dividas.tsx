@@ -400,7 +400,6 @@ function EditDebt({ debt, onClose }: { debt: Debt; onClose: () => void }) {
     </Sheet>
   );
 }
-}
 
 function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const s = useFinance();
