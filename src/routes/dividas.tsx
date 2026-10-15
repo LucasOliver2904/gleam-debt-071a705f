@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, uid, useFinance, type Debt, type DebtType } from "@/lib/finance";
 
