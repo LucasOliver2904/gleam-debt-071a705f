@@ -408,7 +408,10 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const [m, setM] = useState(() => (months.includes(currentMonth()) ? currentMonth() : months[0] ?? currentMonth()));
   const i = months.indexOf(m);
   const sum = monthSummary(s, m);
-  const items = s.debts.filter((d) => d.payments[m]).sort((a, b) => (a.due ?? 99) - (b.due ?? 99));
+  const [f, setF] = useState<"todas" | "pendentes" | DebtType>("todas");
+  const items = s.debts.filter((d) => d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : d.type === f)))
+    .sort((a, b) => Number(a.payments[m]!.paid) - Number(b.payments[m]!.paid) || (a.due ?? 99) - (b.due ?? 99));
+  const chips: [typeof f, string][] = [["todas", "Todas"], ["pendentes", "Pendentes"], ["parcelada", "Parceladas"], ["fixa", "Fixas"], ["unica", "Únicas"]];
   return (
     <div className="mt-4 md:hidden">
       <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-2">
@@ -421,7 +424,13 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
         <div className="rounded-xl bg-card p-2"><p className="text-[11px] text-muted-foreground">Entradas</p><p className="text-sm font-bold text-success">{brl(sum.income)}</p></div>
         <div className="rounded-xl bg-card p-2"><p className="text-[11px] text-muted-foreground">Sobra</p><p className={`text-sm font-bold ${sum.balance >= 0 ? "text-success" : "text-destructive"}`}>{brl(sum.balance)}</p></div>
       </div>
-      <p className="mt-4 text-xs text-muted-foreground">Toque numa conta para marcar como paga.</p>
+      <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
+        {chips.map(([k, l]) => (
+          <button key={k} onClick={() => setF(k)} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${f === k ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}>{l}</button>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-muted-foreground">Toque numa conta para marcar como paga · lápis para editar.</p>
+      {items.length === 0 && <p className="mt-6 rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Nenhuma conta aqui.</p>}
       <ul className="mt-2 space-y-2">
         {items.map((d) => {
           const p = d.payments[m]!;
@@ -435,7 +444,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{d.name}</p>
-                  <p className="text-xs text-muted-foreground">{d.type === "fixa" ? "Fixa" : `Parcela ${n}/${r.count}`} · resta {brl(r.remaining)}</p>
+                  <p className="text-xs text-muted-foreground">{d.type === "fixa" ? "Fixa · todo mês" : d.type === "unica" ? "Só este mês" : `Parcela ${n}/${Object.keys(d.payments).length} · resta ${brl(r.remaining)}`}{d.category ? ` · ${d.category}` : ""}</p>
                 </div>
                 <div className="text-right">
                   <p className={`font-semibold tabular-nums ${p.paid ? "text-success" : ""}`}>{brl(p.amount)}</p>
