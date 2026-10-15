@@ -145,7 +145,7 @@ function IncomeCell({ m, value }: { m: string; value: number }) {
 }
 
 const input = "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:border-primary";
-const num = (v: string) => parseFloat(v.replace(/\./g, "").replace(",", ".")) || parseFloat(v) || 0;
+const num = (v: string) => (v.includes(",") ? parseFloat(v.replace(/\./g, "").replace(",", ".")) : parseFloat(v)) || 0;
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
