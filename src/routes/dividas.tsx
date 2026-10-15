@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Plus, Trash2, X } from "lucide-react";
+import { Pencil, Plus, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, uid, useFinance, type Debt, type DebtType } from "@/lib/finance";
 
@@ -26,6 +26,7 @@ function togglePaid(id: string, m: string) {
 function Dividas() {
   const s = useFinance();
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState<Debt | null>(null);
   if (!s.ready) return <AppShell><div /></AppShell>;
   const months = allMonths(s);
   const cm = currentMonth();
@@ -33,7 +34,7 @@ function Dividas() {
   const Section = ({ type, title }: { type: DebtType; title: string }) => (
     <>
       <tr><td colSpan={months.length + 3} className="bg-accent px-3 py-2 font-display text-sm font-bold uppercase tracking-widest text-accent-foreground">{title}</td></tr>
-      {s.debts.filter((d) => d.type === type).map((d) => <Row key={d.id} d={d} months={months} cm={cm} />)}
+      {s.debts.filter((d) => d.type === type).map((d) => <Row key={d.id} d={d} months={months} cm={cm} onEdit={() => setEditing(d)} />)}
     </>
   );
 
@@ -47,7 +48,7 @@ function Dividas() {
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova dívida</button>
       </div>
 
-      <MobileList />
+      <MobileList onEdit={setEditing} />
       <div className="mt-6 hidden md:block overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full min-w-max text-sm">
           <thead>
@@ -79,15 +80,21 @@ function Dividas() {
         <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-destructive" /> Pendente</span>
       </div>
       {open && <NewDebt onClose={() => setOpen(false)} />}
+      {editing && <EditDebt debt={editing} onClose={() => setEditing(null)} />}
     </AppShell>
   );
 }
 
-function Row({ d, months, cm }: { d: Debt; months: string[]; cm: string }) {
+function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string; onEdit: () => void }) {
   const r = debtRemaining(d);
   return (
     <tr className="border-t border-border">
-      <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">{d.name} <span className="text-xs text-muted-foreground">{d.due ? `· dia ${d.due} ` : ""}({r.count}x)</span></td>
+      <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">
+        <button onClick={onEdit} className="group inline-flex items-center gap-1.5 hover:text-primary">
+          {d.name} <Pencil size={12} className="text-muted-foreground group-hover:text-primary" />
+        </button>
+        <span className="text-xs text-muted-foreground"> {d.due ? `· dia ${d.due} ` : ""}({r.count}x)</span>
+      </td>
       {months.map((m) => {
         const p = d.payments[m];
         return (
@@ -185,7 +192,76 @@ function NewDebt({ onClose }: { onClose: () => void }) {
   );
 }
 
-function MobileList() {
+function EditDebt({ debt, onClose }: { debt: Debt; onClose: () => void }) {
+  const [name, setName] = useState(debt.name);
+  const [type, setType] = useState<DebtType>(debt.type);
+  const [due, setDue] = useState(debt.due ? String(debt.due) : "");
+  const [rows, setRows] = useState(() =>
+    Object.entries(debt.payments).sort(([a], [b]) => a.localeCompare(b)).map(([m, p]) => ({ m, amount: String(p.amount).replace(".", ","), paid: p.paid })),
+  );
+  const [err, setErr] = useState("");
+
+  const setRow = (i: number, patch: Partial<(typeof rows)[number]>) => setRows((rs) => rs.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+
+  const submit = () => {
+    if (!name.trim() || name.length > 80) return setErr("Informe um nome (até 80 caracteres).");
+    const payments: Debt["payments"] = {};
+    for (const r of rows) {
+      const v = parseFloat(r.amount.replace(",", "."));
+      if (!r.m) return setErr("Toda parcela precisa de um mês.");
+      if (!(v > 0)) return setErr(`Valor inválido em ${monthLabel(r.m) || "uma parcela"}.`);
+      payments[r.m] = { amount: v, paid: r.paid };
+    }
+    if (!Object.keys(payments).length) return setErr("A dívida precisa de ao menos uma parcela.");
+    const dd = parseInt(due);
+    setState((s) => ({ ...s, debts: s.debts.map((d) => (d.id === debt.id ? { ...d, name: name.trim(), type, due: dd >= 1 && dd <= 31 ? dd : undefined, payments } : d)) }));
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
+      <div className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-xl font-bold">Editar dívida</h2>
+          <button onClick={onClose} className="text-muted-foreground"><X size={18} /></button>
+        </div>
+        <div className="mt-5 space-y-4">
+          <label className="block text-sm">Nome<input className={input + " mt-1"} value={name} onChange={(e) => setName(e.target.value)} /></label>
+          <label className="block text-sm">Dia do vencimento<input className={input + " mt-1"} type="number" inputMode="numeric" min={1} max={31} value={due} onChange={(e) => setDue(e.target.value)} placeholder="Ex: 10" /></label>
+          <div className="grid grid-cols-2 gap-2">
+            {(["parcelada", "fixa"] as const).map((t) => (
+              <button key={t} onClick={() => setType(t)} className={`rounded-xl border px-3 py-2 text-sm capitalize ${type === t ? "border-primary bg-primary/15 text-primary" : "border-border"}`}>{t}</button>
+            ))}
+          </div>
+          <div>
+            <p className="text-sm font-medium">Parcelas ({rows.length})</p>
+            <div className="mt-2 space-y-2">
+              {rows.map((r, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <input type="month" value={r.m} onChange={(e) => setRow(i, { m: e.target.value })} className="w-[8.5rem] rounded-lg border border-input bg-background px-2 py-2 text-sm" />
+                  <input inputMode="decimal" value={r.amount} onChange={(e) => setRow(i, { amount: e.target.value })} className="w-24 rounded-lg border border-input bg-background px-2 py-2 text-right text-sm" />
+                  <button onClick={() => setRow(i, { paid: !r.paid })} title={r.paid ? "Paga" : "Pendente"}
+                    className={`rounded-lg px-2 py-2 text-xs font-semibold ${r.paid ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"}`}>
+                    {r.paid ? "Paga" : "Pend."}
+                  </button>
+                  <button onClick={() => setRows((rs) => rs.filter((_, j) => j !== i))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={15} /></button>
+                </div>
+              ))}
+            </div>
+            <button onClick={() => setRows((rs) => [...rs, { m: addMonths(rs[rs.length - 1]?.m ?? currentMonth(), 1), amount: rs[rs.length - 1]?.amount ?? "", paid: false }])}
+              className="mt-2 flex items-center gap-1.5 rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground hover:text-foreground">
+              <Plus size={14} /> Adicionar parcela
+            </button>
+          </div>
+          {err && <p className="text-sm text-destructive">{err}</p>}
+          <button onClick={submit} className="w-full rounded-xl bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90">Salvar alterações</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const s = useFinance();
   const months = allMonths(s);
   const [m, setM] = useState(() => (months.includes(currentMonth()) ? currentMonth() : months[0] ?? currentMonth()));
@@ -211,8 +287,8 @@ function MobileList() {
           const r = debtRemaining(d);
           const n = Object.keys(d.payments).sort().indexOf(m) + 1;
           return (
-            <li key={d.id}>
-              <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : "border-border bg-card"}`}>
+            <li key={d.id} className="relative">
+              <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 pr-11 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : "border-border bg-card"}`}>
                 <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-center leading-none ${p.paid ? "bg-success text-background" : "bg-secondary"}`}>
                   {d.due ? <span><span className="block text-[9px] uppercase">dia</span><b className="text-base">{d.due}</b></span> : <span className="text-xs">—</span>}
                 </div>
@@ -224,6 +300,10 @@ function MobileList() {
                   <p className={`font-semibold tabular-nums ${p.paid ? "text-success" : ""}`}>{brl(p.amount)}</p>
                   <p className={`text-[11px] ${p.paid ? "text-success" : "text-destructive"}`}>{p.paid ? "Pago" : "Pendente"}</p>
                 </div>
+              </button>
+              <button onClick={() => onEdit(d)} aria-label={`Editar ${d.name}`}
+                className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
+                <Pencil size={14} />
               </button>
             </li>
           );
