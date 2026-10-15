@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, uid, useFinance, dueLabel, type Debt, type DebtType } from "@/lib/finance";
+import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, uid, useFinance, type Debt, type DebtType } from "@/lib/finance";
 
 export const Route = createFileRoute("/dividas")({
   head: () => ({
@@ -213,7 +213,7 @@ function MobileList() {
           return (
             <li key={d.id}>
               <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : "border-border bg-card"}`}>
-                <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-center leading-none ${p.paid ? "bg-success text-success-foreground" : "bg-secondary"}`}>
+                <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-center leading-none ${p.paid ? "bg-success text-background" : "bg-secondary"}`}>
                   {d.due ? <span><span className="block text-[9px] uppercase">dia</span><b className="text-base">{d.due}</b></span> : <span className="text-xs">—</span>}
                 </div>
                 <div className="min-w-0 flex-1">
