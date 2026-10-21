@@ -115,12 +115,15 @@ function Dashboard() {
           : { ...d, payments: { ...d.payments, [m]: { ...d.payments[m]!, paid: true } } },
       ),
     }));
+  
   const top = s.debts
     .filter((d) => d.type === "parcelada")
     .map((d) => ({ d, r: debtRemaining(d) }))
     .filter((x) => x.r.remaining > 0)
     .sort((a, b) => b.r.remaining - a.r.remaining)
     .slice(0, 6);
+
+  const endingDebts = s.debts.filter(d => d.type === "parcelada" && debtRemaining(d).left === 1 && debtRemaining(d).remaining > 0);
 
   const hoje = new Date().toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -130,7 +133,6 @@ function Dashboard() {
 
   return (
     <AppShell>
-      {/* Cabeçalho */}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-bold md:text-3xl">Olá, Lucas 👋</h1>
@@ -146,7 +148,6 @@ function Dashboard() {
         </Link>
       </div>
 
-      {/* Cards de resumo */}
       <div className="mt-5 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Stat
           label="Total que ainda devo"
@@ -173,7 +174,21 @@ function Dashboard() {
         />
       </div>
 
-      {/* Progresso do mês */}
+      {endingDebts.length > 0 && (
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-500/20 text-amber-500"><PartyPopper size={20} /></span>
+            <div>
+              <p className="font-semibold text-amber-600 dark:text-amber-400">Você está quase lá!</p>
+              <p className="text-sm text-muted-foreground">
+                {endingDebts.length === 1 ? "1 conta" : `${endingDebts.length} contas`} na última parcela: {endingDebts.map(d => d.name).join(", ")}
+              </p>
+            </div>
+          </div>
+          <Link to="/dividas" className="shrink-0 text-sm font-medium text-amber-600 hover:underline dark:text-amber-400">Ver contas</Link>
+        </div>
+      )}
+
       <div className="mt-4 rounded-2xl border border-border bg-card p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 text-sm">
@@ -200,7 +215,6 @@ function Dashboard() {
         </p>
       </div>
 
-      {/* Atenção + Categorias */}
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
           <SectionTitle icon={<CalendarClock size={16} />}>Atenção</SectionTitle>
@@ -315,7 +329,6 @@ function Dashboard() {
         </section>
       </div>
 
-      {/* Gráfico Entradas x Saídas */}
       <section className="mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
         <SectionTitle icon={<ArrowLeftRight size={16} />}>Entradas x Saídas</SectionTitle>
         <div className="mt-4 h-56 md:h-72">
@@ -340,7 +353,6 @@ function Dashboard() {
         </div>
       </section>
 
-      {/* Próximos meses + Maiores dívidas */}
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
           <SectionTitle icon={<CalendarClock size={16} />}>Próximos meses</SectionTitle>
@@ -391,11 +403,13 @@ function Dashboard() {
           <ul className="mt-4 space-y-4">
             {top.map(({ d, r }) => {
               const pct = Math.round(((r.count - r.left) / r.count) * 100);
+              const isLast = r.left === 1;
               return (
                 <li key={d.id}>
                   <div className="flex justify-between text-sm">
-                    <span className="font-medium">
+                    <span className="flex items-center gap-1.5 font-medium">
                       {d.name}
+                      {isLast && <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">Última</span>}
                       {d.due ? (
                         <span className="text-xs text-muted-foreground"> · dia {d.due}</span>
                       ) : null}
@@ -408,7 +422,7 @@ function Dashboard() {
                   <div className="mt-1.5 flex items-center gap-2">
                     <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-primary/70 to-primary transition-all duration-500"
+                        className={`h-full rounded-full transition-all duration-500 ${isLast ? "bg-amber-500" : "bg-gradient-to-r from-primary/70 to-primary"}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
