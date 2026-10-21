@@ -86,6 +86,7 @@ function Dividas() {
       <div className="mt-3 hidden md:flex gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-success" /> Pago / Entrada</span>
         <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-destructive" /> Pendente / Saída</span>
+        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-amber-500" /> Última parcela</span>
       </div>
       {open && <NewDebt onClose={() => setOpen(false)} />}
       {editing && <EditDebt debt={editing} onClose={() => setEditing(null)} />}
@@ -134,12 +135,21 @@ function TxsSection({ months, q }: { months: string[]; q: string }) {
 
 function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string; onEdit: () => void }) {
   const r = debtRemaining(d);
+  const isLast = d.type === "parcelada" && r.left === 1 && r.remaining > 0;
+  const isAlmost = d.type === "parcelada" && r.left === 2 && r.remaining > 0;
+
   return (
     <tr className="border-t border-border">
       <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">
         <button onClick={onEdit} className="group inline-flex items-center gap-1.5 hover:text-primary">
           {d.name} <Pencil size={12} className="text-muted-foreground group-hover:text-primary" />
         </button>
+        {isLast && (
+          <span className="ml-2 rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">Última</span>
+        )}
+        {isAlmost && (
+          <span className="ml-2 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">Falta 2</span>
+        )}
         <span className="text-xs text-muted-foreground"> {d.due ? `· dia ${d.due} ` : ""}{d.type === "parcelada" ? `(${r.count}x)` : ""}</span>
       </td>
       {months.map((m) => {
@@ -156,7 +166,15 @@ function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string;
           </td>
         );
       })}
-      <td className="px-3 text-right font-semibold tabular-nums">{d.type === "fixa" ? <span className="text-xs font-normal text-muted-foreground">{brl(d.recurring?.amount ?? 0)}/mês</span> : r.remaining ? brl(r.remaining) : <span className="text-success">Quitada</span>}</td>
+      <td className="px-3 text-right font-semibold tabular-nums">
+        {d.type === "fixa" ? (
+          <span className="text-xs font-normal text-muted-foreground">{brl(d.recurring?.amount ?? 0)}/mês</span>
+        ) : r.remaining ? (
+          <span className={isLast ? "text-amber-600 dark:text-amber-400" : ""}>{brl(r.remaining)}</span>
+        ) : (
+          <span className="text-success">Quitada</span>
+        )}
+      </td>
       <td className="pr-2">
         <button onClick={() => confirm(`Excluir "${d.name}"?`) && setState((s) => ({ ...s, debts: s.debts.filter((x) => x.id !== d.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
       </td>
@@ -461,7 +479,6 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const i = months.indexOf(m);
   const sum = monthSummary(s, m);
 
-  // Detalhamento de "a pagar" por tipo (pendentes do mês selecionado)
   const breakdown = (() => {
     let parcelada = 0, fixa = 0, unica = 0;
     s.debts.forEach((d) => {
@@ -476,11 +493,11 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
     return { parcelada, fixa, unica, avulsas, total: parcelada + fixa + unica + avulsas };
   })();
 
-  const [f, setF] = useState<"todas" | "pendentes" | DebtType>("todas");
-  const items = s.debts.filter((d) => d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : d.type === f)))
+  const [f, setF] = useState<"todas" | "pendentes" | "acabando" | DebtType>("todas");
+  const items = s.debts.filter((d) => d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : f === "acabando" ? (d.type === "parcelada" && debtRemaining(d).left > 0 && debtRemaining(d).left <= 2) : d.type === f)))
     .sort((a, b) => Number(a.payments[m]!.paid) - Number(b.payments[m]!.paid) || (a.due ?? 99) - (b.due ?? 99));
   const monthTxs = s.txs.filter((t) => t.date.startsWith(m)).sort((a, b) => a.date.localeCompare(b.date));
-  const chips: [typeof f, string][] = [["todas", "Todas"], ["pendentes", "Pendentes"], ["parcelada", "Parceladas"], ["fixa", "Fixas"], ["unica", "Únicas"]];
+  const chips: [typeof f, string][] = [["todas", "Todas"], ["pendentes", "Pendentes"], ["acabando", "Acabando"], ["parcelada", "Parceladas"], ["fixa", "Fixas"], ["unica", "Únicas"]];
   return (
     <div className="mt-4 md:hidden">
       <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-2">
@@ -489,9 +506,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
         <button disabled={i >= months.length - 1} onClick={() => setM(months[i + 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">›</button>
       </div>
 
-      {/* Resumo do mês */}
       <div className="mt-3 space-y-2.5">
-        {/* A pagar total + detalhamento */}
         <div className="rounded-2xl border border-border bg-card p-4">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">A pagar total</span>
@@ -505,7 +520,6 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
           </div>
         </div>
 
-        {/* Entradas e Sobra */}
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Entradas</p>
@@ -530,19 +544,26 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
           const p = d.payments[m]!;
           const r = debtRemaining(d);
           const n = Object.keys(d.payments).sort().indexOf(m) + 1;
+          const isLast = d.type === "parcelada" && r.left === 1 && r.remaining > 0;
+          const isAlmost = d.type === "parcelada" && r.left === 2 && r.remaining > 0;
+
           return (
             <li key={d.id} className="relative">
-              <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 pr-11 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : "border-border bg-card"}`}>
-                <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-center leading-none ${p.paid ? "bg-success text-background" : "bg-secondary"}`}>
+              <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 pr-11 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : isLast ? "border-amber-500/40 bg-amber-500/5" : "border-border bg-card"}`}>
+                <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-center leading-none ${p.paid ? "bg-success text-background" : isLast ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-secondary"}`}>
                   {d.due ? <span><span className="block text-[9px] uppercase">dia</span><b className="text-base">{d.due}</b></span> : <span className="text-xs">—</span>}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">{d.name}</p>
+                  <p className="flex items-center gap-1.5 truncate font-medium">
+                    {d.name}
+                    {isLast && <span className="shrink-0 rounded bg-amber-500/20 px-1 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">Última</span>}
+                    {isAlmost && <span className="shrink-0 rounded bg-secondary px-1 py-0.5 text-[9px] font-bold text-muted-foreground">Falta 2</span>}
+                  </p>
                   <p className="text-xs text-muted-foreground">{d.type === "fixa" ? "Fixa · todo mês" : d.type === "unica" ? "Só este mês" : `Parcela ${n}/${Object.keys(d.payments).length} · resta ${brl(r.remaining)}`}{d.category ? ` · ${d.category}` : ""}</p>
                 </div>
                 <div className="text-right">
-                  <p className={`font-semibold tabular-nums ${p.paid ? "text-success" : ""}`}>{brl(p.amount)}</p>
-                  <p className={`text-[11px] ${p.paid ? "text-success" : "text-destructive"}`}>{p.paid ? "Pago" : "Pendente"}</p>
+                  <p className={`font-semibold tabular-nums ${p.paid ? "text-success" : isLast ? "text-amber-600 dark:text-amber-400" : ""}`}>{brl(p.amount)}</p>
+                  <p className={`text-[11px] ${p.paid ? "text-success" : isLast ? "text-amber-600 dark:text-amber-400" : "text-destructive"}`}>{p.paid ? "Pago" : "Pendente"}</p>
                 </div>
               </button>
               <button onClick={() => onEdit(d)} aria-label={`Editar ${d.name}`}
