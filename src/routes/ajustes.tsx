@@ -1,59 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef } from "react";
-import { ChevronRight, Download, RotateCcw, Trash2, Upload, type LucideIcon } from "lucide-react";
+import { useRef, useState } from "react";
+import { Bell, ChevronRight, Download, RotateCcw, Trash2, Upload, type LucideIcon } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { exportBackup, importBackup, resetAll, useFinance } from "@/lib/finance";
+import { exportBackup, importBackup, resetAll, useFinance, alerts } from "@/lib/finance";
 
 export const Route = createFileRoute("/ajustes")({
   head: () => ({
     meta: [
       { title: "Ajustes e backup — Meu Caixa" },
       { name: "description", content: "Faça backup dos seus dados e restaure em outro aparelho." },
-      { property: "og:title", content: "Ajustes e backup — Meu Caixa" },
-      { property: "og:description", content: "Backup e restauração das suas finanças." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Ajustes,
 });
 
-function Card({
-  icon: I,
-  title,
-  desc,
-  action,
-  danger,
-}: {
-  icon: LucideIcon;
-  title: string;
-  desc: string;
-  action: () => void;
-  danger?: boolean;
-}) {
+function Card({ icon: I, title, desc, action, danger }: { icon: LucideIcon; title: string; desc: string; action: () => void; danger?: boolean }) {
   return (
-    <button
-      onClick={action}
-      className={`group flex w-full items-center gap-4 rounded-2xl border bg-card p-4 text-left transition hover:bg-secondary/50 ${
-        danger ? "border-destructive/30" : "border-border hover:border-primary/30"
-      }`}
-    >
-      <span
-        className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${
-          danger ? "bg-destructive/15 text-destructive" : "bg-primary/15 text-primary"
-        }`}
-      >
+    <button onClick={action} className={`group flex w-full items-center gap-4 rounded-2xl border bg-card p-4 text-left transition hover:bg-secondary/50 ${danger ? "border-destructive/30" : "border-border hover:border-primary/30"}`}>
+      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${danger ? "bg-destructive/15 text-destructive" : "bg-primary/15 text-primary"}`}>
         <I size={20} />
       </span>
       <span className="min-w-0 flex-1">
         <b className="block text-[15px] font-semibold">{title}</b>
         <span className="text-sm text-muted-foreground">{desc}</span>
       </span>
-      <ChevronRight
-        size={18}
-        className="shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground"
-      />
+      <ChevronRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
     </button>
   );
 }
@@ -61,6 +33,7 @@ function Card({
 function Ajustes() {
   const s = useFinance();
   const file = useRef<HTMLInputElement>(null);
+  const [notifAtiva, setNotifAtiva] = useState(Notification.permission === "granted");
 
   const download = () => {
     const blob = new Blob([exportBackup()], { type: "application/json" });
@@ -81,6 +54,36 @@ function Ajustes() {
     }
   };
 
+  const ativarNotificacoes = async () => {
+    if (!("Notification" in window)) {
+      toast.error("Seu navegador não suporta notificações.");
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === "granted") {
+      setNotifAtiva(true);
+      toast.success("Notificações ativadas!");
+      
+      // Verifica se tem contas vencendo hoje ou atrasadas
+      const hoje = new Date();
+      const cm = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
+      const avisos = alerts(s);
+      const pendentes = avisos.filter(a => a.m === cm);
+      
+      if (pendentes.length > 0) {
+        if (navigator.serviceWorker.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SHOW_NOTIFICATION',
+            title: 'Contas a vencer!',
+            body: `Você tem ${pendentes.length} conta(s) pendente(s) este mês.`
+          });
+        }
+      }
+    } else {
+      toast.error("Permissão negada.");
+    }
+  };
+
   return (
     <AppShell>
       <div>
@@ -91,69 +94,33 @@ function Ajustes() {
       </div>
 
       <div className="mt-6 grid max-w-2xl gap-6">
+        {/* SEÇÃO DE NOTIFICAÇÕES */}
         <section>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Backup
-          </p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Lembretes</p>
+          <Card
+            icon={Bell}
+            title={notifAtiva ? "Notificações Ativadas" : "Ativar notificações"}
+            desc={notifAtiva ? "Você receberá avisos de contas vencendo." : "Receba avisos quando contas estiverem vencendo."}
+            action={notifAtiva ? () => toast("Já está ativado!") : ativarNotificacoes}
+          />
+        </section>
+
+        {/* SEÇÃO DE BACKUP */}
+        <section>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Backup</p>
           <div className="space-y-3">
-            <Card
-              icon={Download}
-              title="Baixar backup"
-              desc="Salva um arquivo com todos os seus dados."
-              action={download}
-            />
-            <Card
-              icon={Upload}
-              title="Restaurar backup"
-              desc="Carrega um arquivo de backup (ex: passar do PC para o celular)."
-              action={() => file.current?.click()}
-            />
-            <input
-              ref={file}
-              type="file"
-              accept="application/json,.json"
-              hidden
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) upload(f);
-                e.target.value = "";
-              }}
-            />
+            <Card icon={Download} title="Baixar backup" desc="Salva um arquivo com todos os seus dados." action={download} />
+            <Card icon={Upload} title="Restaurar backup" desc="Carrega um arquivo de backup." action={() => file.current?.click()} />
+            <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
           </div>
         </section>
 
+        {/* ZONA DE PERIGO */}
         <section>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-            Dados
-          </p>
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-destructive/80">Zona de perigo</p>
           <div className="space-y-3">
-            <Card
-              icon={RotateCcw}
-              title="Voltar dados de exemplo"
-              desc="Recarrega as contas da planilha original."
-              action={() =>
-                confirm("Substituir tudo pelos dados de exemplo?") &&
-                (resetAll(true), toast("Dados de exemplo carregados"))
-              }
-            />
-          </div>
-        </section>
-
-        <section>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-destructive/80">
-            Zona de perigo
-          </p>
-          <div className="space-y-3">
-            <Card
-              icon={Trash2}
-              danger
-              title="Apagar tudo"
-              desc="Começa do zero. Faça um backup antes!"
-              action={() =>
-                confirm("Apagar TODOS os dados? Isso não pode ser desfeito.") &&
-                (resetAll(false), toast("Tudo apagado"))
-              }
-            />
+            <Card icon={RotateCcw} title="Voltar dados de exemplo" desc="Recarrega as contas da planilha original." action={() => confirm("Substituir tudo pelos dados de exemplo?") && (resetAll(true), toast("Dados de exemplo carregados"))} />
+            <Card icon={Trash2} danger title="Apagar tudo" desc="Começa do zero. Faça um backup antes!" action={() => confirm("Apagar TODOS os dados?") && (resetAll(false), toast("Tudo apagado"))} />
           </div>
         </section>
       </div>
