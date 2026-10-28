@@ -146,15 +146,19 @@ export function resetAll(withExample: boolean) {
 export type Alert = { d: Debt; m: string; amount: number; status: "atrasada" | "hoje" | "breve" };
 export function alerts(s: State): Alert[] {
   const today = new Date();
-  const cm = currentMonth();
-  const day = today.getDate();
+  today.setHours(0, 0, 0, 0);
+  const limit = new Date(today);
+  limit.setDate(limit.getDate() + 7);
   const out: Alert[] = [];
   s.debts.forEach((d) => Object.entries(d.payments).forEach(([m, p]) => {
-    if (p.paid || m > cm) return;
-    const dd = d.due ?? 31;
-    if (m < cm || dd < day) out.push({ d, m, amount: p.amount, status: "atrasada" });
-    else if (dd === day) out.push({ d, m, amount: p.amount, status: "hoje" });
-    else if (dd - day <= 7) out.push({ d, m, amount: p.amount, status: "breve" });
+    if (p.paid) return;
+    const [year, month] = m.split("-").map(Number);
+    if (!year || !month || month < 1 || month > 12) return;
+    const lastDay = new Date(year, month, 0).getDate();
+    const dueDate = new Date(year, month - 1, Math.min(d.due ?? lastDay, lastDay));
+    if (dueDate > limit) return;
+    const status = dueDate < today ? "atrasada" : dueDate.getTime() === today.getTime() ? "hoje" : "breve";
+    out.push({ d, m, amount: p.amount, status });
   }));
   const rank = { atrasada: 0, hoje: 1, breve: 2 };
   return out.sort((a, b) => rank[a.status] - rank[b.status] || a.m.localeCompare(b.m) || (a.d.due ?? 99) - (b.d.due ?? 99));
