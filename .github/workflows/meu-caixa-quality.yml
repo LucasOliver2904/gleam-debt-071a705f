@@ -1,0 +1,29 @@
+name: Validar Meu Caixa
+on:
+  push:
+    branches:
+      - main
+      - feat/finance-premium-reminders-20261111
+  pull_request:
+    branches:
+      - main
+jobs:
+  quality:
+    name: Testes e compilação
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Obter código
+        uses: actions/checkout@v4
+      - name: Preparar Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Instalar dependências
+        run: bun install --frozen-lockfile
+      - name: Rodar testes
+        run: bun run test
+      - name: Validar TypeScript
+        run: bun x tsc --noEmit
+      - name: Compilar aplicação
+        run: bun run build

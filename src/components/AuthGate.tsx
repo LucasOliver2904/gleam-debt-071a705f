@@ -19,9 +19,21 @@ export function AuthGate({ children }: { children: ReactNode }) {
     if (!userId) return;
     let stop: (() => void) | undefined;
     let cancelled = false;
-    startSync(userId).then((s) => (cancelled ? s() : (stop = s)));
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const connect = async () => {
+      try {
+        const cleanup = await startSync(userId);
+        if (cancelled) cleanup();
+        else stop = cleanup;
+      } catch (error) {
+        console.error("O Meu Caixa tentará restabelecer a sincronização.", error);
+        if (!cancelled) retry = setTimeout(() => void connect(), 15000);
+      }
+    };
+    void connect();
     return () => {
       cancelled = true;
+      clearTimeout(retry);
       stop?.();
     };
   }, [userId]);
