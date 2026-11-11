@@ -124,7 +124,7 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    document.documentElement.dataset.theme = localStorage.getItem("meu-caixa-theme") === "light" ? "light" : "dark";
+    document.documentElement.dataset["theme"] = localStorage.getItem("meu-caixa-theme") === "light" ? "light" : "dark";
     // Registro necessário para os avisos do navegador e instalação do app.
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);

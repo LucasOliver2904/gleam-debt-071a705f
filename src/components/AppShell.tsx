@@ -131,7 +131,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
     localStorage.setItem("meu-caixa-theme", next);
-    document.documentElement.dataset.theme = next;
+    document.documentElement.dataset["theme"] = next;
   };
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
