@@ -11,7 +11,7 @@ export type Recurring = { amount: number; start: string; end?: string | undefine
 export type Payment = { amount: number; paid: boolean };
 export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; category?: string | undefined; note?: string | undefined; recurring?: Recurring | undefined; skipped?: string[] | undefined; payments: Record<string, Payment> };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida" };
-export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[] };
+export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean } };
 
 export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
 const KEY = "minhas-financas-v1";
@@ -35,6 +35,10 @@ export const monthLabel = (m: string, long = false) => {
   return `${(long ? MESES_L : MESES)[mo - 1]}/${String(y).slice(long ? 0 : 2)}`;
 };
 export const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export function localToday() {
+  const now = new Date();
+  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+}
 
 function seed(): State {
   const start = "2026-08";
