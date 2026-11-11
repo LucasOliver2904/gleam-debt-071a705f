@@ -23,5 +23,7 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Rodar testes
         run: bun run test
+      - name: Validar TypeScript
+        run: bun x tsc --noEmit
       - name: Compilar aplicação
         run: bun run build

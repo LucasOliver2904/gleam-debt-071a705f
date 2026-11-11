@@ -95,7 +95,7 @@ function Lancamentos() {
           </button>
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_145px_155px_155px_auto]">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_145px_155px_155px_auto]">
           <input className={input} placeholder="Descrição (ex: Mercado, Freela...)" value={desc} onChange={(e) => setDesc(e.target.value)} />
           <input className={input} placeholder="Valor R$" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
           <input className={input} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
