@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   LogOut,
   Plus,
+  Moon,
+  Sun,
   Settings,
   Wallet,
   X,
@@ -14,7 +16,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
-import { setState, uid, type Tx } from "@/lib/finance";
+import { localToday, setState, uid, type Tx } from "@/lib/finance";
+import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
   { to: "/", label: "Painel", icon: LayoutDashboard },
@@ -29,11 +32,11 @@ const isActive = (path: string, to: string) =>
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className={`flex items-center gap-2.5 ${compact ? "" : "px-5 py-5"}`}>
-      <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/60 font-display text-sm font-bold text-primary-foreground shadow-sm">
-        MC
+      <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/10">
+        <Wallet size={20} strokeWidth={2.2} />
       </span>
       {!compact && (
-        <span className="font-display text-lg font-bold tracking-tight">Meu Caixa</span>
+        <span><span className="block font-display text-lg font-extrabold tracking-tight">Meu Caixa</span><span className="block text-[9px] font-semibold tracking-[0.16em] text-muted-foreground">FINANÇAS PESSOAIS</span></span>
       )}
     </Link>
   );
@@ -53,7 +56,7 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
   const [kind, setKind] = useState<Tx["kind"]>("saida");
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => localToday());
   const [err, setErr] = useState("");
 
   const submit = () => {
@@ -118,12 +121,26 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  useEffect(() => {
+    setTheme(localStorage.getItem("meu-caixa-theme") === "light" ? "light" : "dark");
+  }, []);
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem("meu-caixa-theme", next);
+    document.documentElement.dataset.theme = next;
+  };
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) toast.error("Não foi possível sair. Tente novamente.");
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-card/40 backdrop-blur-xl lg:flex">
+      <aside className="finance-nav fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border backdrop-blur-xl lg:flex">
         <Brand />
-        <nav className="flex-1 space-y-0.5 px-3">
+        <nav className="flex-1 space-y-1 px-3 pt-6"><p className="mb-3 px-3 text-[10px] font-bold tracking-[0.16em] text-muted-foreground">ESPAÇO DE TRABALHO</p>
           {NAV.map(({ to, label, icon: Icon }) => {
             const on = isActive(path, to);
             return (
@@ -136,28 +153,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-border p-3">
+          <button onClick={toggleTheme} className="mb-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}{theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
           <div className="flex items-center gap-3 rounded-xl px-2 py-2">
             <Avatar />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">Lucas</p>
-              <p className="truncate text-xs text-muted-foreground">Conta local</p>
+              <p className="truncate text-xs text-muted-foreground">Seu espaço financeiro</p>
             </div>
-            <button aria-label="Sair" className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-secondary hover:text-foreground">
+            <button aria-label="Sair da conta" onClick={() => void signOut()} className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-secondary hover:text-foreground">
               <LogOut size={15} />
             </button>
           </div>
         </div>
       </aside>
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/85 px-4 backdrop-blur-xl lg:hidden">
+      <div className="min-w-0 lg:pl-64">
+        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
           <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 font-display text-xs font-bold text-primary-foreground">
-              MC
-            </span>
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground"><Wallet size={17} /></span>
             <span className="font-display text-base font-bold">Meu Caixa</span>
           </div>
-          <Avatar />
+          <div className="flex items-center gap-2"><button onClick={toggleTheme} aria-label="Alternar tema" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button><Avatar /></div>
         </header>
 
         <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 lg:px-8 lg:pb-14 lg:pt-8">
@@ -176,7 +192,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {quickAddOpen && <QuickAdd onClose={() => setQuickAddOpen(false)} />}
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 shadow-[0_-8px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
         <div className="mx-auto grid max-w-md grid-cols-4">
           {NAV.map(({ to, label, icon: Icon }) => {
             const on = isActive(path, to);
@@ -210,7 +226,7 @@ export function Stat({
   const color =
     tone === "pos" ? "text-success" : tone === "neg" ? "text-destructive" : "text-foreground";
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 transition hover:border-primary/30">
+    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg md:p-5">
       <div className="flex items-start justify-between gap-2">
         <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
           {label}
@@ -229,7 +245,7 @@ export function Stat({
           </span>
         )}
       </div>
-      <p className={`mt-2 font-display text-2xl font-bold leading-tight tabular-nums ${color}`}>
+      <p className={`mt-3 font-display text-xl font-extrabold leading-tight tracking-tight tabular-nums sm:text-2xl ${color}`}>
         {value}
       </p>
       {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}

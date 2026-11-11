@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Receipt, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
-import { brl, monthLabel, setState, uid, useFinance, type Tx } from "@/lib/finance";
+import { brl, localToday, monthLabel, setState, uid, useFinance, type Tx } from "@/lib/finance";
 
 export const Route = createFileRoute("/lancamentos")({
   head: () => ({
@@ -24,7 +24,7 @@ function Lancamentos() {
   const [kind, setKind] = useState<Tx["kind"]>("saida");
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
-  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(() => localToday());
   const [err, setErr] = useState("");
   if (!s.ready) return <AppShell><div /></AppShell>;
 

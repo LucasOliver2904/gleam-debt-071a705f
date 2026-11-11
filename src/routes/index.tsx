@@ -28,8 +28,10 @@ import {
   YAxis,
 } from "recharts";
 import { AppShell, Stat } from "@/components/AppShell";
+import { FinancialBriefing } from "@/components/FinancialBriefing";
 import {
   alerts,
+  addMonths,
   allMonths,
   brl,
   currentMonth,
@@ -83,8 +85,8 @@ function Dashboard() {
   const cm = currentMonth();
   const now = monthSummary(s, cm);
   const totalRemaining = s.debts.reduce((a, d) => a + debtRemaining(d).remaining, 0);
-  const future = months.filter((m) => m >= cm);
-  const chart = months.map((m) => {
+  const future = Array.from({ length: 6 }, (_, index) => addMonths(cm, index));
+  const chart = months.filter((m) => m >= addMonths(cm, -3) && m <= addMonths(cm, 5)).map((m) => {
     const x = monthSummary(s, m);
     return { mes: monthLabel(m), Entradas: +x.income.toFixed(2), Saídas: +x.out.toFixed(2) };
   });
@@ -136,7 +138,8 @@ function Dashboard() {
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="font-display text-2xl font-bold md:text-3xl">Olá, Lucas 👋</h1>
+          <p className="finance-kicker">MEU CAIXA / VISÃO GERAL</p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Olá, Lucas 👋</h1>
           <p className="mt-1 text-sm capitalize text-muted-foreground">
             {hoje} · Resumo de {monthLabel(cm, true)}
           </p>
@@ -147,6 +150,20 @@ function Dashboard() {
         >
           Ver dívidas <ArrowRight size={14} />
         </Link>
+      </div>
+
+      <div className="finance-hero mt-6 overflow-hidden rounded-3xl border border-primary/15 px-5 py-6 text-white md:px-8 md:py-8">
+        <div className="relative z-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div className="max-w-xl">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-200">Seu dinheiro, com clareza</p>
+            <h2 className="mt-3 font-display text-2xl font-extrabold leading-tight tracking-tight md:text-4xl">Planeje hoje.<br />Viva mais tranquilo amanhã.</h2>
+            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-200">Acompanhe seus compromissos, entenda suas despesas e saiba o que precisa de atenção antes do vencimento.</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Link to="/dividas" className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-emerald-200">Ver contas <ArrowRight size={16} /></Link>
+            <Link to="/lancamentos" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">Novo lançamento</Link>
+          </div>
+        </div>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
@@ -168,7 +185,7 @@ function Dashboard() {
           icon={ArrowDownLeft}
         />
         <Stat
-          label="Sobra do mês"
+          label="Sobra prevista"
           value={brl(now.balance)}
           tone={now.balance >= 0 ? "pos" : "neg"}
           icon={PiggyBank}
@@ -215,6 +232,8 @@ function Dashboard() {
             : " · você está livre de parceladas 🎉"}
         </p>
       </div>
+
+      <FinancialBriefing state={s} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
@@ -279,7 +298,7 @@ function Dashboard() {
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<TrendingUp size={16} />}>Gastos por categoria</SectionTitle>
+          <SectionTitle icon={<TrendingUp size={16} />}>Compromissos por categoria</SectionTitle>
           {pie.length === 0 ? (
             <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border py-10 text-center">
               <p className="text-sm text-muted-foreground">Sem contas neste mês.</p>
@@ -331,7 +350,7 @@ function Dashboard() {
       </div>
 
       <section className="mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
-        <SectionTitle icon={<ArrowLeftRight size={16} />}>Entradas x Saídas</SectionTitle>
+        <SectionTitle icon={<ArrowLeftRight size={16} />}>Entradas x despesas previstas</SectionTitle>
         <div className="mt-4 h-56 md:h-72">
           <ResponsiveContainer>
             <BarChart data={chart}>
@@ -357,6 +376,7 @@ function Dashboard() {
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
           <SectionTitle icon={<CalendarClock size={16} />}>Próximos meses</SectionTitle>
+          <p className="mt-1 text-xs text-muted-foreground">Previsão baseada nas contas e na renda informadas.</p>
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
