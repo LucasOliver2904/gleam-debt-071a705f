@@ -1,128 +1,249 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { Bell, ChevronRight, Download, RotateCcw, Trash2, Upload, type LucideIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff, Info, MonitorSmartphone, RotateCcw, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { exportBackup, importBackup, resetAll, useFinance, alerts } from "@/lib/finance";
+import { alerts, exportBackup, importBackup, resetAll, setState, useFinance } from "@/lib/finance";
+import { DEFAULT_REMINDER_CONFIG, reminderConfig, type ReminderConfig } from "@/lib/reminders";
 
 export const Route = createFileRoute("/ajustes")({
   head: () => ({
     meta: [
-      { title: "Ajustes e backup — Meu Caixa" },
-      { name: "description", content: "Faça backup dos seus dados e restaure em outro aparelho." },
+      { title: "Preferências e lembretes — Meu Caixa" },
+      { name: "description", content: "Personalize os lembretes de vencimento, notificações e backups." },
     ],
   }),
   component: Ajustes,
 });
 
-function Card({ icon: I, title, desc, action, danger }: { icon: LucideIcon; title: string; desc: string; action: () => void; danger?: boolean }) {
+const reminderDays = [
+  { value: 0, label: "No dia" },
+  { value: 1, label: "1 dia antes" },
+  { value: 3, label: "3 dias antes" },
+  { value: 7, label: "7 dias antes" },
+  { value: 15, label: "15 dias antes" },
+  { value: 30, label: "30 dias antes" },
+];
+
+function ActionRow({
+  icon: Icon, title, description, action, danger = false,
+}: {
+  icon: typeof Bell;
+  title: string;
+  description: string;
+  action: () => void;
+  danger?: boolean;
+}) {
   return (
-    <button onClick={action} className={`group flex w-full items-center gap-4 rounded-2xl border bg-card p-4 text-left transition hover:bg-secondary/50 ${danger ? "border-destructive/30" : "border-border hover:border-primary/30"}`}>
-      <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${danger ? "bg-destructive/15 text-destructive" : "bg-primary/15 text-primary"}`}>
-        <I size={20} />
-      </span>
+    <button type="button" onClick={action} className="group flex w-full items-center gap-3 rounded-xl border border-border bg-card px-4 py-3.5 text-left transition hover:border-primary/40 hover:bg-secondary/40">
+      <span className={"grid h-10 w-10 shrink-0 place-items-center rounded-xl " + (danger ? "bg-destructive/15 text-destructive" : "bg-primary/10 text-primary")}><Icon size={19} /></span>
       <span className="min-w-0 flex-1">
-        <b className="block text-[15px] font-semibold">{title}</b>
-        <span className="text-sm text-muted-foreground">{desc}</span>
+        <span className="block text-sm font-semibold">{title}</span>
+        <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">{description}</span>
       </span>
-      <ChevronRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-0.5 group-hover:text-foreground" />
+      <ChevronRight size={16} className="shrink-0 text-muted-foreground transition group-hover:translate-x-0.5" />
     </button>
   );
 }
 
 function Ajustes() {
   const s = useFinance();
-  const file = useRef<HTMLInputElement>(null);
-  const [notifAtiva, setNotifAtiva] = useState(Notification.permission === "granted");
+  const backupInput = useRef<HTMLInputElement>(null);
+  const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
+  const prefs = reminderConfig(s);
+
+  useEffect(() => {
+    setPermission("Notification" in window ? Notification.permission : "unsupported");
+  }, []);
+
+  const updateSettings = (patch: Partial<ReminderConfig>) => {
+    setState((current) => ({
+      ...current,
+      reminderConfig: { ...reminderConfig(current), ...patch },
+    }));
+  };
+
+  const activate = async () => {
+    if (!("Notification" in window) || !("serviceWorker" in navigator)) {
+      toast.error("Este navegador não suporta notificações do aplicativo.");
+      return;
+    }
+    let result = Notification.permission;
+    if (result !== "granted") result = await Notification.requestPermission();
+    setPermission(result);
+    if (result !== "granted") {
+      toast.error(result === "denied" ? "Permissão bloqueada. Libere nas configurações do navegador." : "É necessário permitir notificações para receber lembretes.");
+      return;
+    }
+    updateSettings({ enabled: true });
+    toast.success("Lembretes ativados neste navegador!");
+  };
+
+  const test = async () => {
+    if (!("Notification" in window) || Notification.permission !== "granted" || !("serviceWorker" in navigator)) {
+      toast.error("Ative a permissão de notificações antes de testar.");
+      return;
+    }
+    try {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.showNotification("Meu Caixa • Tudo pronto!", {
+        body: "O teste de notificação funcionou. Seus vencimentos estão no painel.",
+        icon: "/icons/icon-192.png",
+        badge: "/favicon.png",
+        tag: "meu-caixa-teste",
+        data: { url: "/" },
+      });
+      toast.success("Notificação de teste enviada");
+    } catch {
+      toast.error("Não foi possível mostrar a notificação. Confira as permissões do navegador.");
+    }
+  };
 
   const download = () => {
     const blob = new Blob([exportBackup()], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = `meu-caixa-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.href = url;
+    a.download = "meu-caixa-backup-" + new Date().toLocaleDateString("en-CA") + ".json";
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
-    toast.success("Backup baixado");
+    a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 500);
+    toast.success("Backup baixado com sucesso.");
   };
 
-  const upload = async (f: File) => {
+  const restore = async (file: File) => {
     try {
-      importBackup(await f.text());
-      toast.success("Dados restaurados");
+      const text = await file.text();
+      const parsed = JSON.parse(text) as { debts?: unknown[] };
+      if (!Array.isArray(parsed.debts)) throw new Error("Formato desconhecido");
+      if (!window.confirm("Substituir seus dados atuais por este backup? Faça uma cópia antes de continuar.")) return;
+      importBackup(text);
+      toast.success("Backup restaurado.");
     } catch {
-      toast.error("Arquivo inválido");
+      toast.error("Arquivo inválido. Selecione um backup do Meu Caixa.");
     }
   };
 
-  const ativarNotificacoes = async () => {
-    if (!("Notification" in window)) {
-      toast.error("Seu navegador não suporta notificações.");
-      return;
-    }
-    const perm = await Notification.requestPermission();
-    if (perm === "granted") {
-      setNotifAtiva(true);
-      toast.success("Notificações ativadas!");
-      
-      // Verifica se tem contas vencendo hoje ou atrasadas
-      const hoje = new Date();
-      const cm = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
-      const avisos = alerts(s);
-      const pendentes = avisos.filter(a => a.m === cm);
-      
-      if (pendentes.length > 0) {
-        if (navigator.serviceWorker.controller) {
-          navigator.serviceWorker.controller.postMessage({
-            type: 'SHOW_NOTIFICATION',
-            title: 'Contas a vencer!',
-            body: `Você tem ${pendentes.length} conta(s) pendente(s) este mês.`
-          });
-        }
-      }
-    } else {
-      toast.error("Permissão negada.");
-    }
-  };
+  const notice = permission === "unsupported"
+    ? "Seu navegador não oferece notificações web."
+    : permission === "denied"
+      ? "O navegador bloqueou as notificações. Desbloqueie nas configurações do site."
+      : permission === "granted"
+        ? "Seu navegador permite notificações."
+        : "Ative as notificações para receber avisos de vencimento.";
+
+  const billCount = alerts(s).length;
 
   return (
     <AppShell>
-      <div>
-        <h1 className="font-display text-2xl font-bold md:text-3xl">Ajustes</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {s.debts.length} contas · {s.txs.length} lançamentos salvos neste aparelho.
-        </p>
+      <div className="mb-6">
+        <p className="finance-kicker">PREFERÊNCIAS / SEGURANÇA</p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Ajustes e lembretes</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Seu centro de controle. Personalize os avisos e mantenha seus dados protegidos.</p>
       </div>
 
-      <div className="mt-6 grid max-w-2xl gap-6">
-        {/* SEÇÃO DE NOTIFICAÇÕES */}
-        <section>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Lembretes</p>
-          <Card
-            icon={Bell}
-            title={notifAtiva ? "Notificações Ativadas" : "Ativar notificações"}
-            desc={notifAtiva ? "Você receberá avisos de contas vencendo." : "Receba avisos quando contas estiverem vencendo."}
-            action={notifAtiva ? () => toast("Já está ativado!") : ativarNotificacoes}
-          />
-        </section>
+      <div className="grid max-w-4xl gap-5">
+        <section className="overflow-hidden rounded-2xl border border-border bg-card">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
+            <div className="flex items-start gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Bell size={21} /></span>
+              <div>
+                <h2 className="font-display text-lg font-bold">Alertas de contas</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Receba avisos para não perder o dia de pagar.</p>
+              </div>
+            </div>
+            <span className={"inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold " + (prefs.enabled && permission === "granted" ? "bg-success/15 text-success" : "bg-secondary text-muted-foreground")}>
+              {prefs.enabled && permission === "granted" ? <CheckCircle2 size={14} /> : <BellOff size={14} />}
+              {prefs.enabled && permission === "granted" ? "Ativos" : "Desativados"}
+            </span>
+          </div>
 
-        {/* SEÇÃO DE BACKUP */}
-        <section>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Backup</p>
-          <div className="space-y-3">
-            <Card icon={Download} title="Baixar backup" desc="Salva um arquivo com todos os seus dados." action={download} />
-            <Card icon={Upload} title="Restaurar backup" desc="Carrega um arquivo de backup." action={() => file.current?.click()} />
-            <input ref={file} type="file" accept="application/json,.json" hidden onChange={(e) => { const f = e.target.files?.[0]; if (f) upload(f); e.target.value = ""; }} />
+          <div className="space-y-5 p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">{notice}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{billCount} conta(s) atrasada(s) ou vencendo nos próximos 7 dias.</p>
+              </div>
+              {prefs.enabled ? (
+                <button onClick={() => { updateSettings({ enabled: false }); toast("Lembretes do app pausados."); }} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold transition hover:bg-secondary">
+                  Pausar lembretes
+                </button>
+              ) : (
+                <button onClick={() => void activate()} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground transition hover:opacity-90">
+                  <Bell size={16} /> Ativar lembretes
+                </button>
+              )}
+            </div>
+
+            <div>
+              <p className="text-sm font-semibold">Quando você quer ser lembrado?</p>
+              <p className="mt-1 text-xs text-muted-foreground">Marque os intervalos desejados. Contas atrasadas também aparecem no painel.</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {reminderDays.map(({ value, label }) => {
+                  const checked = prefs.daysBefore.includes(value);
+                  return (
+                    <button key={value} type="button" aria-pressed={checked}
+                      onClick={() => updateSettings({ daysBefore: checked ? prefs.daysBefore.filter((d) => d !== value) : [...prefs.daysBefore, value].sort((a, b) => a - b) })}
+                      className={"inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-semibold transition " + (checked ? "border-primary/50 bg-primary/15 text-primary" : "border-border bg-secondary/50 text-muted-foreground hover:bg-secondary")}>
+                      {checked && <Check size={13} />} {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button type="button" onClick={() => updateSettings({ showDetails: !prefs.showDetails })} className="flex w-full items-center gap-3 rounded-xl border border-border bg-secondary/35 px-4 py-3 text-left transition hover:bg-secondary/65">
+              <span className="text-primary">{prefs.showDetails ? <Eye size={19} /> : <EyeOff size={19} />}</span>
+              <span className="flex-1"><strong className="block text-sm">Mostrar nomes e valores na notificação</strong>
+                <span className="text-xs text-muted-foreground">Desativado por padrão para proteger sua privacidade na tela bloqueada.</span>
+              </span>
+              <span className={"rounded-full px-2.5 py-1 text-[11px] font-bold " + (prefs.showDetails ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground")}>{prefs.showDetails ? "Sim" : "Não"}</span>
+            </button>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/70 bg-secondary/25 p-3">
+              <p className="flex items-center gap-2 text-xs leading-relaxed text-muted-foreground"><Info size={18} className="shrink-0" /> Os avisos automáticos funcionam quando você abre ou retorna ao app. O envio com o app fechado ainda exige um serviço de push remoto configurado.</p>
+              <button type="button" onClick={() => void test()} disabled={permission !== "granted"} className="shrink-0 rounded-lg border border-border bg-card px-3 py-2 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-50">Testar notificação</button>
+            </div>
           </div>
         </section>
 
-        {/* ZONA DE PERIGO */}
-        <section>
-          <p className="mb-2 text-[11px] font-semibold uppercase tracking-widest text-destructive/80">Zona de perigo</p>
-          <div className="space-y-3">
-            <Card icon={RotateCcw} title="Voltar dados de exemplo" desc="Recarrega as contas da planilha original." action={() => confirm("Substituir tudo pelos dados de exemplo?") && (resetAll(true), toast("Dados de exemplo carregados"))} />
-            <Card icon={Trash2} danger title="Apagar tudo" desc="Começa do zero. Faça um backup antes!" action={() => confirm("Apagar TODOS os dados?") && (resetAll(false), toast("Tudo apagado"))} />
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent"><ShieldCheck size={20} /></span>
+            <div><h2 className="font-display text-lg font-bold">Seus dados e backups</h2><p className="text-xs text-muted-foreground">{s.debts.length} contas · {s.txs.length} lançamentos</p></div>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <ActionRow icon={Download} title="Baixar backup" description="Guarde uma cópia dos seus dados em JSON." action={download} />
+            <ActionRow icon={Upload} title="Restaurar backup" description="Importe um backup salvo anteriormente." action={() => backupInput.current?.click()} />
+            <input hidden ref={backupInput} type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restore(file); event.target.value = ""; }} />
           </div>
         </section>
+
+        <section className="rounded-2xl border border-border bg-card p-5">
+          <div className="mb-4 flex items-center gap-2"><MonitorSmartphone className="text-primary" size={19} /><h2 className="font-display text-lg font-bold">Personalização</h2></div>
+          <p className="text-sm text-muted-foreground">Alterne entre modo escuro e claro pelo menu lateral ou no topo da versão mobile. Sua escolha é lembrada neste dispositivo.</p>
+        </section>
+
+        <section className="rounded-2xl border border-destructive/25 bg-card p-5">
+          <h2 className="font-display text-lg font-bold text-destructive">Zona de cuidado</h2>
+          <p className="mb-4 mt-1 text-xs text-muted-foreground">Ações que substituem ou excluem registros financeiros. Baixe um backup antes de prosseguir.</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            <ActionRow icon={RotateCcw} danger title="Carregar dados de exemplo" description="Substitui todos os registros atuais por exemplos." action={() => {
+              if (window.confirm("Isso substituirá todos os dados deste app. Deseja continuar?")) {
+                resetAll(true);
+                toast("Dados de exemplo carregados.");
+              }
+            }} />
+            <ActionRow icon={Trash2} danger title="Apagar tudo" description="Remove todos os dados financeiros armazenados." action={() => {
+              if (window.confirm("Tem certeza? Todos os registros financeiros serão apagados e a alteração será sincronizada.")) {
+                resetAll(false);
+                toast("Registros apagados.");
+              }
+            }} />
+          </div>
+        </section>
+        <p className="text-center text-[11px] text-muted-foreground">Meu Caixa · Controle financeiro pessoal · Configuração padrão: {DEFAULT_REMINDER_CONFIG.daysBefore.length} intervalos de aviso</p>
       </div>
     </AppShell>
   );
