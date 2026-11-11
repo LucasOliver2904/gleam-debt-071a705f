@@ -35,7 +35,7 @@ function Dividas() {
 
   const Section = ({ type, title }: { type: DebtType; title: string }) => (
     <>
-      <tr><td colSpan={months.length + 3} className="bg-accent px-3 py-2 font-display text-sm font-bold uppercase tracking-widest text-accent-foreground">{title}</td></tr>
+      <tr><td colSpan={months.length + 3} className="bg-secondary px-3 py-2 font-display text-xs font-bold uppercase tracking-widest text-muted-foreground">{title}</td></tr>
       {s.debts.filter((d) => d.type === type && d.name.toLowerCase().includes(q.toLowerCase())).map((d) => <Row key={d.id} d={d} months={months} cm={cm} onEdit={() => setEditing(d)} />)}
     </>
   );
@@ -44,7 +44,8 @@ function Dividas() {
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-2xl md:text-3xl font-bold">Dívidas</h1>
+          <p className="finance-kicker">SEUS COMPROMISSOS</p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Dívidas e parcelas</h1>
           <p className="mt-1 hidden md:block text-sm text-muted-foreground">Clique numa parcela para marcar como paga / pendente. Clique no salário para editar.</p>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova conta</button>
@@ -103,7 +104,7 @@ function TxsSection({ months, q }: { months: string[]; q: string }) {
   if (txs.length === 0) return null;
   return (
     <>
-      <tr><td colSpan={months.length + 3} className="bg-accent px-3 py-2 font-display text-sm font-bold uppercase tracking-widest text-accent-foreground">Lançamentos avulsos</td></tr>
+      <tr><td colSpan={months.length + 3} className="bg-secondary px-3 py-2 font-display text-xs font-bold uppercase tracking-widest text-muted-foreground">Lançamentos avulsos</td></tr>
       {txs.map((t) => {
         const tm = t.date.slice(0, 7);
         const entrada = t.kind === "entrada";
@@ -494,7 +495,8 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   })();
 
   const [f, setF] = useState<"todas" | "pendentes" | "acabando" | DebtType>("todas");
-  const items = s.debts.filter((d) => d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : f === "acabando" ? (d.type === "parcelada" && debtRemaining(d).left > 0 && debtRemaining(d).left <= 2) : d.type === f)))
+  const [search, setSearch] = useState("");
+  const items = s.debts.filter((d) => d.name.toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")) && d.payments[m] && (f === "todas" || (f === "pendentes" ? !d.payments[m]!.paid : f === "acabando" ? (d.type === "parcelada" && debtRemaining(d).left > 0 && debtRemaining(d).left <= 2) : d.type === f)))
     .sort((a, b) => Number(a.payments[m]!.paid) - Number(b.payments[m]!.paid) || (a.due ?? 99) - (b.due ?? 99));
   const monthTxs = s.txs.filter((t) => t.date.startsWith(m)).sort((a, b) => a.date.localeCompare(b.date));
   const chips: [typeof f, string][] = [["todas", "Todas"], ["pendentes", "Pendentes"], ["acabando", "Acabando"], ["parcelada", "Parceladas"], ["fixa", "Fixas"], ["unica", "Únicas"]];
@@ -522,16 +524,26 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
 
         <div className="grid grid-cols-2 gap-2.5">
           <div className="rounded-2xl border border-border bg-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Entradas</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Entradas previstas</p>
             <p className="mt-1 font-display text-lg font-bold tabular-nums text-success">{brl(sum.income)}</p>
+            <label className="mt-2 block text-[11px] text-muted-foreground">Salário estimado (R$)
+              <input type="number" inputMode="decimal" step="0.01" min="0" key={m} defaultValue={s.income[m] ?? 0} onBlur={(event) => {
+                const value = Math.max(0, Number(event.target.value) || 0);
+                if (value !== (s.income[m] ?? 0)) setState((st) => ({ ...st, income: { ...st.income, [m]: value } }));
+              }} className="mt-1 w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-primary" />
+            </label>
           </div>
           <div className="rounded-2xl border border-border bg-card p-4">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Sobra do mês</p>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Sobra prevista</p>
             <p className={`mt-1 font-display text-lg font-bold tabular-nums ${sum.balance >= 0 ? "text-success" : "text-destructive"}`}>{brl(sum.balance)}</p>
           </div>
         </div>
       </div>
 
+      <div className="relative mt-4">
+        <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <input aria-label="Buscar contas" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Buscar pelo nome da conta..." className="w-full rounded-xl border border-input bg-card py-3 pl-10 pr-3 text-sm outline-none focus:border-primary" />
+      </div>
       <div className="-mx-4 mt-4 flex gap-2 overflow-x-auto px-4 pb-1">
         {chips.map(([k, l]) => (
           <button key={k} onClick={() => setF(k)} className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-medium ${f === k ? "border-primary bg-primary/15 text-primary" : "border-border text-muted-foreground"}`}>{l}</button>
