@@ -600,7 +600,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{t.description}</p>
-                    <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}</p>
+                    <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}{t.category ? " · " + t.category : ""}</p>
                   </div>
                   <p className={`font-semibold tabular-nums ${entrada ? "text-success" : "text-destructive"}`}>{entrada ? "+" : "−"} {brl(t.amount)}</p>
                   <button onClick={() => confirm(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>

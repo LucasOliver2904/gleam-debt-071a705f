@@ -97,6 +97,10 @@ function Dashboard() {
     const p = d.payments[cm];
     if (p) cats.set(d.category ?? "Outros", (cats.get(d.category ?? "Outros") ?? 0) + p.amount);
   });
+  s.txs.filter((tx) => tx.kind === "saida" && tx.date.startsWith(cm)).forEach((tx) => {
+    const cat = tx.category || "Outros";
+    cats.set(cat, (cats.get(cat) ?? 0) + tx.amount);
+  });
   const pie = [...cats].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
   const COLORS = [
     "var(--chart-1)",
@@ -298,7 +302,7 @@ function Dashboard() {
         </section>
 
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<TrendingUp size={16} />}>Compromissos por categoria</SectionTitle>
+          <SectionTitle icon={<TrendingUp size={16} />}>Despesas por categoria</SectionTitle>
           {pie.length === 0 ? (
             <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border py-10 text-center">
               <p className="text-sm text-muted-foreground">Sem contas neste mês.</p>

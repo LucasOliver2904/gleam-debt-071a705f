@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
-import { localToday, setState, uid, type Tx } from "@/lib/finance";
+import { CATEGORIES, localToday, parseMoney, setState, uid, type Tx } from "@/lib/finance";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
@@ -56,14 +56,15 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
   const [kind, setKind] = useState<Tx["kind"]>("saida");
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
+  const [category, setCategory] = useState("Outros");
   const [date, setDate] = useState(() => localToday());
   const [err, setErr] = useState("");
 
   const submit = () => {
-    const v = parseFloat(amount.replace(",", "."));
+    const v = parseMoney(amount);
     if (!desc.trim() || desc.length > 100) return setErr("Informe uma descrição.");
     if (!(v > 0)) return setErr("Valor inválido.");
-    setState((st) => ({ ...st, txs: [{ id: uid(), date, description: desc.trim(), amount: v, kind }, ...st.txs] }));
+    setState((st) => ({ ...st, txs: [{ id: uid(), date, description: desc.trim(), amount: v, kind, category }, ...st.txs] }));
     toast.success(kind === "entrada" ? "Entrada registrada" : "Saída registrada");
     onClose();
   };
@@ -107,6 +108,7 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
             <input className={input + " mt-1"} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
 
+          <div><label className="block text-sm text-muted-foreground">Categoria</label><select className={input + " mt-1"} value={category} onChange={(e) => setCategory(e.target.value)}>{CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
           {err && <p className="text-sm text-destructive">{err}</p>}
           
           <button onClick={submit} className={`w-full rounded-xl py-3.5 font-semibold text-primary-foreground transition hover:opacity-90 ${kind === "entrada" ? "bg-success" : "bg-primary"}`}>
