@@ -6,9 +6,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
+import { PixAutomationPanel } from "@/components/PixAutomationPanel";
 import {
   brl, currentMonth, localToday, monthLabel, setState, uid, useFinance,
-  type PixData, type Tx,
+  type PixData, type PixInboxItem, type Tx,
 } from "@/lib/finance";
 import { parsePixNotification, pixAllocation } from "@/lib/pix";
 
@@ -28,6 +29,7 @@ const baseStatus: PixData["status"] = "pendente";
 function PixPage() {
   const s = useFinance();
   const [editId, setEditId] = useState<string | null>(null);
+  const [reviewingId, setReviewingId] = useState<string | null>(null);
   const [gross, setGross] = useState("");
   const [kept, setKept] = useState("");
   const [sender, setSender] = useState("");
@@ -42,6 +44,7 @@ function PixPage() {
   const [onlyPending, setOnlyPending] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
 
+  const inbox = [...(s.pixInbox ?? [])].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
   const received = s.txs.filter((tx) => tx.kind === "entrada" && tx.pix);
   const months = [...new Set(received.map((tx) => tx.date.slice(0, 7)).concat(currentMonth()))].sort().reverse();
   const filtered = received.filter((tx) =>
@@ -65,6 +68,7 @@ function PixPage() {
 
   const resetForm = () => {
     setEditId(null);
+    setReviewingId(null);
     setGross("");
     setKept("");
     setSender("");
@@ -79,6 +83,7 @@ function PixPage() {
 
   function edit(tx: Tx) {
     if (!tx.pix) return;
+    setReviewingId(null);
     setEditId(tx.id);
     setGross(String(tx.pix.gross).replace(".", ","));
     setKept(String(tx.pix.kept).replace(".", ","));
@@ -93,6 +98,32 @@ function PixPage() {
     document.getElementById("pix-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function reviewIncoming(item: PixInboxItem) {
+    setEditId(null);
+    setReviewingId(item.id);
+    setGross(String(item.gross).replace(".", ","));
+    setKept("");
+    setSender(item.sender ?? "");
+    setBank(item.bank ?? "");
+    setNote("");
+    setDate(item.date);
+    setStatus("pendente");
+    setSource("automacao");
+    setNotificationText("");
+    setFormOpen(true);
+    document.getElementById("pix-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function discardIncoming(item: PixInboxItem) {
+    if (!window.confirm("Ignorar este aviso de Pix? Você poderá cadastrá-lo manualmente depois.")) return;
+    setState((current) => ({
+      ...current,
+      pixInbox: (current.pixInbox ?? []).filter((row) => row.id !== item.id),
+    }));
+    if (reviewingId === item.id) resetForm();
+    toast.success("Aviso descartado.");
+  }
+
   function fromNotification() {
     const parsed = parsePixNotification(notificationText);
     if (!parsed) {
@@ -103,6 +134,8 @@ function PixPage() {
     setKept("");
     if (parsed.sender) setSender(parsed.sender);
     setSource("texto");
+    setReviewingId(null);
+    setEditId(null);
     setFormOpen(true);
     toast.success("Valor identificado! Confira e informe quanto fica com você.");
   }
@@ -120,6 +153,10 @@ function PixPage() {
       gross: split.gross, kept: split.kept,
       status: split.toPassOn === 0 ? "repassado" : status,
       source,
+      ...(reviewingId ? (() => {
+        const record = (s.pixInbox ?? []).find((item) => item.id === reviewingId);
+        return record ? { fingerprint: record.fingerprint, receivedAt: record.receivedAt } : {};
+      })() : {}),
       ...(sender.trim() ? { sender: sender.trim().slice(0, 100) } : {}),
       ...(bank.trim() ? { bank: bank.trim().slice(0, 60) } : {}),
     };
@@ -139,8 +176,9 @@ function PixPage() {
           id: uid() + uid(), date, description, kind: "entrada" as const,
           amount: split.kept, category: "Pix", pix,
         }, ...current.txs],
+        pixInbox: reviewingId ? (current.pixInbox ?? []).filter((row) => row.id !== reviewingId) : current.pixInbox,
       }));
-      toast.success("Pix registrado! Só a sua parte entra no painel.");
+      toast.success(reviewingId ? "Recebimento conferido! Só a sua parte entrou na renda." : "Pix registrado! Só a sua parte entra no painel.");
     }
     resetForm();
   }
@@ -185,10 +223,48 @@ function PixPage() {
         <Stat label="Já repassado" value={brl(repassedTotal)} icon={CheckCheck} />
       </div>
 
+      <PixAutomationPanel />
+
+      <section className="mt-6 rounded-3xl border border-primary/25 bg-card p-4 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="finance-kicker">NOTIFICAÇÕES / PARA CONFERIR</p>
+            <h2 className="mt-1 font-display text-xl font-extrabold">Pix recebidos automaticamente</h2>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">Estes avisos chegaram do Android, mas ainda não foram conferidos no banco nem classificados. Eles não alteram sua renda até você informar a parte que fica com você.</p>
+          </div>
+          <span className={"rounded-full px-3 py-1.5 text-xs font-bold " + (inbox.length ? "bg-accent/15 text-accent" : "bg-success/15 text-success")}>{inbox.length} a conferir</span>
+        </div>
+        {inbox.length === 0 ? (
+          <div className="mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border px-5 py-8 text-center">
+            <CheckCheck size={24} className="text-success" />
+            <p className="mt-2 text-sm font-semibold">Nenhum aviso esperando conferência</p>
+            <p className="mt-1 max-w-md text-xs text-muted-foreground">Depois de configurar a automação e receber um Pix, ele aparecerá aqui mesmo se o Meu Caixa estiver fechado no celular.</p>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-2">
+            {inbox.map((item) => (
+              <li key={item.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/25 p-3 sm:p-4">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent"><QrCode size={20} /></span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-bold">{item.sender ? "Pix de " + item.sender : "Pix recebido"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{new Date(item.receivedAt).toLocaleString("pt-BR")}{item.bank ? " · " + item.bank : ""}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-accent">Aguardando sua conferência</p>
+                </div>
+                <p className="shrink-0 font-display text-lg font-extrabold tabular-nums">{brl(item.gross)}</p>
+                <div className="flex w-full gap-2 sm:w-auto">
+                  <button onClick={() => reviewIncoming(item)} className="flex-1 rounded-xl bg-primary px-3.5 py-2.5 text-xs font-bold text-primary-foreground sm:flex-initial">Conferir e dividir</button>
+                  <button onClick={() => discardIncoming(item)} className="rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-muted-foreground hover:bg-secondary">Ignorar</button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       <div className="mt-5 grid gap-5 xl:grid-cols-[1.05fr_1fr]">
         <section id="pix-editor" className="scroll-mt-20 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div><p className="finance-kicker">LANÇAMENTO INTELIGENTE</p><h2 className="mt-1 font-display text-lg font-extrabold">{editId ? "Editar recebimento" : "Registrar recebimento"}</h2></div>
+            <div><p className="finance-kicker">LANÇAMENTO INTELIGENTE</p><h2 className="mt-1 font-display text-lg font-extrabold">{reviewingId ? "Conferir Pix recebido" : editId ? "Editar recebimento" : "Registrar recebimento"}</h2></div>
             {formOpen && <button type="button" onClick={resetForm} aria-label="Fechar edição" className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-secondary"><X size={17} /></button>}
           </div>
           {!formOpen ? (
@@ -238,7 +314,7 @@ function PixPage() {
               </label>
               <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mt-0.5 shrink-0" /> A renda do painel recebe apenas o valor da coluna “Seu”. O restante fica separado como repasse; isso não executa transferência bancária.</p>
               <button onClick={save} className="w-full rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground transition hover:opacity-90">
-                {editId ? "Salvar alterações" : "Registrar Pix"}
+                {reviewingId ? "Conferir e registrar" : editId ? "Salvar alterações" : "Registrar Pix"}
               </button>
             </div>
           )}

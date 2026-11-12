@@ -9,12 +9,15 @@ export function parsePixNotification(raw: string): ParsedPix | null {
   const credited = /\b(recebid[oa]|recebeu|creditad[oa]|entrada de pix|pix de entrada|pix que chegou)\b/i.test(text);
   const outgoing = /\b(pix enviado|pix realizado|pix efetuado|voc[eê] enviou|transfer[eê]ncia enviada|pagamento realizado)\b/i.test(text);
   if (!credited || outgoing) return null;
-  const amountMatch = text.match(/R\$\s*([\d.]+,\d{2}|[\d.]+)/i);
+  const amountMatch = text.match(/R\$\s*([\d.]+,\d{2}|[\d.]+)/i) ??
+    text.match(/\b(?:recebeu|recebido|creditado|creditada)\b(?:\s+um?\s+pix)?(?:\s+de)?\s+([\d.]+,\d{2}|[\d.]+)/i);
   if (!amountMatch?.[1]) return null;
   const gross = parseMoney(amountMatch[1]);
   if (!(gross > 0) || gross > 1_000_000_000) return null;
-  const nameMatch = text.match(/(?:de|por|remetente:)\s+([\p{L}][\p{L}\p{M}\s.'-]{1,70})/iu);
-  const sender = nameMatch?.[1]?.replace(/\s+(?:no|na|para|em|via)\s*$/i, "").trim();
+  // Busca o remetente APÓS o valor, para não interpretar "R$" como nome.
+  const rest = text.slice((amountMatch.index ?? 0) + amountMatch[0].length);
+  const nameMatch = rest.match(/(?:^|\s)(?:de|por|remetente:?)\s+([\p{L}][\p{L}\p{M}\s.'-]{1,70})/iu);
+  const sender = nameMatch?.[1]?.split(/(?:[.!?]\s+)|(?:\s+(?:para sua conta|na conta|no banco|via pix|às \d|em \d)\b)/i)[0]?.replace(/[.!?]+$/, "").trim();
   return { gross, ...(sender ? { sender } : {}) };
 }
 

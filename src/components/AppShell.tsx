@@ -130,6 +130,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const finances = useFinance();
   const overdue = finances.ready ? alerts(finances).filter((item) => item.status === "atrasada").length : 0;
+  const pixWaiting = finances.ready ? (finances.pixInbox?.length ?? 0) : 0;
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   useEffect(() => {
@@ -158,6 +159,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Icon size={18} className="shrink-0" />
                 <span>{label}</span>
                 {to === "/agenda" && overdue > 0 && <span aria-label={overdue + " contas atrasadas"} className="ml-auto rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-extrabold text-destructive">{overdue > 99 ? "99+" : overdue}</span>}
+                {to === "/pix" && pixWaiting > 0 && <span aria-label={pixWaiting + " Pix aguardando conferência"} className="ml-auto rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-extrabold text-accent">{pixWaiting > 99 ? "99+" : pixWaiting}</span>}
                 {on && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
               </Link>
             );
@@ -210,7 +212,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             return (
               <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${on ? "text-primary" : "text-muted-foreground"}`}>
                 {on && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" />}
-                <span className="relative"><Icon size={19} />{to === "/agenda" && overdue > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
+                <span className="relative"><Icon size={19} />{to === "/agenda" && overdue > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}{to === "/pix" && pixWaiting > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}</span>
                 <span>{short}</span>
               </Link>
             );
