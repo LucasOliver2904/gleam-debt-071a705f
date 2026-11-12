@@ -119,6 +119,7 @@ function PixPage() {
     setState((current) => ({
       ...current,
       pixInbox: (current.pixInbox ?? []).filter((row) => row.id !== item.id),
+      handledInboxIds: [...new Set([...(current.handledInboxIds ?? []), item.id])].slice(-1500),
     }));
     if (reviewingId === item.id) resetForm();
     toast.success("Aviso descartado.");
@@ -177,6 +178,7 @@ function PixPage() {
           amount: split.kept, category: "Pix", pix,
         }, ...current.txs],
         pixInbox: reviewingId ? (current.pixInbox ?? []).filter((row) => row.id !== reviewingId) : current.pixInbox,
+        handledInboxIds: reviewingId ? [...new Set([...(current.handledInboxIds ?? []), reviewingId])].slice(-1500) : current.handledInboxIds,
       }));
       toast.success(reviewingId ? "Recebimento conferido! Só a sua parte entrou na renda." : "Pix registrado! Só a sua parte entra no painel.");
     }
