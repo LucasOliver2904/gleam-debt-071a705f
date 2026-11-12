@@ -29,9 +29,26 @@ export type PixInboxItem = {
   bank?: string;
   fingerprint: string;
 };
-export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData };
+export type ExpenseInboxItem = {
+  id: string;
+  amount: number;
+  date: string;
+  receivedAt: string;
+  source: string;
+  method: "pix" | "cartao" | "carteira" | "pagamento";
+  fingerprint: string;
+  person?: string;
+  possibleDuplicateOf?: string;
+};
+export type ExpenseAuto = {
+  receivedAt: string;
+  fingerprint: string;
+  source: string;
+  method: "pix" | "cartao" | "carteira" | "pagamento";
+};
+export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData; expenseAuto?: ExpenseAuto; excludedFromTotals?: boolean };
 export type SavingsGoal = { id: string; name: string; target: number; saved: number; deadline?: string; createdAt: string };
-export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; pixAutomationHash?: string | undefined };
+export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
 
 export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
 const KEY = "minhas-financas-v1";
@@ -255,7 +272,7 @@ export function monthSummary(s: State, m: string) {
     if (p) { debts += p.amount; if (p.paid) paid += p.amount; }
   });
   const txIn = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "entrada").reduce((a, t) => a + t.amount, 0);
-  const txOut = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "saida").reduce((a, t) => a + t.amount, 0);
+  const txOut = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "saida" && !t.excludedFromTotals).reduce((a, t) => a + t.amount, 0);
   const income = (s.income[m] ?? 0) + txIn;
   const out = debts + txOut;
   return { debts, paid, pending: debts - paid, income, out, balance: income - out };
