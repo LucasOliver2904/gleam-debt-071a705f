@@ -5,6 +5,7 @@ import {
   ArrowLeftRight,
   ArrowUpRight,
   CalendarDays,
+  QrCode,
   Target,
   LayoutDashboard,
   LogOut,
@@ -25,6 +26,7 @@ const NAV = [
   { to: "/", label: "Painel", short: "Início", icon: LayoutDashboard },
   { to: "/dividas", label: "Dívidas", short: "Contas", icon: Wallet },
   { to: "/agenda", label: "Agenda", short: "Agenda", icon: CalendarDays },
+  { to: "/pix", label: "Pix e repasses", short: "Pix", icon: QrCode },
   { to: "/lancamentos", label: "Lançamentos", short: "Gastos", icon: ArrowLeftRight },
   { to: "/planejamento", label: "Planejamento", short: "Planos", icon: Target },
   { to: "/ajustes", label: "Ajustes", short: "Ajustes", icon: Settings },
@@ -202,7 +204,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {quickAddOpen && <QuickAdd onClose={() => setQuickAddOpen(false)} />}
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 shadow-[0_-8px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="mx-auto grid max-w-xl grid-cols-6">
+        <div className="mx-auto grid max-w-2xl grid-cols-7">
           {NAV.map(({ to, short, icon: Icon }) => {
             const on = isActive(path, to);
             return (

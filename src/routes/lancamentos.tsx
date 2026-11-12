@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Receipt, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -68,10 +68,11 @@ function Lancamentos() {
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary"><Receipt size={20} /></span>
         <div>
           <p className="finance-kicker">MOVIMENTAÇÕES / DIA A DIA</p><h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl leading-tight">Lançamentos</h1>
-          <p className="text-sm text-muted-foreground">Entradas e gastos avulsos — fora das dívidas e do salário.</p>
+          <p className="text-sm text-muted-foreground">Entradas e gastos avulsos — fora das dívidas e do salário. Nos Pix com repasse, só a sua parte entra como receita.</p>
         </div>
       </div>
 
+      <Link to="/pix" className="mt-4 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10">Gerenciar Pix recebidos e repasses</Link>
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <Stat label="Entradas" value={brl(tin)} tone="pos" />
         <Stat label="Saídas" value={brl(tout)} tone="neg" />
@@ -141,7 +142,7 @@ function Lancamentos() {
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-medium">{t.description}</p>
-                          <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")}{t.category ? " · " + t.category : ""}</p>
+                          <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")}{t.category ? " · " + t.category : ""}{t.pix ? " · bruto " + brl(t.pix.gross) : ""}</p>
                         </div>
                         <span className={`font-semibold tabular-nums ${entrada ? "text-success" : "text-destructive"}`}>{entrada ? "+" : "−"} {brl(t.amount)}</span>
                         <button onClick={() => del(t)} aria-label="Excluir lançamento" className="p-1.5 text-muted-foreground transition hover:text-destructive"><Trash2 size={15} /></button>
