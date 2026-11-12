@@ -1,0 +1,337 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import {
+  AlertCircle, ArrowDownLeft, ArrowRightLeft, Check, CheckCheck, ClipboardPaste,
+  Coins, Info, Pencil, Plus, QrCode, Search, Trash2, X,
+} from "lucide-react";
+import { toast } from "sonner";
+import { AppShell, Stat } from "@/components/AppShell";
+import {
+  brl, currentMonth, localToday, monthLabel, setState, uid, useFinance,
+  type PixData, type Tx,
+} from "@/lib/finance";
+import { parsePixNotification, pixAllocation } from "@/lib/pix";
+
+export const Route = createFileRoute("/pix")({
+  head: () => ({
+    meta: [
+      { title: "Meus Pix e repasses — Meu Caixa" },
+      { name: "description", content: "Registre Pix recebidos, separe o valor que é seu e acompanhe os repasses." },
+    ],
+  }),
+  component: PixPage,
+});
+
+const input = "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/15";
+const baseStatus: PixData["status"] = "pendente";
+
+function PixPage() {
+  const s = useFinance();
+  const [editId, setEditId] = useState<string | null>(null);
+  const [gross, setGross] = useState("");
+  const [kept, setKept] = useState("");
+  const [sender, setSender] = useState("");
+  const [bank, setBank] = useState("");
+  const [note, setNote] = useState("");
+  const [date, setDate] = useState(localToday);
+  const [status, setStatus] = useState<PixData["status"]>(baseStatus);
+  const [source, setSource] = useState<PixData["source"]>("manual");
+  const [notificationText, setNotificationText] = useState("");
+  const [filterMonth, setFilterMonth] = useState(currentMonth);
+  const [search, setSearch] = useState("");
+  const [onlyPending, setOnlyPending] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+
+  const received = s.txs.filter((tx) => tx.kind === "entrada" && tx.pix);
+  const months = [...new Set(received.map((tx) => tx.date.slice(0, 7)).concat(currentMonth()))].sort().reverse();
+  const filtered = received.filter((tx) =>
+    (filterMonth === "todos" || tx.date.startsWith(filterMonth)) &&
+    [tx.description, tx.pix?.sender ?? "", tx.pix?.bank ?? ""].join(" ").toLocaleLowerCase("pt-BR").includes(search.trim().toLocaleLowerCase("pt-BR")) &&
+    (!onlyPending || (tx.pix?.gross ?? 0) > (tx.pix?.kept ?? 0) && tx.pix?.status === "pendente")
+  ).sort((a, b) => b.date.localeCompare(a.date));
+  const grossTotal = filtered.reduce((acc, tx) => acc + (tx.pix?.gross ?? 0), 0);
+  const keptTotal = filtered.reduce((acc, tx) => acc + tx.amount, 0);
+  const pendingTotal = filtered.reduce((acc, tx) =>
+    acc + (tx.pix?.status === "pendente" ? Math.max(0, tx.pix.gross - tx.pix.kept) : 0), 0);
+  const repassedTotal = filtered.reduce((acc, tx) =>
+    acc + (tx.pix?.status === "repassado" ? Math.max(0, tx.pix.gross - tx.pix.kept) : 0), 0);
+  const split = pixAllocation(gross, kept);
+
+  useEffect(() => {
+    if (editId && !s.txs.some((tx) => tx.id === editId)) {
+      setEditId(null);
+    }
+  }, [editId, s.txs]);
+
+  const resetForm = () => {
+    setEditId(null);
+    setGross("");
+    setKept("");
+    setSender("");
+    setBank("");
+    setNote("");
+    setDate(localToday());
+    setStatus("pendente");
+    setSource("manual");
+    setNotificationText("");
+    setFormOpen(false);
+  };
+
+  function edit(tx: Tx) {
+    if (!tx.pix) return;
+    setEditId(tx.id);
+    setGross(String(tx.pix.gross).replace(".", ","));
+    setKept(String(tx.pix.kept).replace(".", ","));
+    setSender(tx.pix.sender ?? "");
+    setBank(tx.pix.bank ?? "");
+    setNote(tx.description === "Pix recebido" ? "" : tx.description);
+    setDate(tx.date);
+    setStatus(tx.pix.status);
+    setSource(tx.pix.source);
+    setNotificationText("");
+    setFormOpen(true);
+    document.getElementById("pix-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function fromNotification() {
+    const parsed = parsePixNotification(notificationText);
+    if (!parsed) {
+      toast.error("Não identifiquei um recebimento Pix válido. Confira o texto ou preencha manualmente.");
+      return;
+    }
+    setGross(String(parsed.gross).replace(".", ","));
+    setKept("");
+    if (parsed.sender) setSender(parsed.sender);
+    setSource("texto");
+    setFormOpen(true);
+    toast.success("Valor identificado! Confira e informe quanto fica com você.");
+  }
+
+  function save() {
+    if (!split) {
+      toast.error("Informe o Pix recebido e quanto ficou com você (de 0 até o valor recebido).");
+      return;
+    }
+    if (split.gross > 1e10 || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      toast.error("Revise o valor e a data.");
+      return;
+    }
+    const pix: PixData = {
+      gross: split.gross, kept: split.kept,
+      status: split.toPassOn === 0 ? "repassado" : status,
+      source,
+      ...(sender.trim() ? { sender: sender.trim().slice(0, 100) } : {}),
+      ...(bank.trim() ? { bank: bank.trim().slice(0, 60) } : {}),
+    };
+    const description = note.trim().slice(0, 100) || (sender.trim() ? "Pix de " + sender.trim().slice(0, 75) : "Pix recebido");
+    if (editId) {
+      setState((current) => ({
+        ...current,
+        txs: current.txs.map((tx) => tx.id === editId
+          ? { ...tx, date, amount: split.kept, kind: "entrada" as const, description, category: "Pix", pix }
+          : tx),
+      }));
+      toast.success("Pix atualizado. Sua renda pessoal foi recalculada.");
+    } else {
+      setState((current) => ({
+        ...current,
+        txs: [{
+          id: uid() + uid(), date, description, kind: "entrada" as const,
+          amount: split.kept, category: "Pix", pix,
+        }, ...current.txs],
+      }));
+      toast.success("Pix registrado! Só a sua parte entra no painel.");
+    }
+    resetForm();
+  }
+
+  function toggleStatus(tx: Tx) {
+    if (!tx.pix || tx.pix.gross <= tx.pix.kept) return;
+    const next = tx.pix.status === "pendente" ? "repassado" : "pendente";
+    setState((current) => ({
+      ...current,
+      txs: current.txs.map((item) => item.id === tx.id && item.pix
+        ? { ...item, pix: { ...item.pix, status: next } } : item),
+    }));
+    toast.success(next === "repassado" ? "Repasse marcado como feito." : "Repasse marcado como pendente.");
+  }
+
+  function remove(tx: Tx) {
+    if (!window.confirm('Excluir o Pix "' + tx.description + '"? A receita pessoal correspondente também sairá dos lançamentos.')) return;
+    setState((current) => ({ ...current, txs: current.txs.filter((item) => item.id !== tx.id) }));
+    if (tx.id === editId) resetForm();
+    toast.success("Pix excluído.");
+  }
+
+  return (
+    <AppShell>
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="finance-kicker">RECEBIMENTOS / CONCILIAÇÃO</p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Pix e repasses</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            Registre o valor total recebido, separe o que realmente fica com você e acompanhe os repasses sem confundir sua renda.
+          </p>
+        </div>
+        <button onClick={() => { resetForm(); setFormOpen(true); }} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:opacity-90">
+          <Plus size={17} /> Novo Pix
+        </button>
+      </header>
+
+      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Stat label="Pix recebidos" value={brl(grossTotal)} icon={QrCode} hint="Total bruto no filtro" />
+        <Stat label="Fica para mim" value={brl(keptTotal)} tone="pos" icon={Coins} hint="Entra na renda do Meu Caixa" />
+        <Stat label="Falta repassar" value={brl(pendingTotal)} tone={pendingTotal ? "neg" : "pos"} icon={AlertCircle} />
+        <Stat label="Já repassado" value={brl(repassedTotal)} icon={CheckCheck} />
+      </div>
+
+      <div className="mt-5 grid gap-5 xl:grid-cols-[1.05fr_1fr]">
+        <section id="pix-editor" className="scroll-mt-20 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div><p className="finance-kicker">LANÇAMENTO INTELIGENTE</p><h2 className="mt-1 font-display text-lg font-extrabold">{editId ? "Editar recebimento" : "Registrar recebimento"}</h2></div>
+            {formOpen && <button type="button" onClick={resetForm} aria-label="Fechar edição" className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-secondary"><X size={17} /></button>}
+          </div>
+          {!formOpen ? (
+            <button onClick={() => setFormOpen(true)} className="mt-4 flex w-full flex-col items-center rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-5 py-10 text-center transition hover:border-primary/60">
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/15 text-primary"><Plus size={24} /></span>
+              <strong className="mt-3 font-display text-base">Adicionar um Pix recebido</strong>
+              <span className="mt-1 text-xs text-muted-foreground">Informe o total e quanto é seu, mesmo que o repasse seja feito depois.</span>
+            </button>
+          ) : (
+            <div className="mt-5 space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block text-xs font-semibold text-muted-foreground">Valor recebido (R$)
+                  <input autoFocus className={input + " mt-1.5"} inputMode="decimal" placeholder="Ex: 500,00" value={gross} onChange={(e) => setGross(e.target.value)} />
+                </label>
+                <label className="block text-xs font-semibold text-muted-foreground">Quanto é seu (R$)
+                  <input className={input + " mt-1.5"} inputMode="decimal" placeholder="Ex: 50,00" value={kept} onChange={(e) => setKept(e.target.value)} />
+                </label>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" onClick={() => setKept(gross)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary">Tudo fica comigo</button>
+                <button type="button" onClick={() => setKept("0")} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary">Tudo para repasse</button>
+              </div>
+              <div className="grid grid-cols-3 gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
+                <div><p className="text-[10px] font-semibold text-muted-foreground">RECEBIDO</p><p className="mt-1 truncate font-display text-sm font-bold tabular-nums sm:text-base">{split ? brl(split.gross) : "—"}</p></div>
+                <div><p className="text-[10px] font-semibold text-muted-foreground">SEU</p><p className="mt-1 truncate font-display text-sm font-bold tabular-nums text-success sm:text-base">{split ? brl(split.kept) : "—"}</p></div>
+                <div><p className="text-[10px] font-semibold text-muted-foreground">REPASSE</p><p className="mt-1 truncate font-display text-sm font-bold tabular-nums text-accent sm:text-base">{split ? brl(split.toPassOn) : "—"}</p></div>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs font-semibold text-muted-foreground">Quem enviou (opcional)
+                  <input className={input + " mt-1.5"} maxLength={100} placeholder="Nome do remetente" value={sender} onChange={(e) => setSender(e.target.value)} />
+                </label>
+                <label className="block text-xs font-semibold text-muted-foreground">Banco (opcional)
+                  <input className={input + " mt-1.5"} maxLength={60} placeholder="Ex: Nubank" value={bank} onChange={(e) => setBank(e.target.value)} />
+                </label>
+                <label className="block text-xs font-semibold text-muted-foreground">Data do Pix
+                  <input className={input + " mt-1.5"} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+                </label>
+                <label className="block text-xs font-semibold text-muted-foreground">Situação do repasse
+                  <select className={input + " mt-1.5"} value={status} onChange={(e) => setStatus(e.target.value as PixData["status"])} disabled={split?.toPassOn === 0}>
+                    <option value="pendente">Ainda vou repassar</option>
+                    <option value="repassado">Já repassei</option>
+                  </select>
+                </label>
+              </div>
+              <label className="block text-xs font-semibold text-muted-foreground">Descrição (opcional)
+                <input className={input + " mt-1.5"} maxLength={100} placeholder="Ex: Pagamento cliente, divisão de venda" value={note} onChange={(e) => setNote(e.target.value)} />
+              </label>
+              <p className="flex items-start gap-2 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mt-0.5 shrink-0" /> A renda do painel recebe apenas o valor da coluna “Seu”. O restante fica separado como repasse; isso não executa transferência bancária.</p>
+              <button onClick={save} className="w-full rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground transition hover:opacity-90">
+                {editId ? "Salvar alterações" : "Registrar Pix"}
+              </button>
+            </div>
+          )}
+        </section>
+
+        <section className="rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+          <p className="finance-kicker">IMPORTAR TEXTO / CONFERÊNCIA</p>
+          <h2 className="mt-1 flex items-center gap-2 font-display text-lg font-extrabold"><ClipboardPaste size={20} className="text-primary" /> Colar notificação do banco</h2>
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+            Copie uma mensagem como “Você recebeu um Pix de R$ 500,00” e deixe o app preencher o valor para você conferir.
+          </p>
+          <textarea
+            aria-label="Texto da notificação bancária"
+            className={input + " mt-4 min-h-28 resize-y"}
+            placeholder="Cole aqui somente a mensagem de Pix recebido..."
+            maxLength={4000}
+            value={notificationText}
+            onChange={(e) => setNotificationText(e.target.value)}
+          />
+          <button onClick={fromNotification} disabled={!notificationText.trim()} className="mt-3 inline-flex items-center gap-2 rounded-xl border border-primary/35 bg-primary/10 px-4 py-2.5 text-sm font-bold text-primary transition hover:bg-primary/15 disabled:cursor-not-allowed disabled:opacity-50">
+            <ArrowDownLeft size={17} /> Identificar valor
+          </button>
+          <div className="mt-5 space-y-2 rounded-2xl border border-border bg-secondary/40 p-4 text-xs leading-relaxed text-muted-foreground">
+            <p className="flex items-center gap-2 font-semibold text-foreground"><Info size={16} className="text-accent" /> Importante sobre a automação</p>
+            <p>O site instalado como aplicativo ainda não consegue ler notificações de outros apps. Para captura automática, será preciso um componente Android autorizado ou uma integração bancária oficial.</p>
+            <p>A mensagem colada é apenas texto informado por você: não comprova que o Pix realmente chegou. Confira o recebimento no banco antes de salvar.</p>
+          </div>
+        </section>
+      </div>
+
+      <section className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div><p className="finance-kicker">HISTÓRICO / REPASSES</p><h2 className="mt-1 font-display text-xl font-extrabold">Seus recebimentos</h2></div>
+          <span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">{filtered.length} registro(s)</span>
+        </div>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <label className="relative flex-1">
+            <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <input aria-label="Buscar Pix" className={input + " pl-9"} value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar remetente, descrição ou banco" />
+          </label>
+          <select aria-label="Filtrar recebimentos por mês" className={input + " sm:max-w-52"} value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)}>
+            <option value="todos">Todos os meses</option>
+            {months.map((m) => <option value={m} key={m}>{monthLabel(m, true)}</option>)}
+          </select>
+          <label className="inline-flex items-center gap-2 rounded-xl border border-border px-3 py-2.5 text-xs font-semibold text-muted-foreground">
+            <input type="checkbox" checked={onlyPending} onChange={(e) => setOnlyPending(e.target.checked)} className="accent-[var(--primary)]" /> Só repasses pendentes
+          </label>
+        </div>
+        {filtered.length === 0 ? (
+          <div className="mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border p-8 text-center">
+            <QrCode size={28} className="text-primary" />
+            <p className="mt-3 text-sm font-semibold">Nenhum Pix neste filtro</p>
+            <p className="mt-1 text-xs text-muted-foreground">Registre um recebimento ou altere os filtros.</p>
+          </div>
+        ) : (
+          <ul className="mt-4 space-y-2.5">
+            {filtered.map((tx) => {
+              const pix = tx.pix!;
+              const toPassOn = Math.max(0, Math.round((pix.gross - pix.kept) * 100) / 100);
+              return (
+                <li key={tx.id} className="flex flex-col gap-3 rounded-2xl border border-border bg-background/35 p-4 lg:flex-row lg:items-center">
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary"><QrCode size={21} /></span>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold">{tx.description}</p>
+                      <p className="mt-0.5 truncate text-xs text-muted-foreground">{tx.date.split("-").reverse().join("/")}{pix.bank ? " · " + pix.bank : ""}{pix.sender ? " · " + pix.sender : ""}</p>
+                      <span className={"mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold " + (pix.status === "pendente" && toPassOn > 0 ? "bg-accent/15 text-accent" : "bg-success/10 text-success")}>
+                        {toPassOn === 0 ? "Sem repasse" : pix.status === "pendente" ? "Repasse pendente" : "Repassado"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs lg:justify-end">
+                    <div><p className="text-muted-foreground">Recebido</p><p className="mt-0.5 font-bold tabular-nums">{brl(pix.gross)}</p></div>
+                    <div><p className="text-muted-foreground">Seu ganho</p><p className="mt-0.5 font-bold tabular-nums text-success">{brl(pix.kept)}</p></div>
+                    <div><p className="text-muted-foreground">Repasse</p><p className="mt-0.5 font-bold tabular-nums">{brl(toPassOn)}</p></div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5 lg:ml-2">
+                    {toPassOn > 0 && (
+                      <button type="button" onClick={() => toggleStatus(tx)} className="inline-flex items-center gap-1 rounded-lg border border-border px-2.5 py-2 text-xs font-semibold hover:bg-secondary">
+                        {pix.status === "pendente" ? <Check size={14} /> : <ArrowRightLeft size={14} />}
+                        {pix.status === "pendente" ? "Já repassei" : "Reabrir"}
+                      </button>
+                    )}
+                    <button type="button" aria-label={"Editar " + tx.description} onClick={() => edit(tx)} className="rounded-lg border border-border p-2 text-muted-foreground hover:text-primary"><Pencil size={15} /></button>
+                    <button type="button" aria-label={"Excluir " + tx.description} onClick={() => remove(tx)} className="rounded-lg border border-border p-2 text-muted-foreground hover:text-destructive"><Trash2 size={15} /></button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <p className="mt-4 text-[11px] text-muted-foreground">Os valores recebidos e os repasses são controles informativos. Somente o que fica com você entra no cálculo da renda.</p>
+      </section>
+    </AppShell>
+  );
+}

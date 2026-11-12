@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   CalendarClock,
   CalendarDays,
+  QrCode,
   Target,
   PartyPopper,
   PiggyBank,
@@ -184,7 +185,7 @@ function Dashboard() {
           icon={CalendarDays}
         />
         <Stat
-          label="Entradas do mês"
+          label="Entradas minhas"
           value={brl(now.income)}
           tone="pos"
           icon={ArrowDownLeft}
@@ -240,10 +241,15 @@ function Dashboard() {
 
       <FinancialBriefing state={s} />
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2">
+      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <Link to="/agenda" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary"><CalendarDays size={22} /></span>
           <span className="min-w-0 flex-1"><b className="block font-display text-base">Agenda de vencimentos</b><span className="mt-0.5 block text-xs text-muted-foreground">Veja cada dia e marque contas como pagas.</span></span>
+          <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+        </Link>
+        <Link to="/pix" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-success/15 text-success"><QrCode size={22} /></span>
+          <span className="min-w-0 flex-1"><b className="block font-display text-base">Pix e repasses</b><span className="mt-0.5 block text-xs text-muted-foreground">Separe o valor recebido do dinheiro que é seu.</span></span>
           <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
         </Link>
         <Link to="/planejamento" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">

@@ -118,18 +118,21 @@ function csvCell(value: string | number) {
 
 export function financeCsv(s: State, month: string) {
   const rows: (string | number)[][] = [
-    ["Data", "Origem", "Descrição", "Categoria", "Tipo", "Status", "Valor (R$)"],
+    ["Data", "Origem", "Descrição", "Categoria", "Tipo", "Status", "Valor próprio (R$)", "Pix bruto (R$)", "Repasse Pix (R$)", "Situação do repasse"],
   ];
   for (const bill of monthBills(s, month)) {
     rows.push([
       bill.dateKey, "Conta", bill.debt.name, bill.debt.category ?? "Outros",
-      bill.debt.type, bill.payment.paid ? "Pago" : "Pendente", bill.payment.amount.toFixed(2).replace(".", ","),
+      bill.debt.type, bill.payment.paid ? "Pago" : "Pendente", bill.payment.amount.toFixed(2).replace(".", ","), "", "", "",
     ]);
   }
   for (const tx of s.txs.filter((tx) => tx.date.startsWith(month))) {
     rows.push([
       tx.date, "Lançamento", tx.description, tx.category ?? "Outros",
       tx.kind === "entrada" ? "Entrada" : "Saída", "Registrado", tx.amount.toFixed(2).replace(".", ","),
+      tx.pix ? tx.pix.gross.toFixed(2).replace(".", ",") : "",
+      tx.pix ? Math.max(0, tx.pix.gross - tx.pix.kept).toFixed(2).replace(".", ",") : "",
+      tx.pix?.status ?? "",
     ]);
   }
   return "\uFEFF" + rows.map((row) => row.map(csvCell).join(";")).join("\r\n");
