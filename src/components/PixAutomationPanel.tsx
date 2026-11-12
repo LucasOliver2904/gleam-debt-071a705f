@@ -84,9 +84,9 @@ export function PixAutomationPanel() {
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Smartphone size={21} /></span>
           <div>
             <p className="finance-kicker">PIX AUTOMÁTICO / ANDROID</p>
-            <h2 className="mt-1 font-display text-xl font-extrabold">Conecte as notificações do seu banco</h2>
+            <h2 className="mt-1 font-display text-xl font-extrabold">Conecte seus bancos e a Carteira do Google</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Use o MacroDroid para detectar notificações de Pix recebido. O Meu Caixa guarda o recebimento para você revisar antes de somar à renda.
+              Use o MacroDroid para enviar avisos de Pix recebidos, Pix enviados e compras. Tudo fica em conferência antes de alterar os totais. Com avisos de vários apps, identificamos possíveis duplicidades.
             </p>
           </div>
         </div>
@@ -129,11 +129,12 @@ export function PixAutomationPanel() {
           <h3 className="font-display text-base font-extrabold">Configure uma vez no seu Android</h3>
           <ol className="list-inside list-decimal space-y-3 text-sm leading-relaxed text-foreground">
             <li><a href={bankAppUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">Instale o MacroDroid pela Play Store <ExternalLink size={13} /></a> e conceda acesso às notificações do Android quando solicitado.</li>
-            <li>Toque em <strong>Adicionar macro</strong>. No gatilho <strong>Notificação recebida</strong>, escolha apenas o aplicativo do seu banco. Filtre por texto que contenha <strong>Pix</strong> e escolha notificação recebida (não removida).</li>
+            <li>Toque em <strong>Adicionar macro</strong>. No gatilho <strong>Notificação recebida</strong>, escolha apenas os bancos para sua macro de Pix. Filtre por <strong>Pix</strong> e escolha notificação recebida (não removida).</li>
+            <li>Para compras, crie outra macro com <strong>Carteira do Google</strong> e os bancos que notificam compras. Filtre pelo texto <strong>Compra</strong> ou <strong>Pagamento</strong>, conforme as notificações reais. A macro de Pix existente pode continuar igual.</li>
             <li>Adicione a ação <strong>Requisição HTTP / HTTP Request</strong>, com método <strong>POST</strong> e o endereço abaixo. Não use GET para enviar Pix.</li>
-            <li>Adicione os cabeçalhos <code>X-MeuCaixa-Token</code> com a chave privada copiada acima e <code>X-MeuCaixa-Banco</code> com o nome do seu banco (ex.: Nubank). Use <code>Content-Type</code> igual a <code>text/plain; charset=utf-8</code>.</li>
+            <li>Adicione <code>X-MeuCaixa-Token</code> com a chave privada. No cabeçalho <code>X-MeuCaixa-Banco</code>, use o <strong>Texto Mágico: nome do aplicativo ({not_app_name})</strong>. Assim identificamos Sicredi, Itaú e Google Wallet separadamente para avisar sobre duplicidades. Use <code>text/plain</code> como tipo do corpo.</li>
             <li>Em <strong>Corpo / Body</strong>, escolha texto e insira o título e o conteúdo da notificação, um em cada linha. Use o seletor de <strong>Texto Mágico</strong> do MacroDroid para inserir os campos de notificação.</li>
-            <li>Salve e ative a macro. Ao chegar um Pix real, abra <strong>Pix e repasses → A conferir</strong>, veja o valor e informe quanto fica com você.</li>
+            <li>Salve e ative as macros. Pix recebido vai para <strong>Pix e repasses → A conferir</strong>. Pix enviado e compras aparecem em <strong>Lançamentos → Despesas detectadas</strong>. Confira o banco antes de salvar.</li>
           </ol>
 
           <div className="space-y-2">
@@ -148,12 +149,12 @@ export function PixAutomationPanel() {
 
           <p className="flex gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
             <ShieldCheck size={17} className="mt-0.5 shrink-0 text-primary" />
-            O Android concede ao MacroDroid acesso amplo às notificações, mas configure a macro para enviar <strong className="text-foreground">somente as do banco</strong>. O Meu Caixa usa apenas os campos de Pix recebido; o texto completo não é salvo no histórico.
+            O Android concede ao MacroDroid acesso amplo às notificações. Configure as macros <strong className="text-foreground">somente para bancos e Carteira do Google</strong>, com filtros que excluam avisos não financeiros e códigos de segurança. O Meu Caixa não guarda o texto completo das mensagens.
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">Alguns bancos ocultam detalhes do Pix. O Android também pode limitar notificações sensíveis. Faça primeiro um teste com um recebimento real e confira o extrato do banco. Se a notificação não mostrar valor, a automação não tem como adivinhá-lo.</p>
         </div>
       )}
-      <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">A chave autoriza somente importar propostas de Pix para sua conta, não fazer transações bancárias. Você pode revogá-la a qualquer momento. A integração exige que o servidor do Meu Caixa esteja acessível.</p>
+      <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">A chave autoriza somente importar sugestões de Pix e compras para sua conta, não fazer transações bancárias. Você pode revogá-la a qualquer momento. A integração exige que o servidor do Meu Caixa esteja acessível.</p>
     </section>
   );
 }

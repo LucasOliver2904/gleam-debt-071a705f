@@ -341,7 +341,7 @@ function PixPage() {
           </button>
           <div className="mt-5 space-y-2 rounded-2xl border border-border bg-secondary/40 p-4 text-xs leading-relaxed text-muted-foreground">
             <p className="flex items-center gap-2 font-semibold text-foreground"><Info size={16} className="text-accent" /> Importante sobre a automação</p>
-            <p>O site instalado como aplicativo ainda não consegue ler notificações de outros apps. Para captura automática, será preciso um componente Android autorizado ou uma integração bancária oficial.</p>
+            <p>O site não lê diretamente as notificações de outros apps; a integração Android usa o MacroDroid para enviá-las com sua autorização. Pix e compras recebidos assim aguardam sua conferência.</p>
             <p>A mensagem colada é apenas texto informado por você: não comprova que o Pix realmente chegou. Confira o recebimento no banco antes de salvar.</p>
           </div>
         </section>

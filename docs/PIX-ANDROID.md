@@ -2,7 +2,7 @@
 
 ## Como funciona
 
-MacroDroid detecta a notificação do app do banco e envia título e texto por HTTPS para o webhook do Meu Caixa. Um segredo criado dentro da sua conta autentica a requisição.
+MacroDroid detecta a notificação dos apps bancários e da Carteira do Google e envia título e texto por HTTPS para o webhook do Meu Caixa. Um segredo criado dentro da sua conta autentica a requisição.
 O servidor identifica o Pix recebido e o coloca na fila **Pix e repasses → A conferir**. A fila não aumenta sua renda. Você confirma no extrato e informa quanto fica com você.
 Exemplo: recebeu R$ 500 de Fulano; informou R$ 50 para si; os outros R$ 450 passam a ser um repasse pendente. A renda aumenta somente R$ 50.
 
@@ -20,6 +20,20 @@ Exemplo: recebeu R$ 500 de Fulano; informou R$ 50 para si; os outros R$ 450 pass
 10. Corpo: duas linhas usando o seletor **Texto Mágico** do MacroDroid, primeiro o campo título da notificação ({not_title}) e, na linha seguinte, o texto da notificação ({notification}). Escolha as variáveis oferecidas pelo app em vez de digitá-las literalmente.
 11. Salve/ative a macro. Na próxima notificação real de Pix recebido, confirme no extrato e abra **Pix e repasses → A conferir → Conferir e dividir**.
 12. Preencha a quantia que fica com você e salve. A receita só é contabilizada depois da conferência.
+
+## Capturar gastos: Pix enviados, cartões e Google Wallet
+
+1. Sua macro de Pix de bancos continua funcionando, porque a palavra **Pix** serve tanto para recebidos quanto para enviados.
+2. Para **Carteira do Google**, faça uma **segunda macro** com gatilho **Notificação recebida** e selecione **somente Carteira do Google**. Filtre por **Compra** ou **Pagamento** conforme a redação da notificação real, evitando capturar alertas que não sejam transações.
+3. Para compras notificadas pelos bancos, configure uma macro semelhante filtrando **Compra**, **Pagamento** ou **Cartão**, conforme os avisos recebidos.
+4. Ação HTTP das macros adicionais: use a **mesma URL, POST, chave secreta e corpo com {not_title} e {notification}**. No cabeçalho **X-MeuCaixa-Banco**, use sempre a variável de Texto Mágico **{not_app_name}**.
+5. Em **Meu Caixa → Lançamentos → Despesas detectadas**, confira valor, estabelecimento, data e categoria. Use **Conferir e lançar**.
+6. Se a Carteira do Google e o banco informarem a mesma compra, ambas podem ir para **A conferir**, com alerta de **possível duplicidade**. Confirme uma, ignore a outra.
+7. Se a compra já estiver lançada como fatura/conta do cartão, marque **Já está na fatura ou outra despesa**. O histórico mantém o detalhe sem somar o gasto novamente.
+
+A deduplicação não depende só do texto idêntico: o sistema usa valor, direção, origem e proximidade de horário para **sugerir** possíveis duplicidades. Não apaga automaticamente notificações diferentes: duas compras legítimas iguais ainda podem ocorrer. Verifique a fatura/extrato.
+
+**Importante:** a Carteira do Google pode não enviar todas as compras nem todos os detalhes. A automação cobre somente as notificações que o Android entregar e que contenham valor reconhecível.
 
 ## Respostas do servidor
 
