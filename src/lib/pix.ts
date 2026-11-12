@@ -17,7 +17,7 @@ export function parsePixNotification(raw: string): ParsedPix | null {
   // Busca o remetente APÓS o valor, para não interpretar "R$" como nome.
   const rest = text.slice((amountMatch.index ?? 0) + amountMatch[0].length);
   const nameMatch = rest.match(/(?:^|\s)(?:de|por|remetente:?)\s+([\p{L}][\p{L}\p{M}\s.'-]{1,70})/iu);
-  const sender = nameMatch?.[1]?.split(/\s+(?:para sua conta|na conta|no banco|via pix|às \d|em \d)\b/i)[0]?.replace(/[.!?]+$/, "").trim();
+  const sender = nameMatch?.[1]?.split(/(?:[.!?]\s+)|(?:\s+(?:para sua conta|na conta|no banco|via pix|às \d|em \d)\b)/i)[0]?.replace(/[.!?]+$/, "").trim();
   return { gross, ...(sender ? { sender } : {}) };
 }
 
