@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { Json } from "@/integrations/supabase/types";
-import type { PixInboxItem, State } from "@/lib/finance";
-import { digestAutomationKey, fingerprintNotification, parseIncomingPixNotification } from "@/lib/pix-bridge";
+import type { ExpenseInboxItem, PixInboxItem, State } from "@/lib/finance";
+import { findRelatedNotification, parseFinancialNotification } from "@/lib/notification-events";
+import { digestAutomationKey, fingerprintNotification } from "@/lib/pix-bridge";
 
 const noCache = { "Cache-Control": "no-store" };
 const response = (data: object, status = 200) => Response.json(data, { status, headers: noCache });
@@ -51,9 +52,9 @@ export const Route = createFileRoute("/api/pix-notificacao")({
         } catch {
           return response({ ok: false, reason: "bad_body" }, 400);
         }
-        const parsed = parseIncomingPixNotification(raw);
-        if (!parsed) return response({ ok: false, reason: "not_incoming_pix" }, 422);
         const bank = (request.headers.get("x-meucaixa-banco") ?? "").trim().slice(0, 60);
+        const parsed = parseFinancialNotification(raw, bank);
+        if (!parsed) return response({ ok: false, reason: "unrecognized_financial_notification" }, 422);
         const fingerprint = await fingerprintNotification(raw, bank);
         try {
           const initial = await lookupByKey(token);
@@ -76,32 +77,68 @@ export const Route = createFileRoute("/api/pix-notificacao")({
               throw new Error("Estado financeiro inesperado");
             }
             const inbox = Array.isArray(state.pixInbox) ? state.pixInbox : [];
+            const expenseInbox = Array.isArray(state.expenseInbox) ? state.expenseInbox : [];
             const now = new Date();
-            // Bancos atualizam a mesma notificação; evita duplicações em até 2 min.
-            // Dois Pix reais idênticos dentro dessa janela exigem conferência manual.
+            // Só ignora repetição EXATA da mesma fonte. Notificações de apps
+            // diferentes podem ser o mesmo gasto, mas apenas sugerimos duplicidade.
             const duplicate = inbox.some((item) =>
               item.fingerprint === fingerprint &&
               now.getTime() - new Date(item.receivedAt).getTime() < 120_000
-            ) || state.txs.some((item) =>
-              item.pix?.fingerprint === fingerprint &&
-              item.pix.receivedAt &&
-              now.getTime() - new Date(item.pix.receivedAt).getTime() < 120_000
-            );
+            ) || expenseInbox.some((item) =>
+              item.fingerprint === fingerprint &&
+              now.getTime() - new Date(item.receivedAt).getTime() < 120_000
+            ) || state.txs.some((item) => {
+              const match = item.pix?.fingerprint === fingerprint
+                ? item.pix?.receivedAt : item.expenseAuto?.fingerprint === fingerprint
+                  ? item.expenseAuto?.receivedAt : undefined;
+              return !!match && now.getTime() - new Date(match).getTime() < 120_000;
+            });
             if (duplicate) return response({ ok: true, duplicate: true });
-            if (inbox.length >= 1000) return response({ ok: false, reason: "inbox_full" }, 429);
+            if (inbox.length + expenseInbox.length >= 1000) {
+              return response({ ok: false, reason: "inbox_full" }, 429);
+            }
             const day = new Intl.DateTimeFormat("sv-SE", {
               timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
             }).format(now);
-            const draft: PixInboxItem = {
-              id: crypto.randomUUID(),
-              date: day,
-              receivedAt: now.toISOString(),
-              gross: parsed.gross,
-              fingerprint,
-              ...(parsed.sender ? { sender: parsed.sender.slice(0, 100) } : {}),
-              ...(bank ? { bank } : {}),
-            };
-            const next: State = { ...state, pixInbox: [draft, ...inbox] };
+            let next: State;
+            if (parsed.direction === "entrada") {
+              const draft: PixInboxItem = {
+                id: crypto.randomUUID(), date: day, receivedAt: now.toISOString(),
+                gross: parsed.amount, fingerprint,
+                ...(parsed.person ? { sender: parsed.person.slice(0, 100) } : {}),
+                ...(bank ? { bank } : {}),
+              };
+              next = { ...state, pixInbox: [draft, ...inbox] };
+            } else {
+              const prior = [
+                ...expenseInbox.map((item) => ({
+                  id: item.id, amount: item.amount, receivedAt: item.receivedAt,
+                  direction: "saida" as const, source: item.source,
+                })),
+                ...state.txs.filter((item) => item.kind === "saida" && item.expenseAuto)
+                  .map((item) => ({
+                    id: item.id, amount: item.amount,
+                    receivedAt: item.expenseAuto!.receivedAt,
+                    direction: "saida" as const, source: item.expenseAuto!.source,
+                  })),
+              ];
+              const draft: ExpenseInboxItem = {
+                id: crypto.randomUUID(), date: day, receivedAt: now.toISOString(),
+                amount: parsed.amount, fingerprint, source: bank || "Aplicativo não identificado",
+                method: parsed.method,
+                ...(parsed.person ? { person: parsed.person.slice(0, 80) } : {}),
+                ...(findRelatedNotification({
+                  amount: parsed.amount, receivedAt: now.toISOString(),
+                  direction: "saida", source: bank || "Aplicativo não identificado",
+                }, prior) ? {
+                  possibleDuplicateOf: findRelatedNotification({
+                    amount: parsed.amount, receivedAt: now.toISOString(),
+                    direction: "saida", source: bank || "Aplicativo não identificado",
+                  }, prior)!,
+                } : {}),
+              };
+              next = { ...state, expenseInbox: [draft, ...expenseInbox] };
+            }
             const { data: updated, error: updateError } = await supabaseAdmin.from("user_state")
               .update({
                 data: next as unknown as Json,
@@ -113,11 +150,11 @@ export const Route = createFileRoute("/api/pix-notificacao")({
               .select("user_id")
               .maybeSingle();
             if (updateError) throw updateError;
-            if (updated) return response({ ok: true, queued: true }, 202);
+            if (updated) return response({ ok: true, queued: true, direction: parsed.direction }, 202);
           }
           return response({ ok: false, reason: "retry" }, 503);
         } catch (error) {
-          console.error("Falha ao registrar Pix recebido:", error instanceof Error ? error.message : "erro");
+          console.error("Falha ao registrar notificação financeira:", error instanceof Error ? error.message : "erro");
           return response({ ok: false, reason: "temporarily_unavailable" }, 503);
         }
       },
