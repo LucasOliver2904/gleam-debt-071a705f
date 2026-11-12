@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - feat/finance-premium-reminders-20261111
+      - "feat/**"
   pull_request:
     branches:
       - main
