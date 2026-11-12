@@ -6,11 +6,19 @@ export const TYPE_INFO: Record<DebtType, { label: string; short: string; desc: s
   fixa: { label: "Fixa (todo mês)", short: "Fixa", desc: "Conta recorrente, repete todos os meses" },
   unica: { label: "Só este mês", short: "Única", desc: "Paga uma única vez, em um mês" },
 };
-export const CATEGORIES = ["Cartão", "Empréstimo", "Compras", "Alimentação", "Mercado", "Moradia", "Contas da casa", "Assinaturas", "Transporte", "Saúde", "Educação", "Lazer", "Pessoas", "Outros"] as const;
+export const CATEGORIES = ["Cartão", "Empréstimo", "Compras", "Alimentação", "Mercado", "Pix", "Moradia", "Contas da casa", "Assinaturas", "Transporte", "Saúde", "Educação", "Lazer", "Pessoas", "Outros"] as const;
 export type Recurring = { amount: number; start: string; end?: string | undefined };
 export type Payment = { amount: number; paid: boolean };
 export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; category?: string | undefined; note?: string | undefined; recurring?: Recurring | undefined; skipped?: string[] | undefined; payments: Record<string, Payment> };
-export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string };
+export type PixData = {
+  gross: number;
+  kept: number;
+  status: "pendente" | "repassado";
+  source: "manual" | "texto";
+  sender?: string;
+  bank?: string;
+};
+export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData };
 export type SavingsGoal = { id: string; name: string; target: number; saved: number; deadline?: string; createdAt: string };
 export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[] };
 
