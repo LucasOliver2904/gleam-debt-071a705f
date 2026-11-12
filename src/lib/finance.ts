@@ -11,7 +11,8 @@ export type Recurring = { amount: number; start: string; end?: string | undefine
 export type Payment = { amount: number; paid: boolean };
 export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; category?: string | undefined; note?: string | undefined; recurring?: Recurring | undefined; skipped?: string[] | undefined; payments: Record<string, Payment> };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string };
-export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean } };
+export type SavingsGoal = { id: string; name: string; target: number; saved: number; deadline?: string; createdAt: string };
+export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[] };
 
 export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
 const KEY = "minhas-financas-v1";
