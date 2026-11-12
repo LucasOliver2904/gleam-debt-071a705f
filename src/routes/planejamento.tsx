@@ -166,8 +166,8 @@ function Planejamento() {
 
   function createGoal() {
     const target = parseMoney(newTarget);
-    if (!newName.trim() || newName.trim().length > 70) return toast.error("Informe um nome para a meta.");
-    if (!(target > 0) || target > 1e10) return toast.error("Informe um valor objetivo válido.");
+    if (!newName.trim() || newName.trim().length > 70) { toast.error("Informe um nome para a meta."); return; }
+    if (!(target > 0) || target > 1e10) { toast.error("Informe um valor objetivo válido."); return; }
     const goal: SavingsGoal = {
       id: uid() + uid(),
       name: newName.trim(),
