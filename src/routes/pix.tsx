@@ -153,6 +153,10 @@ function PixPage() {
       gross: split.gross, kept: split.kept,
       status: split.toPassOn === 0 ? "repassado" : status,
       source,
+      ...(reviewingId ? (() => {
+        const record = (s.pixInbox ?? []).find((item) => item.id === reviewingId);
+        return record ? { fingerprint: record.fingerprint, receivedAt: record.receivedAt } : {};
+      })() : {}),
       ...(sender.trim() ? { sender: sender.trim().slice(0, 100) } : {}),
       ...(bank.trim() ? { bank: bank.trim().slice(0, 60) } : {}),
     };

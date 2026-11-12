@@ -82,10 +82,16 @@ export const Route = createFileRoute("/api/pix-notificacao")({
             const duplicate = inbox.some((item) =>
               item.fingerprint === fingerprint &&
               now.getTime() - new Date(item.receivedAt).getTime() < 120_000
+            ) || state.txs.some((item) =>
+              item.pix?.fingerprint === fingerprint &&
+              item.pix.receivedAt &&
+              now.getTime() - new Date(item.pix.receivedAt).getTime() < 120_000
             );
             if (duplicate) return response({ ok: true, duplicate: true });
             if (inbox.length >= 1000) return response({ ok: false, reason: "inbox_full" }, 429);
-            const day = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-");
+            const day = new Intl.DateTimeFormat("sv-SE", {
+              timeZone: "America/Sao_Paulo", year: "numeric", month: "2-digit", day: "2-digit",
+            }).format(now);
             const draft: PixInboxItem = {
               id: crypto.randomUUID(),
               date: day,

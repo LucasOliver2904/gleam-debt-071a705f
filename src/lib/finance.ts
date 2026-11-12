@@ -17,6 +17,8 @@ export type PixData = {
   source: "manual" | "texto" | "automacao";
   sender?: string;
   bank?: string;
+  fingerprint?: string;
+  receivedAt?: string;
 };
 export type PixInboxItem = {
   id: string;
