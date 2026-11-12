@@ -15,6 +15,8 @@ describe("Automação de notificações Pix", () => {
   it("aceita recebimento com valor e remetente", () => {
     expect(parseIncomingPixNotification("Pix recebido! Você recebeu R$ 500,00 de Fulano")).toMatchObject({ gross: 500, sender: "Fulano" });
     expect(parseIncomingPixNotification("Você recebeu 500 de Fulano. Pix recebido")).toMatchObject({ gross: 500, sender: "Fulano" });
+    expect(parseIncomingPixNotification("Sicredi Pix\nVocê recebeu um Pix no valor de R$ 5,00 Lucas Euripedes De Oliveira...")).toMatchObject({ gross: 5, sender: "Lucas Euripedes De Oliveira" });
+    expect(parseIncomingPixNotification("Feito, Pix enviado\nVocê enviou R$ 5,00 para LUCAS, CPF XXX")).toBeNull();
     expect(parseIncomingPixNotification("Pix enviado! Você enviou R$ 200,00")).toBeNull();
   });
   it("detecta notificações de texto repetido", async () => {
