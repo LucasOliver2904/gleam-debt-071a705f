@@ -35,13 +35,16 @@ export function parseFinancialNotification(raw: string, sourceApp = ""): ParsedN
     if (inbound && !/pix enviado|pix realizado|pix efetuado|fez um pix/i.test(text)) return null;
     const amount = amountFromNotification(text);
     if (!amount) return null;
-    return { direction: "saida", amount, method: "pix", ...(counterpart(text, "pix") ? { person: counterpart(text, "pix") } : {}) };
+    const person = counterpart(text, "pix");
+    return { direction: "saida", amount, method: "pix", ...(person ? { person } : {}) };
   }
   if (/\bpix\b/i.test(text) && inbound) {
     const pix = parsePixNotification(text);
     return pix ? { direction: "entrada", amount: pix.gross, method: "pix", ...(pix.sender ? { person: pix.sender } : {}) } : null;
   }
 
+  // Avisos de crédito/recebimento não podem ser confundidos com compras.
+  if (/\b(recebeu|recebido|recebida|creditado|creditada|estorno recebido)\b/i.test(text)) return null;
   // Recibos da Carteira do Google podem não citar "Pix"; só aceitar se indicarem compra/pagamento.
   const wallet = /google wallet|carteira do google/i.test(sourceApp);
   const purchase = /\b(compra(?:\s+aprovada|\s+realizada|\s+efetuada)?|pagamento (?:realizado|efetuado|aprovado|confirmado)|voc[eê] pagou|pagou r\$|d[eé]bito(?:\s+aprovado)?|cart[aã]o (?:de cr[eé]dito|de d[eé]bito)|transa[cç][aã]o (?:aprovada|realizada)|pagamento por aproxima[cç][aã]o)\b/i.test(text);

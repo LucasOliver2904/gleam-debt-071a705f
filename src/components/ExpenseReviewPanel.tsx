@@ -93,13 +93,13 @@ export function ExpenseReviewPanel() {
   function save() {
     if (!draft) return;
     const amount = parseMoney(draft.amount);
-    if (!(amount > 0) || amount > 1_000_000_000) return toast.error("Informe um valor válido.");
-    if (!draft.name.trim() || draft.name.length > 100) return toast.error("Informe uma descrição curta.");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) return toast.error("Confira a data.");
+    if (!(amount > 0) || amount > 1_000_000_000) { toast.error("Informe um valor válido."); return; }
+    if (!draft.name.trim() || draft.name.length > 100) { toast.error("Informe uma descrição curta."); return; }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(draft.date)) { toast.error("Confira a data."); return; }
     const description = draft.name.trim();
     if (draft.origin === "inbox") {
       const current = inbox.find((i) => i.id === draft.id);
-      if (!current) return toast.error("Este aviso não está mais na lista.");
+      if (!current) { toast.error("Este aviso não está mais na lista."); return; }
       const anotherConfirmed = posted.some((tx) =>
         tx.expenseAuto?.source !== current.source &&
         tx.amount === current.amount &&
