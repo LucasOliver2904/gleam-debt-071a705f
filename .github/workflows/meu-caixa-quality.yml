@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - feat/finance-premium-reminders-20261111
+      - "feat/**"
   pull_request:
     branches:
       - main
@@ -21,9 +21,9 @@ jobs:
           bun-version: latest
       - name: Instalar dependências
         run: bun install --frozen-lockfile
-      - name: Rodar testes
-        run: bun run test
+      - name: Gerar rotas e compilar aplicação
+        run: bun run build
       - name: Validar TypeScript
         run: bun x tsc --noEmit
-      - name: Compilar aplicação
-        run: bun run build
+      - name: Rodar testes
+        run: bun run test

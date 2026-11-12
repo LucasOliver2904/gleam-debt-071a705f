@@ -82,11 +82,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Meu Caixa — Controle de dívidas" },
-      { name: "description", content: "Controle de dívidas, parcelas, entradas e saídas." },
+      { name: "description", content: "Controle financeiro pessoal: contas, calendário de vencimentos, orçamento e metas." },
       { name: "theme-color", content: "#111b26" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+
     ],
     links: [
       {

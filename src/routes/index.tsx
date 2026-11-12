@@ -7,6 +7,7 @@ import {
   ArrowUpRight,
   CalendarClock,
   CalendarDays,
+  Target,
   PartyPopper,
   PiggyBank,
   Sparkles,
@@ -238,6 +239,19 @@ function Dashboard() {
       </div>
 
       <FinancialBriefing state={s} />
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <Link to="/agenda" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary"><CalendarDays size={22} /></span>
+          <span className="min-w-0 flex-1"><b className="block font-display text-base">Agenda de vencimentos</b><span className="mt-0.5 block text-xs text-muted-foreground">Veja cada dia e marque contas como pagas.</span></span>
+          <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+        </Link>
+        <Link to="/planejamento" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent/15 text-accent"><Target size={22} /></span>
+          <span className="min-w-0 flex-1"><b className="block font-display text-base">Planejamento e metas</b><span className="mt-0.5 block text-xs text-muted-foreground">Limites de gastos, previsões e objetivos.</span></span>
+          <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
+        </Link>
+      </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
