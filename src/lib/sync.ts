@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
 import { applyRemote, getState, setSyncHandler, uid, type State } from "./finance";
+import { mergePendingNotifications } from "./notification-merge";
 
 const clientId = uid() + uid();
 
@@ -34,8 +35,13 @@ export async function startSync(userId: string): Promise<() => void> {
     pushing = true;
     const snapshot = pending;
     try {
-      await push(userId, snapshot);
-      if (pending === snapshot) pending = null;
+      const merged = await push(userId, snapshot);
+      if (pending === snapshot) {
+        pending = null;
+        // Atualiza apenas se nenhuma edição mais recente tiver ocorrido.
+        // Preserve notificações recebidas durante a gravação no servidor.
+        if (getState() === snapshot) applyRemote(merged);
+      }
       retries = 0;
     } catch (err) {
       retries++;
@@ -97,12 +103,38 @@ export async function startSync(userId: string): Promise<() => void> {
   };
 }
 
-async function push(userId: string, state: State) {
-  const { error } = await supabase.from("user_state").upsert({
-    user_id: userId,
-    data: state as unknown as Json,
-    client_id: clientId,
-    updated_at: new Date().toISOString(),
-  });
-  if (error) throw new Error("Falha ao salvar as finanças no banco: " + error.message);
+async function push(userId: string, state: State): Promise<State> {
+  // Uma notificação pode chegar via webhook enquanto o usuário edita no app.
+  // O upsert antigo sobrescrevia toda a fila sem verificar concorrência.
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const { data: row, error: readError } = await supabase.from("user_state")
+      .select("data, updated_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (readError) throw new Error("Falha ao ler as finanças antes de salvar: " + readError.message);
+    if (!row) {
+      const { error } = await supabase.from("user_state").upsert({
+        user_id: userId, data: state as unknown as Json, client_id: clientId,
+        updated_at: new Date().toISOString(),
+      });
+      if (error) throw new Error("Falha ao criar estado financeiro: " + error.message);
+      return state;
+    }
+
+    const remote = row.data as unknown as State;
+    const merged = mergePendingNotifications(state, remote);
+    const timestamp = new Date(Math.max(Date.now(), Date.parse(row.updated_at ?? "") + 1 || 0)).toISOString();
+    const { data: updated, error } = await supabase.from("user_state").update({
+      data: merged as unknown as Json,
+      client_id: clientId,
+      updated_at: timestamp,
+    })
+      .eq("user_id", userId)
+      .eq("updated_at", row.updated_at)
+      .select("user_id")
+      .maybeSingle();
+    if (error) throw new Error("Falha ao salvar as finanças: " + error.message);
+    if (updated) return merged;
+  }
+  throw new Error("O estado financeiro mudou durante o salvamento; vamos tentar novamente.");
 }

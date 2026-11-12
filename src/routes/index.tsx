@@ -99,7 +99,7 @@ function Dashboard() {
     const p = d.payments[cm];
     if (p) cats.set(d.category ?? "Outros", (cats.get(d.category ?? "Outros") ?? 0) + p.amount);
   });
-  s.txs.filter((tx) => tx.kind === "saida" && tx.date.startsWith(cm)).forEach((tx) => {
+  s.txs.filter((tx) => tx.kind === "saida" && !tx.excludedFromTotals && tx.date.startsWith(cm)).forEach((tx) => {
     const cat = tx.category || "Outros";
     cats.set(cat, (cats.get(cat) ?? 0) + tx.amount);
   });
