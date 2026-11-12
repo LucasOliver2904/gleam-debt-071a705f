@@ -4,6 +4,8 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
+  CalendarDays,
+  Target,
   LayoutDashboard,
   LogOut,
   Plus,
@@ -16,14 +18,16 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
-import { CATEGORIES, localToday, parseMoney, setState, uid, type Tx } from "@/lib/finance";
+import { CATEGORIES, alerts, localToday, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
 import { supabase } from "@/integrations/supabase/client";
 
 const NAV = [
-  { to: "/", label: "Painel", icon: LayoutDashboard },
-  { to: "/dividas", label: "Dívidas", icon: Wallet },
-  { to: "/lancamentos", label: "Lançamentos", icon: ArrowLeftRight },
-  { to: "/ajustes", label: "Ajustes", icon: Settings },
+  { to: "/", label: "Painel", short: "Início", icon: LayoutDashboard },
+  { to: "/dividas", label: "Dívidas", short: "Contas", icon: Wallet },
+  { to: "/agenda", label: "Agenda", short: "Agenda", icon: CalendarDays },
+  { to: "/lancamentos", label: "Lançamentos", short: "Gastos", icon: ArrowLeftRight },
+  { to: "/planejamento", label: "Planejamento", short: "Planos", icon: Target },
+  { to: "/ajustes", label: "Ajustes", short: "Ajustes", icon: Settings },
 ] as const;
 
 const isActive = (path: string, to: string) =>
@@ -122,6 +126,8 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const finances = useFinance();
+  const overdue = finances.ready ? alerts(finances).filter((item) => item.status === "atrasada").length : 0;
   const [quickAddOpen, setQuickAddOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   useEffect(() => {
@@ -149,6 +155,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link key={to} to={to} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${on ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
                 <Icon size={18} className="shrink-0" />
                 <span>{label}</span>
+                {to === "/agenda" && overdue > 0 && <span aria-label={overdue + " contas atrasadas"} className="ml-auto rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-extrabold text-destructive">{overdue > 99 ? "99+" : overdue}</span>}
                 {on && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
               </Link>
             );
@@ -195,14 +202,14 @@ export function AppShell({ children }: { children: ReactNode }) {
       {quickAddOpen && <QuickAdd onClose={() => setQuickAddOpen(false)} />}
 
       <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 shadow-[0_-8px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="mx-auto grid max-w-md grid-cols-4">
-          {NAV.map(({ to, label, icon: Icon }) => {
+        <div className="mx-auto grid max-w-xl grid-cols-6">
+          {NAV.map(({ to, short, icon: Icon }) => {
             const on = isActive(path, to);
             return (
-              <Link key={to} to={to} className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-medium transition ${on ? "text-primary" : "text-muted-foreground"}`}>
+              <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${on ? "text-primary" : "text-muted-foreground"}`}>
                 {on && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" />}
-                <Icon size={20} />
-                <span>{label}</span>
+                <span className="relative"><Icon size={19} />{to === "/agenda" && overdue > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
+                <span>{short}</span>
               </Link>
             );
           })}
