@@ -129,7 +129,7 @@ export function financeCsv(s: State, month: string) {
   for (const tx of s.txs.filter((tx) => tx.date.startsWith(month))) {
     rows.push([
       tx.date, "Lançamento", tx.description, tx.category ?? "Outros",
-      tx.kind === "entrada" ? "Entrada" : "Saída", "Registrado", tx.amount.toFixed(2).replace(".", ","),
+      tx.kind === "entrada" ? "Entrada" : "Saída", tx.excludedFromTotals ? "Na fatura / não somado" : "Registrado", tx.amount.toFixed(2).replace(".", ","),
       tx.pix ? tx.pix.gross.toFixed(2).replace(".", ",") : "",
       tx.pix ? Math.max(0, tx.pix.gross - tx.pix.kept).toFixed(2).replace(".", ",") : "",
       tx.pix?.status ?? "",
