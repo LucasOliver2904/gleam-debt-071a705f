@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Receipt, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
+import { ExpenseReviewPanel } from "@/components/ExpenseReviewPanel";
 import { brl, CATEGORIES, currentMonth, localToday, monthLabel, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
 
 export const Route = createFileRoute("/lancamentos")({
@@ -49,10 +50,10 @@ function Lancamentos() {
   const months = [...new Set(s.txs.map((tx) => tx.date.slice(0, 7)).concat(currentMonth()))].sort().reverse();
   const txs = s.txs.filter((t) => (period === "todos" || t.date.startsWith(period)) && t.description.toLocaleLowerCase("pt-BR").includes(search.toLocaleLowerCase("pt-BR"))).slice().sort((a, b) => b.date.localeCompare(a.date));
   const categoryTotals = new Map<string, number>();
-  txs.filter((t) => t.kind === "saida").forEach((t) => { const cat = t.category || "Outros"; categoryTotals.set(cat, (categoryTotals.get(cat) || 0) + t.amount); });
+  txs.filter((t) => t.kind === "saida" && !t.excludedFromTotals).forEach((t) => { const cat = t.category || "Outros"; categoryTotals.set(cat, (categoryTotals.get(cat) || 0) + t.amount); });
   const catRows = [...categoryTotals].sort((a, b) => b[1] - a[1]);
   const tin = txs.filter((t) => t.kind === "entrada").reduce((a, t) => a + t.amount, 0);
-  const tout = txs.filter((t) => t.kind === "saida").reduce((a, t) => a + t.amount, 0);
+  const tout = txs.filter((t) => t.kind === "saida" && !t.excludedFromTotals).reduce((a, t) => a + t.amount, 0);
 
   // agrupar por mês (YYYY-MM), mantendo ordem decrescente
   const groups = new Map<string, Tx[]>();
@@ -73,6 +74,8 @@ function Lancamentos() {
       </div>
 
       <Link to="/pix" className="mt-4 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10">Gerenciar Pix recebidos e repasses</Link>
+      <ExpenseReviewPanel />
+
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
         <Stat label="Entradas" value={brl(tin)} tone="pos" />
         <Stat label="Saídas" value={brl(tout)} tone="neg" />
@@ -123,7 +126,7 @@ function Lancamentos() {
         <div className="mt-6 space-y-6">
           {[...groups.entries()].map(([mes, items]) => {
             const mesIn = items.filter((t) => t.kind === "entrada").reduce((a, t) => a + t.amount, 0);
-            const mesOut = items.filter((t) => t.kind === "saida").reduce((a, t) => a + t.amount, 0);
+            const mesOut = items.filter((t) => t.kind === "saida" && !t.excludedFromTotals).reduce((a, t) => a + t.amount, 0);
             return (
               <div key={mes}>
                 <div className="mb-2 flex items-baseline justify-between">
@@ -142,9 +145,9 @@ function Lancamentos() {
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate font-medium">{t.description}</p>
-                          <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")}{t.category ? " · " + t.category : ""}{t.pix ? " · bruto " + brl(t.pix.gross) : ""}</p>
+                          <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")}{t.category ? " · " + t.category : ""}{t.pix ? " · bruto " + brl(t.pix.gross) : ""}{t.excludedFromTotals ? " · Não somado (já na fatura/outra despesa)" : ""}</p>
                         </div>
-                        <span className={`font-semibold tabular-nums ${entrada ? "text-success" : "text-destructive"}`}>{entrada ? "+" : "−"} {brl(t.amount)}</span>
+                        <span className={`font-semibold tabular-nums ${t.excludedFromTotals ? "text-muted-foreground" : entrada ? "text-success" : "text-destructive"}`}>{t.excludedFromTotals ? "↳" : entrada ? "+" : "−"} {brl(t.amount)}</span>
                         <button onClick={() => del(t)} aria-label="Excluir lançamento" className="p-1.5 text-muted-foreground transition hover:text-destructive"><Trash2 size={15} /></button>
                       </li>
                     );

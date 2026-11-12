@@ -69,7 +69,7 @@ export function categorySpending(s: State, month: string) {
     totals.set(name, (totals.get(name) ?? 0) + payment.amount);
   }
   for (const tx of s.txs) {
-    if (tx.kind !== "saida" || !tx.date.startsWith(month)) continue;
+    if (tx.kind !== "saida" || tx.excludedFromTotals || !tx.date.startsWith(month)) continue;
     const name = tx.category ?? "Outros";
     totals.set(name, (totals.get(name) ?? 0) + tx.amount);
   }
