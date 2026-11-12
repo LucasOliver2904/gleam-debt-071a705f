@@ -16,8 +16,16 @@ export function parsePixNotification(raw: string): ParsedPix | null {
   if (!(gross > 0) || gross > 1_000_000_000) return null;
   // Busca o remetente APÓS o valor, para não interpretar "R$" como nome.
   const rest = text.slice((amountMatch.index ?? 0) + amountMatch[0].length);
-  const nameMatch = rest.match(/(?:^|\s)(?:de|por|remetente:?)\s+([\p{L}][\p{L}\p{M}\s.'-]{1,70})/iu);
-  const sender = nameMatch?.[1]?.split(/(?:[.!?]\s+)|(?:\s+(?:para sua conta|na conta|no banco|via pix|às \d|em \d)\b)/i)[0]?.replace(/[.!?]+$/, "").trim();
+  // Alguns bancos (por exemplo Sicredi) mostram o nome logo após "no valor de R$ ...",
+  // sem as palavras "de" ou "remetente". Não capturar apenas o último sobrenome.
+  const lead = text.slice(0, amountMatch.index ?? 0);
+  const direct = rest.match(/^\s*(?:de|por|remetente:?)\s+([\p{L}][\p{L}\p{M}\s.'-]{1,100})/iu);
+  const bankStyle = /\b(?:no valor de|valor de)\s*$/i.test(lead)
+    ? rest.match(/^\s+([\p{L}][\p{L}\p{M}\s.'-]{1,100})/iu)
+    : null;
+  const labeled = rest.match(/\bremetente:\s*([\p{L}][\p{L}\p{M}\s.'-]{1,100})/iu);
+  const extracted = direct?.[1] ?? bankStyle?.[1] ?? labeled?.[1];
+  const sender = extracted?.split(/(?:[.!?](?:\s|$))|(?:\s+(?:para sua conta|na conta|no banco|via pix|às \d|em \d)\b)/i)[0]?.replace(/[.!?]+$/, "").trim();
   return { gross, ...(sender ? { sender } : {}) };
 }
 
