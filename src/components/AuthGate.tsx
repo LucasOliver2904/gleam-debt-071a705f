@@ -4,9 +4,11 @@ import { Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { startSync } from "@/lib/sync";
+import { setFinanceUser } from "@/lib/finance";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [syncedUser, setSyncedUser] = useState<string | null>(null);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
@@ -16,7 +18,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   const userId = session?.user.id;
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) { setFinanceUser(null); return; }
+    setFinanceUser(userId);
     let stop: (() => void) | undefined;
     let cancelled = false;
     let retry: ReturnType<typeof setTimeout> | undefined;
@@ -24,7 +27,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       try {
         const cleanup = await startSync(userId);
         if (cancelled) cleanup();
-        else stop = cleanup;
+        else { stop = cleanup; setSyncedUser(userId); }
       } catch (error) {
         console.error("O Meu Caixa tentará restabelecer a sincronização.", error);
         if (!cancelled) retry = setTimeout(() => void connect(), 15000);
@@ -35,11 +38,13 @@ export function AuthGate({ children }: { children: ReactNode }) {
       cancelled = true;
       clearTimeout(retry);
       stop?.();
+      setFinanceUser(null);
     };
   }, [userId]);
 
   if (session === undefined) return <div className="min-h-screen bg-background" />;
   if (!session) return <Login />;
+  if (syncedUser !== userId) return <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">Carregando seus dados com segurança...</div>;
   return <>{children}</>;
 }
 
