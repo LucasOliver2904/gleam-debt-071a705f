@@ -46,7 +46,7 @@ export type ExpenseAuto = {
   source: string;
   method: "pix" | "cartao" | "carteira" | "pagamento";
 };
-export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData; expenseAuto?: ExpenseAuto; excludedFromTotals?: boolean };
+export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData; expenseAuto?: ExpenseAuto; excludedFromTotals?: boolean; statement?: { source: string; importedAt: string } };
 export type SavingsGoal = { id: string; name: string; target: number; saved: number; deadline?: string; createdAt: string };
 export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
 

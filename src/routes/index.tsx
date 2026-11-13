@@ -32,6 +32,7 @@ import {
 import { AppShell, Stat } from "@/components/AppShell";
 import { FinancialBriefing } from "@/components/FinancialBriefing";
 import { PendingReviewBanner, RecentActivity } from "@/components/DashboardActivity";
+import { FileImage } from "lucide-react";
 import {
   alerts,
   addMonths,
@@ -261,6 +262,11 @@ function Dashboard() {
       </div>
 
       <FinancialBriefing state={s} />
+      <Link to="/extrato" className="finance-feature mt-5 flex items-center gap-4 rounded-2xl p-4 sm:p-5">
+        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-info/15 text-info"><FileImage size={24}/></span>
+        <span className="min-w-0 flex-1"><strong className="block font-display text-sm font-extrabold sm:text-base">Tem prints do extrato bancário?</strong><span className="mt-1 block text-xs leading-relaxed text-muted-foreground">Envie suas capturas, confira data, pessoa, valor e tipo de movimentação antes de lançar.</span></span>
+        <ArrowRight size={19} className="shrink-0 text-primary"/>
+      </Link>
 
       <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         <Link to="/agenda" className="finance-feature group flex items-center gap-4 rounded-2xl p-4">

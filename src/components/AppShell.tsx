@@ -13,6 +13,7 @@ import {
   Moon,
   MoreHorizontal,
   ShieldCheck,
+  FileImage,
   BellRing,
   ArrowRight,
   Sun,
@@ -32,12 +33,13 @@ const NAV = [
   { to: "/agenda", label: "Agenda", short: "Agenda", icon: CalendarDays },
   { to: "/pix", label: "Pix e repasses", short: "Pix", icon: QrCode },
   { to: "/lancamentos", label: "Lançamentos", short: "Gastos", icon: ArrowLeftRight },
+  { to: "/extrato", label: "Importar extrato", short: "Extrato", icon: FileImage },
   { to: "/planejamento", label: "Planejamento", short: "Planos", icon: Target },
   { to: "/ajustes", label: "Ajustes", short: "Ajustes", icon: Settings },
 ] as const;
 
 const MOBILE_ITEMS = NAV.filter((item) => ["/", "/dividas", "/pix", "/lancamentos"].includes(item.to));
-const MORE_ITEMS = NAV.filter((item) => ["/agenda", "/planejamento", "/ajustes"].includes(item.to));
+const MORE_ITEMS = NAV.filter((item) => ["/agenda", "/extrato", "/planejamento", "/ajustes"].includes(item.to));
 
 const isActive = (path: string, to: string) =>
   to === "/" ? path === "/" : path.startsWith(to);

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Download, FilterX, Pencil, Receipt, Search, Trash2 } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, Download, FileImage, FilterX, Pencil, Receipt, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
 import { ExpenseReviewPanel } from "@/components/ExpenseReviewPanel";
@@ -99,7 +99,10 @@ function Lancamentos() {
         <span className="finance-pill shrink-0"><Receipt size={14}/> {s.txs.length} no histórico</span>
       </div>
 
-      <Link to="/pix" className="mt-4 inline-flex items-center gap-2 rounded-xl border border-primary/25 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10">Gerenciar Pix recebidos e repasses</Link>
+      <div className="mt-5 flex flex-wrap gap-2">
+        <Link to="/extrato" className="inline-flex items-center gap-2 rounded-xl border border-primary/35 bg-primary/12 px-4 py-3 text-xs font-extrabold text-primary transition hover:bg-primary/20"><FileImage size={17}/> Importar prints do extrato</Link>
+        <Link to="/pix" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-xs font-bold text-muted-foreground transition hover:text-primary">Gerenciar Pix recebidos e repasses</Link>
+      </div>
       <ExpenseReviewPanel />
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -249,7 +252,7 @@ function Lancamentos() {
                         </span>
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-sm font-bold">{t.description}</p>
-                          <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")}{t.category ? " · " + t.category : ""}{t.pix ? " · bruto " + brl(t.pix.gross) : ""}{t.excludedFromTotals ? " · Não somado (já na fatura/outra despesa)" : ""}</p>
+                          <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")}{t.category ? " · " + t.category : ""}{t.pix ? " · bruto " + brl(t.pix.gross) : ""}{t.statement ? " · Extrato: " + t.statement.source : ""}{t.excludedFromTotals ? " · Não somado (já na fatura/outra despesa)" : ""}</p>
                         </div>
                         <span className={`max-w-[40%] shrink-0 text-right font-display text-xs font-extrabold tabular-nums sm:text-sm ${t.excludedFromTotals ? "text-muted-foreground" : entrada ? "text-success" : "text-destructive"}`}>{t.excludedFromTotals ? "↳" : entrada ? "+" : "−"} {brl(t.amount)}</span>
                         <div className="flex shrink-0 items-center gap-1">
