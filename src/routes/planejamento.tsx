@@ -40,6 +40,10 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
       toast.error("Informe um valor válido para movimentar a meta.");
       return;
     }
+    if (mode === "remove" && v > goal.saved) {
+      toast.error("Você não pode retirar mais do que registrou como reservado.");
+      return;
+    }
     setState((s) => ({
       ...s,
       savingsGoals: (s.savingsGoals ?? []).map((item) => {
@@ -67,7 +71,7 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
   }
 
   return (
-    <article className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+    <article className="finance-surface rounded-2xl border border-border bg-card p-4 sm:p-5">
       <div className="flex items-start gap-3">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent"><Flag size={20} /></span>
         <div className="min-w-0 flex-1">
@@ -216,7 +220,7 @@ function Planejamento() {
         <button onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition hover:border-primary/40"><Download size={16} /> Exportar CSV</button>
       </div>
 
-      <section className="mt-6 overflow-hidden rounded-3xl border border-primary/20 bg-card p-5 shadow-sm sm:p-6">
+      <section className="finance-surface mt-6 overflow-hidden rounded-3xl border border-primary/30 bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><p className="finance-kicker">VISÃO DO MÊS</p><h2 className="mt-1 font-display text-xl font-extrabold">{monthLabel(month, true)}</h2></div>
           <div className="flex items-center gap-1.5">
@@ -235,7 +239,7 @@ function Planejamento() {
       </section>
 
       <div className="mt-5 grid items-start gap-5 xl:grid-cols-[1.1fr_0.9fr]">
-        <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+        <section className="finance-surface rounded-3xl border border-border bg-card p-5 sm:p-6">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div><p className="finance-kicker">VISÃO PARA FRENTE</p><h2 className="mt-1 font-display text-xl font-extrabold">Próximos 6 meses</h2></div>
             <Link to="/agenda" className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">Ver agenda <ArrowRight size={14} /></Link>
@@ -259,7 +263,7 @@ function Planejamento() {
           </div>
         </section>
 
-        <section className="rounded-3xl border border-border bg-card p-5 sm:p-6">
+        <section className="finance-surface rounded-3xl border border-border bg-card p-5 sm:p-6">
           <div className="flex items-center gap-2"><Target size={21} className="text-primary" /><h2 className="font-display text-xl font-extrabold">Limites por categoria</h2></div>
           <p className="mt-2 text-sm text-muted-foreground">Defina quanto pretende gastar em cada categoria neste mês.</p>
           <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_130px_auto]">
@@ -309,7 +313,7 @@ function Planejamento() {
           <button onClick={() => setShowNewGoal((current) => !current)} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><Plus size={16} /> Criar meta</button>
         </div>
         {showNewGoal && (
-          <div className="mt-4 rounded-2xl border border-primary/30 bg-card p-4 sm:p-5">
+          <div className="finance-surface mt-4 rounded-2xl border border-primary/30 bg-card p-4 sm:p-5">
             <h3 className="font-display font-bold">Nova meta</h3>
             <div className="mt-3 grid gap-3 md:grid-cols-[1fr_160px_160px_auto]">
               <input aria-label="Nome da meta" placeholder="Ex: Viagem, reserva de emergência" maxLength={70} className={input} value={newName} onChange={(e) => setNewName(e.target.value)} />
