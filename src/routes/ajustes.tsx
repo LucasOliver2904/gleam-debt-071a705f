@@ -222,7 +222,7 @@ function Ajustes() {
               <ActionRow icon={RotateCcw} title="Recuperar dados locais antigos" description="Se você usava o Meu Caixa antes, pode importar o cache antigo deste aparelho, após conferir que os dados são seus." action={() => {
                 if (!window.confirm("Existe um cache antigo neste navegador, que pode pertencer a outro login. Só importe se reconhecer que ele contém SEUS dados. Fazer backup dos dados atuais antes?")) return;
                 const legacy = legacyLocalBackup();
-                if (!legacy) return toast.error("Cache antigo indisponível.");
+                if (!legacy) { toast.error("Cache antigo indisponível."); return; }
                 try {
                   importBackup(legacy);
                   toast.success("Dados locais antigos restaurados nesta conta.");
