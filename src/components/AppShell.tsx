@@ -296,9 +296,9 @@ export function Stat({
     <article data-tone={tone ?? "default"} className="finance-stat-card group min-w-0 overflow-hidden px-4 pb-5 pt-5 sm:px-5 sm:pb-6">
       <div className="flex min-h-8 items-start justify-between gap-2">
         <p className="max-w-[80%] text-[10px] font-extrabold uppercase leading-relaxed tracking-[0.12em] text-muted-foreground sm:text-[11px]">{label}</p>
-        {Icon && <span className={\`grid h-9 w-9 shrink-0 place-items-center rounded-xl \${iconTone}\`}><Icon size={17} strokeWidth={2.2}/></span>}
+        {Icon && <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${iconTone}`}><Icon size={17} strokeWidth={2.2}/></span>}
       </div>
-      <p className={\`mt-3 min-w-0 break-words font-display text-[clamp(1.08rem,2.1vw,1.75rem)] font-extrabold leading-tight tracking-tight tabular-nums \${color}\`}>{value}</p>
+      <p className={`mt-3 min-w-0 break-words font-display text-[clamp(1.08rem,2.1vw,1.75rem)] font-extrabold leading-tight tracking-tight tabular-nums ${color}`}>{value}</p>
       {hint && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{hint}</p>}
     </article>
   );
