@@ -62,7 +62,7 @@ function Lancamentos() {
   const hasFilters = period !== currentMonth() || !!search.trim() || categoryFilter !== "todas" || kindFilter !== "todos" || order !== "newest";
   const resetFilters = () => { setPeriod(currentMonth()); setSearch(""); setCategoryFilter("todas"); setKindFilter("todos"); setOrder("newest"); };
   const exportVisible = () => {
-    if (txs.length === 0) return toast.error("Nenhuma movimentação para exportar.");
+    if (txs.length === 0) { toast.error("Nenhuma movimentação para exportar."); return; }
     const blob = new Blob([transactionsCsv(txs)], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
