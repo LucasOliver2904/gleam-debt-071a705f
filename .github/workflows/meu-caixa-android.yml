@@ -35,8 +35,10 @@ jobs:
       - name: Usar SDK Android do runner e aceitar licenças gratuitas
         run: |
           echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
-          yes | sdkmanager --licenses > /dev/null || true
-          sdkmanager "platforms;android-35" "build-tools;35.0.0"
+          SDKMGR="$(find "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools" -type f -name sdkmanager | sort -r | head -1)"
+          test -x "$SDKMGR"
+          yes | "$SDKMGR" --licenses > /dev/null || true
+          "$SDKMGR" "platforms;android-35" "build-tools;35.0.0"
       - name: Preparar Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
