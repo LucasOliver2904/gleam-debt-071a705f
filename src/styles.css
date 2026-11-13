@@ -211,7 +211,7 @@ html[data-theme="light"] .finance-hero {
 
 /* Meu Caixa Signature · contrast-first, accessible financial UI */
 @layer base {
-  *, *::before, *::after { box-sizing: border-box; }
+  *, *::before, *::after { box-sizing: border-box; border-color: var(--color-border); }
   body {
     margin: 0;
     background-color: var(--background);
