@@ -151,7 +151,7 @@ function StatementImportPage() {
 
   function importChecked() {
     const selected = checkedRows();
-    if (!selected.length) return toast.error("Selecione ao menos uma movimentação para importar.");
+    if (!selected.length) { toast.error("Selecione ao menos uma movimentação para importar."); return; }
     const prepared: { row: StatementRow; gross: number; kept: number }[] = [];
     for (const row of selected) {
       const { gross, kept } = confirmedAmounts(row);
@@ -186,7 +186,7 @@ function StatementImportPage() {
           kept,
           status: gross > kept ? "pendente" as const : "repassado" as const,
           source: "texto" as const,
-          ...(firstName(row.description) ? { sender: firstName(row.description) } : {}),
+          ...(firstName(row.description) ? { sender: firstName(row.description)! } : {}),
           ...(row.source ? { bank: row.source } : {}),
         } }
         : {}),

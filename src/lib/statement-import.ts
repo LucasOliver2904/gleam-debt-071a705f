@@ -91,7 +91,7 @@ export function statementCategory(description: string, kind: StatementKind): str
 }
 
 function moneyValue(raw: string): number {
-  const value = raw.replace(/R\$/gi, "").replace(/[−+\s]/g, "").replace(/\./g, "").replace(",", ".");
+  const value = raw.replace(/R\$/gi, "").replace(/[−+\-\s]/g, "").replace(/\./g, "").replace(",", ".");
   const n = Number(value);
   return Number.isFinite(n) && n > 0 && n <= 1_000_000_000 ? Math.round(n * 100) / 100 : NaN;
 }
