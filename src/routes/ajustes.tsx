@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff, Info, MonitorSmartphone, RotateCcw, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { InstallAppCard } from "@/components/InstallAppCard";
 import { alerts, exportBackup, importBackup, resetAll, setState, useFinance } from "@/lib/finance";
 import { DEFAULT_REMINDER_CONFIG, reminderConfig, type ReminderConfig } from "@/lib/reminders";
 
@@ -144,6 +145,7 @@ function Ajustes() {
       </div>
 
       <div className="grid max-w-4xl gap-5">
+        <InstallAppCard />
         <section className="overflow-hidden rounded-2xl border border-border bg-card">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
             <div className="flex items-start gap-3">
