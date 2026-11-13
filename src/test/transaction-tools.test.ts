@@ -26,7 +26,7 @@ describe("Filtros e exportação de movimentações", () => {
   it("exporta CSV legível, delimitado e sem interpretar descrições como fórmulas", () => {
     const csv = transactionsCsv(txs);
     expect(csv).toContain("Descrição");
-    expect(csv).toContain('"\\'=IMPORTXML(A1)"');
+    expect(csv).toContain("\"'=IMPORTXML(A1)\"");
     expect(csv).toContain('"90,50"');
     expect(csv).toContain("Já contabilizado em outra despesa");
   });
