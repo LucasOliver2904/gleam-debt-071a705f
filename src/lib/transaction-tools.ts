@@ -46,7 +46,7 @@ export function transactionsCsv(txs: Tx[]): string {
     tx.category || "Outros",
     tx.amount.toFixed(2).replace(".", ","),
     tx.excludedFromTotals ? "Já contabilizado em outra despesa" : "Contabilizado",
-    tx.pix ? "Pix recebido" : tx.expenseAuto?.source || "Manual",
+    tx.statement ? "Extrato: " + tx.statement.source : tx.pix ? "Pix recebido" : tx.expenseAuto?.source || "Manual",
   ]);
   return "\uFEFF" + [header, ...rows].map((row) => row.map((cell) => csvCell(String(cell))).join(";")).join("\r\n");
 }
