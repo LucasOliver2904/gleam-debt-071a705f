@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff, Info, MonitorSmartphone, RotateCcw, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { InstallAppCard } from "@/components/InstallAppCard";
+import { AccentPicker } from "@/components/AccentPicker";
 import { alerts, exportBackup, hasLegacyLocalBackup, importBackup, legacyLocalBackup, resetAll, setState, useFinance } from "@/lib/finance";
 import { DEFAULT_REMINDER_CONFIG, reminderConfig, type ReminderConfig } from "@/lib/reminders";
 
@@ -146,7 +147,7 @@ function Ajustes() {
 
       <div className="grid max-w-4xl gap-5">
         <InstallAppCard />
-        <section className="overflow-hidden rounded-2xl border border-border bg-card">
+        <section className="finance-surface overflow-hidden rounded-2xl border border-border bg-card">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">
             <div className="flex items-start gap-3">
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Bell size={21} /></span>
@@ -210,7 +211,7 @@ function Ajustes() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5">
+        <section className="finance-surface rounded-2xl border border-border bg-card p-5">
           <div className="mb-4 flex items-center gap-3">
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent"><ShieldCheck size={20} /></span>
             <div><h2 className="font-display text-lg font-bold">Seus dados e backups</h2><p className="text-xs text-muted-foreground">{s.debts.length} contas · {s.txs.length} lançamentos</p></div>
@@ -233,14 +234,18 @@ function Ajustes() {
             )}
             <input hidden ref={backupInput} type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restore(file); event.target.value = ""; }} />
           </div>
+          <p className="mt-4 rounded-xl border border-accent/25 bg-accent/7 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mr-2 inline text-accent"/> O arquivo de backup contém seus dados financeiros em texto legível. Guarde-o em local privado e protegido. As chaves de automação não são incluídas.</p>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-5">
-          <div className="mb-4 flex items-center gap-2"><MonitorSmartphone className="text-primary" size={19} /><h2 className="font-display text-lg font-bold">Personalização</h2></div>
-          <p className="text-sm text-muted-foreground">Alterne entre modo escuro e claro pelo menu lateral ou no topo da versão mobile. Sua escolha é lembrada neste dispositivo.</p>
+        <AccentPicker />
+
+        <section className="finance-surface rounded-2xl border border-border bg-card p-5">
+          <div className="mb-4 flex items-center gap-2"><MonitorSmartphone className="text-primary" size={19} /><h2 className="font-display text-lg font-bold">Aparência e privacidade</h2></div>
+          <p className="text-sm leading-relaxed text-muted-foreground">Alterne entre os modos claro e escuro pelo menu lateral ou pelo ícone no alto da versão mobile. Cores e tema ficam salvos neste dispositivo, sem afetar suas finanças.</p>
+          <Link to="/privacidade" className="mt-4 inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/8 px-3.5 py-2.5 text-xs font-bold text-primary transition hover:bg-primary/15"><ShieldCheck size={16}/> Ler política de privacidade <ChevronRight size={15}/></Link>
         </section>
 
-        <section className="rounded-2xl border border-destructive/25 bg-card p-5">
+        <section className="finance-surface rounded-2xl border border-destructive/25 bg-card p-5">
           <h2 className="font-display text-lg font-bold text-destructive">Zona de cuidado</h2>
           <p className="mb-4 mt-1 text-xs text-muted-foreground">Ações que substituem ou excluem registros financeiros. Baixe um backup antes de prosseguir.</p>
           <div className="grid gap-2 sm:grid-cols-2">
