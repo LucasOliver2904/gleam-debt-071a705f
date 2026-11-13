@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, CalendarCheck, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, X } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
-import { AppShell } from "@/components/AppShell";
-import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, type Debt, type DebtType } from "@/lib/finance";
+import { AppShell, Stat } from "@/components/AppShell";
+import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
 
 export const Route = createFileRoute("/dividas")({
   head: () => ({
@@ -32,6 +32,10 @@ function Dividas() {
   if (!s.ready) return <AppShell><div /></AppShell>;
   const months = allMonths(s);
   const cm = currentMonth();
+  const summary = monthSummary(s, cm);
+  const totalRemaining = outstandingDebtBalance(s);
+  const waiting = s.debts.filter((debt) => debt.payments[cm] && !debt.payments[cm]!.paid).length;
+  const settled = s.debts.filter((debt) => debt.payments[cm]?.paid).length;
 
   const Section = ({ type, title }: { type: DebtType; title: string }) => (
     <>
@@ -50,16 +54,23 @@ function Dividas() {
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova conta</button>
       </div>
-      <div className="relative mt-4 hidden md:block md:max-w-xs">
+      <div className="mt-6 hidden grid-cols-2 gap-3 md:grid lg:grid-cols-4">
+        <Stat label="Parcelas em aberto" value={brl(totalRemaining)} tone={totalRemaining > 0 ? "neg" : "pos"} icon={Wallet} hint="Não inclui contas fixas futuras"/>
+        <Stat label="A pagar neste mês" value={brl(summary.pending)} tone={summary.pending > 0 ? "neg" : "pos"} icon={CalendarClock}/>
+        <Stat label="Contas pendentes" value={String(waiting)} tone={waiting > 0 ? "neg" : "pos"} icon={CalendarCheck}/>
+        <Stat label="Contas pagas no mês" value={String(settled)} tone="pos" icon={ShieldCheck}/>
+      </div>
+      <div className="relative mt-5 hidden md:block md:max-w-sm">
         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
         <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar conta..." className="w-full rounded-xl border border-input bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-primary" />
       </div>
 
+      {s.debts.length === 0 && <div className="mt-5 flex flex-col items-center rounded-3xl border border-dashed border-primary/35 bg-primary/5 p-7 text-center sm:p-10"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/15 text-primary"><Wallet size={22}/></span><p className="mt-3 font-display text-lg font-extrabold">Comece organizando suas contas</p><p className="mt-1 max-w-md text-sm text-muted-foreground">Cadastre uma parcela, assinatura ou compromisso recorrente. Seu painel e sua agenda passam a mostrar os próximos vencimentos.</p><button onClick={() => setOpen(true)} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><Plus size={16}/> Cadastrar primeira conta</button></div>}
       <MobileList onEdit={setEditing} />
-      <div className="mt-6 hidden md:block overflow-x-auto rounded-2xl border border-border bg-card">
+      <div className="finance-surface mt-6 hidden md:block overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full min-w-max text-sm">
           <thead>
-            <tr className="text-left text-xs uppercase text-muted-foreground">
+            <tr className="bg-secondary/45 text-left text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
               <th className="sticky left-0 z-10 bg-card px-3 py-3">Conta</th>
               {months.map((m) => <th key={m} className={`px-2 py-3 text-right ${m === cm ? "text-primary" : ""}`}>{monthLabel(m)}</th>)}
               <th className="px-3 py-3 text-right">Resta</th><th />
@@ -87,7 +98,7 @@ function Dividas() {
       <div className="mt-3 hidden md:flex gap-4 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-success" /> Pago / Entrada</span>
         <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-destructive" /> Pendente / Saída</span>
-        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-amber-500" /> Última parcela</span>
+        <span className="flex items-center gap-1.5"><i className="h-3 w-3 rounded bg-accent" /> Última parcela</span>
       </div>
       {open && <NewDebt onClose={() => setOpen(false)} />}
       {editing && <EditDebt debt={editing} onClose={() => setEditing(null)} />}
@@ -112,13 +123,13 @@ function TxsSection({ months, q }: { months: string[]; q: string }) {
           <tr key={t.id} className="border-t border-border">
             <td className="sticky left-0 z-10 bg-card px-3 py-1.5 font-medium whitespace-nowrap">
               <span>{t.description}</span>
-              <span className="text-xs text-muted-foreground"> · {t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}</span>
+              <span className="text-xs text-muted-foreground"> · {t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}{t.excludedFromTotals ? " · já contabilizado na fatura" : ""}</span>
             </td>
             {months.map((m) => (
               <td key={m} className="p-0.5">
                 {m === tm ? (
-                  <div className={`w-full rounded-md px-2 py-1.5 text-right tabular-nums ${entrada ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"}`}>
-                    {entrada ? "+" : "−"} {brl(t.amount)}
+                  <div className={`w-full rounded-md px-2 py-1.5 text-right tabular-nums ${t.excludedFromTotals ? "bg-secondary/70 text-muted-foreground" : entrada ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"}`}>
+                    {t.excludedFromTotals ? "↳" : entrada ? "+" : "−"} {brl(t.amount)}
                   </div>
                 ) : <div className="h-8" />}
               </td>
@@ -146,7 +157,7 @@ function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string;
           {d.name} <Pencil size={12} className="text-muted-foreground group-hover:text-primary" />
         </button>
         {isLast && (
-          <span className="ml-2 rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">Última</span>
+          <span className="ml-2 rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-accent">Última</span>
         )}
         {isAlmost && (
           <span className="ml-2 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">Falta 2</span>
@@ -490,7 +501,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
         else unica += p.amount;
       }
     });
-    const avulsas = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "saida").reduce((a, t) => a + t.amount, 0);
+    const avulsas = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "saida" && !t.excludedFromTotals).reduce((a, t) => a + t.amount, 0);
     return { parcelada, fixa, unica, avulsas, total: parcelada + fixa + unica + avulsas };
   })();
 
@@ -502,14 +513,14 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   const chips: [typeof f, string][] = [["todas", "Todas"], ["pendentes", "Pendentes"], ["acabando", "Acabando"], ["parcelada", "Parceladas"], ["fixa", "Fixas"], ["unica", "Únicas"]];
   return (
     <div className="mt-4 md:hidden">
-      <div className="flex items-center justify-between rounded-2xl border border-border bg-card p-2">
+      <div className="finance-surface flex items-center justify-between rounded-2xl border border-border bg-card p-2">
         <button disabled={i <= 0} onClick={() => setM(months[i - 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">‹</button>
         <span className="font-display text-lg font-bold">{monthLabel(m, true)}</span>
         <button disabled={i >= months.length - 1} onClick={() => setM(months[i + 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">›</button>
       </div>
 
       <div className="mt-3 space-y-2.5">
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="finance-surface rounded-2xl border border-border bg-card p-4">
           <div className="flex items-baseline justify-between gap-3">
             <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">A pagar total</span>
             <span className="font-display text-2xl font-bold tabular-nums text-destructive">{brl(breakdown.total)}</span>
@@ -523,9 +534,9 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
         </div>
 
         <div className="grid grid-cols-2 gap-2.5">
-          <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="finance-surface rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Entradas previstas</p>
-            <p className="mt-1 font-display text-lg font-bold tabular-nums text-success">{brl(sum.income)}</p>
+            <p className="mt-1 break-words font-display text-lg font-extrabold tabular-nums text-success">{brl(sum.income)}</p>
             <label className="mt-2 block text-[11px] text-muted-foreground">Salário estimado (R$)
               <input type="number" inputMode="decimal" step="0.01" min="0" key={m} defaultValue={s.income[m] ?? 0} onBlur={(event) => {
                 const value = Math.max(0, Number(event.target.value) || 0);
@@ -533,7 +544,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
               }} className="mt-1 w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-primary" />
             </label>
           </div>
-          <div className="rounded-2xl border border-border bg-card p-4">
+          <div className="finance-surface rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Sobra prevista</p>
             <p className={`mt-1 font-display text-lg font-bold tabular-nums ${sum.balance >= 0 ? "text-success" : "text-destructive"}`}>{brl(sum.balance)}</p>
           </div>
@@ -561,7 +572,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
 
           return (
             <li key={d.id} className="relative">
-              <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 pr-11 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : isLast ? "border-amber-500/40 bg-amber-500/5" : "border-border bg-card"}`}>
+              <button onClick={() => togglePaid(d.id, m)} className={`flex w-full items-center gap-3 rounded-2xl border p-3 pr-11 text-left active:scale-[0.99] ${p.paid ? "border-success/30 bg-success/10" : isLast ? "border-accent/45 bg-accent/8" : "border-border bg-card"}`}>
                 <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl text-center leading-none ${p.paid ? "bg-success text-background" : isLast ? "bg-amber-500/20 text-amber-600 dark:text-amber-400" : "bg-secondary"}`}>
                   {d.due ? <span><span className="block text-[9px] uppercase">dia</span><b className="text-base">{d.due}</b></span> : <span className="text-xs">—</span>}
                 </div>
@@ -600,9 +611,9 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{t.description}</p>
-                    <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}{t.category ? " · " + t.category : ""}</p>
+                    <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}{t.category ? " · " + t.category : ""}{t.excludedFromTotals ? " · já somada em outra despesa" : ""}</p>
                   </div>
-                  <p className={`font-semibold tabular-nums ${entrada ? "text-success" : "text-destructive"}`}>{entrada ? "+" : "−"} {brl(t.amount)}</p>
+                  <p className={`text-xs font-extrabold tabular-nums sm:text-sm ${t.excludedFromTotals ? "text-muted-foreground" : entrada ? "text-success" : "text-destructive"}`}>{t.excludedFromTotals ? "↳" : entrada ? "+" : "−"} {brl(t.amount)}</p>
                   <button onClick={() => confirm(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
                 </li>
               );

@@ -34,11 +34,11 @@ import java.util.Set;
  * Interface principal do Meu Caixa abre no Chrome (mantém login Google/OAuth).
  */
 public final class MainActivity extends Activity {
-    private static final int NAVY = Color.rgb(14, 23, 38);
-    private static final int CARD = Color.rgb(25, 40, 59);
-    private static final int MINT = Color.rgb(28, 190, 146);
-    private static final int TEXT = Color.rgb(239, 247, 247);
-    private static final int MUTED = Color.rgb(168, 188, 195);
+    private static final int NAVY = Color.rgb(10, 18, 31);
+    private static final int CARD = Color.rgb(24, 39, 60);
+    private static final int MINT = Color.rgb(70, 235, 178);
+    private static final int TEXT = Color.rgb(247, 250, 255);
+    private static final int MUTED = Color.rgb(194, 210, 223);
     private LinearLayout content;
     private TextView statusLabel;
     private EditText tokenInput;

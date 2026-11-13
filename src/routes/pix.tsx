@@ -66,6 +66,14 @@ function PixPage() {
     }
   }, [editId, s.txs]);
 
+  useEffect(() => {
+    if (!formOpen || (!editId && !reviewingId)) return;
+    const frame = requestAnimationFrame(() =>
+      document.getElementById("pix-editor")?.scrollIntoView({ behavior: "smooth", block: "start" })
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [formOpen, editId, reviewingId]);
+
   const resetForm = () => {
     setEditId(null);
     setReviewingId(null);
@@ -95,7 +103,7 @@ function PixPage() {
     setSource(tx.pix.source);
     setNotificationText("");
     setFormOpen(true);
-    document.getElementById("pix-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   }
 
   function reviewIncoming(item: PixInboxItem) {
@@ -111,7 +119,7 @@ function PixPage() {
     setSource("automacao");
     setNotificationText("");
     setFormOpen(true);
-    document.getElementById("pix-editor")?.scrollIntoView({ behavior: "smooth", block: "start" });
+
   }
 
   function discardIncoming(item: PixInboxItem) {
@@ -227,7 +235,7 @@ function PixPage() {
 
       <PixAutomationPanel />
 
-      <section className="mt-6 rounded-3xl border border-primary/25 bg-card p-4 shadow-sm sm:p-6">
+      <section className="finance-surface mt-6 rounded-3xl border border-primary/30 bg-card p-4 sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="finance-kicker">NOTIFICAÇÕES / PARA CONFERIR</p>
@@ -264,7 +272,7 @@ function PixPage() {
       </section>
 
       <div className="mt-5 grid gap-5 xl:grid-cols-[1.05fr_1fr]">
-        <section id="pix-editor" className="scroll-mt-20 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <section id="pix-editor" className="finance-surface scroll-mt-24 rounded-3xl border border-border bg-card p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div><p className="finance-kicker">LANÇAMENTO INTELIGENTE</p><h2 className="mt-1 font-display text-lg font-extrabold">{reviewingId ? "Conferir Pix recebido" : editId ? "Editar recebimento" : "Registrar recebimento"}</h2></div>
             {formOpen && <button type="button" onClick={resetForm} aria-label="Fechar edição" className="rounded-lg border border-border p-2 text-muted-foreground hover:bg-secondary"><X size={17} /></button>}
@@ -289,10 +297,20 @@ function PixPage() {
                 <button type="button" onClick={() => setKept(gross)} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary">Tudo fica comigo</button>
                 <button type="button" onClick={() => setKept("0")} className="rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-secondary">Tudo para repasse</button>
               </div>
-              <div className="grid grid-cols-3 gap-2 rounded-2xl border border-primary/20 bg-primary/5 p-3">
-                <div><p className="text-[10px] font-semibold text-muted-foreground">RECEBIDO</p><p className="mt-1 truncate font-display text-sm font-bold tabular-nums sm:text-base">{split ? brl(split.gross) : "—"}</p></div>
-                <div><p className="text-[10px] font-semibold text-muted-foreground">SEU</p><p className="mt-1 truncate font-display text-sm font-bold tabular-nums text-success sm:text-base">{split ? brl(split.kept) : "—"}</p></div>
-                <div><p className="text-[10px] font-semibold text-muted-foreground">REPASSE</p><p className="mt-1 truncate font-display text-sm font-bold tabular-nums text-accent sm:text-base">{split ? brl(split.toPassOn) : "—"}</p></div>
+              <div className="rounded-2xl border border-primary/30 bg-primary/7 p-3 sm:p-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <div><p className="text-[10px] font-extrabold text-muted-foreground">RECEBIDO</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums sm:text-base">{split ? brl(split.gross) : "—"}</p></div>
+                  <div><p className="text-[10px] font-extrabold text-muted-foreground">FICA COMIGO</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums text-success sm:text-base">{split ? brl(split.kept) : "—"}</p></div>
+                  <div><p className="text-[10px] font-extrabold text-muted-foreground">A REPASSAR</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums text-accent sm:text-base">{split ? brl(split.toPassOn) : "—"}</p></div>
+                </div>
+                {split && split.gross > 0 && (
+                  <>
+                    <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-accent/50" role="progressbar" aria-label="Proporção do Pix que fica com você" aria-valuenow={Math.round(split.kept / split.gross * 100)} aria-valuemin={0} aria-valuemax={100}>
+                      <div className="h-full rounded-full bg-success transition-all duration-300" style={{ width: Math.round(split.kept / split.gross * 100) + "%" }}/>
+                    </div>
+                    <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{Math.round(split.kept / split.gross * 100)}% do recebimento fica com você. O restante é apenas controle de repasse.</p>
+                  </>
+                )}
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-semibold text-muted-foreground">Quem enviou (opcional)
@@ -322,7 +340,7 @@ function PixPage() {
           )}
         </section>
 
-        <section className="rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <section className="finance-surface rounded-3xl border border-border bg-card p-4 sm:p-6">
           <p className="finance-kicker">IMPORTAR TEXTO / CONFERÊNCIA</p>
           <h2 className="mt-1 flex items-center gap-2 font-display text-lg font-extrabold"><ClipboardPaste size={20} className="text-primary" /> Colar notificação do banco</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
@@ -347,7 +365,7 @@ function PixPage() {
         </section>
       </div>
 
-      <section className="mt-6 rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+      <section className="finance-surface mt-6 rounded-3xl border border-border bg-card p-4 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div><p className="finance-kicker">HISTÓRICO / REPASSES</p><h2 className="mt-1 font-display text-xl font-extrabold">Seus recebimentos</h2></div>
           <span className="rounded-full bg-secondary px-3 py-1.5 text-xs font-semibold">{filtered.length} registro(s)</span>
@@ -389,9 +407,9 @@ function PixPage() {
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs lg:justify-end">
-                    <div><p className="text-muted-foreground">Recebido</p><p className="mt-0.5 font-bold tabular-nums">{brl(pix.gross)}</p></div>
-                    <div><p className="text-muted-foreground">Seu ganho</p><p className="mt-0.5 font-bold tabular-nums text-success">{brl(pix.kept)}</p></div>
-                    <div><p className="text-muted-foreground">Repasse</p><p className="mt-0.5 font-bold tabular-nums">{brl(toPassOn)}</p></div>
+<div><p className="text-muted-foreground">Recebido</p><p className="mt-0.5 font-display font-extrabold tabular-nums">{brl(pix.gross)}</p></div>
+<div><p className="text-muted-foreground">Seu ganho</p><p className="mt-0.5 font-display font-extrabold tabular-nums text-success">{brl(pix.kept)}</p></div>
+<div><p className="text-muted-foreground">Repasse</p><p className="mt-0.5 font-display font-extrabold tabular-nums text-accent">{brl(toPassOn)}</p></div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5 lg:ml-2">
                     {toPassOn > 0 && (

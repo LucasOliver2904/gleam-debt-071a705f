@@ -42,6 +42,7 @@ function AgendaPage() {
   const pending = open.reduce((sum, bill) => sum + bill.payment.amount, 0);
   const overdue = open.filter((bill) => bill.daysUntil < 0);
   const paid = bills.length - open.length;
+  const paidPercentage = bills.length ? Math.round(paid / bills.length * 100) : 0;
   const byDay = new Map<string, MonthBill[]>();
   for (const bill of bills) byDay.set(bill.dateKey, [...(byDay.get(bill.dateKey) ?? []), bill]);
 
@@ -87,8 +88,19 @@ function AgendaPage() {
         <Stat label="Vencidas" value={String(overdue.length)} tone={overdue.length ? "neg" : "pos"} icon={AlertCircle} />
       </div>
 
+      <section className="finance-surface mt-5 rounded-2xl border border-border bg-card p-4 sm:p-5" aria-label="Progresso dos pagamentos do mês">
+        <div className="flex items-center justify-between gap-3 text-sm">
+          <div className="flex items-center gap-2"><CheckCheck size={18} className="text-success"/><span className="font-bold">Pagamentos em dia</span></div>
+          <span className="font-display text-base font-extrabold tabular-nums text-success">{paidPercentage}%</span>
+        </div>
+        <div role="progressbar" aria-label="Percentual de contas pagas" aria-valuenow={paidPercentage} aria-valuemin={0} aria-valuemax={100} className="mt-3 h-2.5 overflow-hidden rounded-full bg-secondary">
+          <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-500" style={{ width: paidPercentage + "%" }}/>
+        </div>
+        <p className="mt-2 text-xs text-muted-foreground">{paid} de {bills.length} conta(s) quitadas em {monthLabel(month, true)}. Toque em uma data para filtrar os vencimentos.</p>
+      </section>
+
       <div className="mt-6 grid items-start gap-5 xl:grid-cols-[1.12fr_1fr]">
-        <section className="overflow-hidden rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <section className="finance-surface overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="finance-kicker">ESCOLHA UM DIA</p>
@@ -143,7 +155,7 @@ function AgendaPage() {
           </div>
         </section>
 
-        <section className="overflow-hidden rounded-3xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <section className="finance-surface overflow-hidden rounded-3xl border border-border bg-card p-4 sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="finance-kicker">SEUS VENCIMENTOS</p>
@@ -164,7 +176,7 @@ function AgendaPage() {
                 const status = dueStatus(bill);
                 const Icon = status.icon;
                 return (
-                  <li key={bill.debt.id + bill.month} className="flex items-center gap-3 rounded-2xl border border-border bg-background/40 p-3">
+                  <li key={bill.debt.id + bill.month} className="flex items-center gap-3 rounded-2xl border border-border bg-background/40 p-3 transition hover:border-primary/30 hover:bg-secondary/25">
                     <span className={"grid h-11 w-11 shrink-0 place-items-center rounded-xl text-xs font-bold " +
                       (bill.payment.paid ? "bg-success/15 text-success" :
                         bill.daysUntil < 0 ? "bg-destructive/15 text-destructive" : "bg-secondary text-foreground")}>

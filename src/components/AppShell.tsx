@@ -11,6 +11,10 @@ import {
   LogOut,
   Plus,
   Moon,
+  MoreHorizontal,
+  ShieldCheck,
+  BellRing,
+  ArrowRight,
   Sun,
   Settings,
   Wallet,
@@ -32,6 +36,9 @@ const NAV = [
   { to: "/ajustes", label: "Ajustes", short: "Ajustes", icon: Settings },
 ] as const;
 
+const MOBILE_ITEMS = NAV.filter((item) => ["/", "/dividas", "/pix", "/lancamentos"].includes(item.to));
+const MORE_ITEMS = NAV.filter((item) => ["/agenda", "/planejamento", "/ajustes"].includes(item.to));
+
 const isActive = (path: string, to: string) =>
   to === "/" ? path === "/" : path.startsWith(to);
 
@@ -50,7 +57,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
 
 function Avatar() {
   return (
-    <span className="grid h-9 w-9 place-items-center rounded-full bg-secondary text-sm font-semibold ring-1 ring-border">
+    <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-info/20 text-sm font-extrabold text-primary ring-1 ring-primary/25" aria-hidden="true">
       L
     </span>
   );
@@ -76,8 +83,8 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
-      <div className="w-full max-w-md overflow-y-auto rounded-t-2xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-background/75 backdrop-blur-sm sm:items-center sm:p-4" role="presentation" onMouseDown={onClose}>
+      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-t-3xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl sm:p-6" role="dialog" aria-modal="true" aria-label="Novo lançamento rápido" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
         <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border sm:hidden" />
         <div className="flex items-center justify-between">
           <h2 className="font-display text-xl font-bold">Novo lançamento</h2>
@@ -133,6 +140,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pixWaiting = finances.ready ? (finances.pixInbox?.length ?? 0) : 0;
   const expensesWaiting = finances.ready ? (finances.expenseInbox?.length ?? 0) : 0;
   const [quickAddOpen, setQuickAddOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
   const [theme, setTheme] = useState<"dark" | "light">("dark");
   useEffect(() => {
     setTheme(localStorage.getItem("meu-caixa-theme") === "light" ? "light" : "dark");
@@ -147,16 +155,17 @@ export function AppShell({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.signOut();
     if (error) toast.error("Não foi possível sair. Tente novamente.");
   };
+  useEffect(() => { setMoreOpen(false); }, [path]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <aside className="finance-nav fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-sidebar-border backdrop-blur-xl lg:flex">
+    <div className="finance-page-accent min-h-screen bg-background text-foreground">
+      <aside className="finance-nav fixed inset-y-0 left-0 z-40 hidden w-[266px] flex-col border-r border-sidebar-border backdrop-blur-xl lg:flex">
         <Brand />
-        <nav className="flex-1 space-y-1 px-3 pt-6"><p className="mb-3 px-3 text-[10px] font-bold tracking-[0.16em] text-muted-foreground">ESPAÇO DE TRABALHO</p>
+        <nav aria-label="Menu principal" className="flex-1 space-y-1 px-3 pt-7"><p className="mb-4 px-3 text-[10px] font-extrabold tracking-[0.19em] text-muted-foreground">MEU ESPAÇO</p>
           {NAV.map(({ to, label, icon: Icon }) => {
             const on = isActive(path, to);
             return (
-              <Link key={to} to={to} className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${on ? "bg-primary/15 text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
+              <Link key={to} to={to} data-active={on} aria-current={on ? "page" : undefined} className={`finance-nav-item group flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold transition ${on ? "text-primary" : "text-muted-foreground hover:bg-secondary hover:text-foreground"}`}>
                 <Icon size={18} className="shrink-0" />
                 <span>{label}</span>
                 {to === "/agenda" && overdue > 0 && <span aria-label={overdue + " contas atrasadas"} className="ml-auto rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-extrabold text-destructive">{overdue > 99 ? "99+" : overdue}</span>}
@@ -168,6 +177,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
         <div className="border-t border-border p-3">
+          <div className="mb-3 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
+            <ShieldCheck size={17} className="shrink-0 text-primary" />
+            <span className="text-[11px] leading-relaxed text-muted-foreground"><b className="block text-foreground">Área pessoal</b>Finanças sob seu controle</span>
+          </div>
           <button onClick={toggleTheme} className="mb-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}{theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
           <div className="flex items-center gap-3 rounded-xl px-2 py-2">
             <Avatar />
@@ -182,16 +195,22 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="min-w-0 lg:pl-64">
-        <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
-          <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary/60 text-primary-foreground"><Wallet size={17} /></span>
-            <span className="font-display text-base font-bold">Meu Caixa</span>
+      <div className="min-w-0 lg:pl-[266px]">
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Meu Caixa, voltar ao painel">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/15"><Wallet size={19} strokeWidth={2.25} /></span>
+            <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Meu Caixa</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
+          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link to="/agenda" aria-label={overdue > 0 ? `${overdue} contas atrasadas. Ver agenda` : "Abrir agenda"} className="relative grid h-10 w-10 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">
+              <BellRing size={18} />
+              {overdue > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border border-background bg-destructive" />}
+            </Link>
+            <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">{theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}</button>
           </div>
-          <div className="flex items-center gap-2"><button onClick={toggleTheme} aria-label="Alternar tema" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">{theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}</button><Avatar /></div>
         </header>
 
-        <main className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 lg:px-8 lg:pb-14 lg:pt-8">
+        <main className="mx-auto w-full max-w-[1240px] px-4 pb-32 pt-6 sm:px-6 lg:px-9 lg:pb-16 lg:pt-9">
           {children}
         </main>
       </div>
@@ -199,7 +218,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* FAB */}
       <button
         onClick={() => setQuickAddOpen(true)}
-        className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30 transition hover:scale-105 hover:shadow-primary/40 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
+        className="finance-floating-action fixed bottom-[calc(5.1rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
         aria-label="Novo lançamento rápido"
       >
         <Plus size={24} className="lg:size-8" />
@@ -207,18 +226,51 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {quickAddOpen && <QuickAdd onClose={() => setQuickAddOpen(false)} />}
 
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 shadow-[0_-8px_30px_rgba(0,0,0,0.07)] backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
-        <div className="mx-auto grid max-w-2xl grid-cols-7">
-          {NAV.map(({ to, short, icon: Icon }) => {
+      {moreOpen && (
+        <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm lg:hidden" role="presentation" onMouseDown={() => setMoreOpen(false)}>
+          <section role="dialog" aria-modal="true" aria-label="Mais opções do Meu Caixa" className="absolute inset-x-3 bottom-[calc(5.45rem+env(safe-area-inset-bottom))] mx-auto max-w-xl overflow-hidden rounded-3xl border border-primary/25 bg-card p-4 shadow-2xl" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}>
+            <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
+              <div><p className="finance-kicker">NAVEGAÇÃO</p><h2 className="mt-1 font-display text-lg font-extrabold">Mais do Meu Caixa</h2></div>
+              <button aria-label="Fechar menu" onClick={() => setMoreOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-border text-muted-foreground hover:bg-secondary"><X size={17}/></button>
+            </div>
+            <div className="mt-3 grid gap-2">
+              {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
+                <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/30 px-3 py-3 text-sm font-semibold transition hover:border-primary/40 hover:bg-primary/5">
+                  <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/12 text-primary"><Icon size={19}/></span><span className="flex-1">{label}</span>
+                  {to === "/agenda" && overdue > 0 && <span className="rounded-full bg-destructive/15 px-2 py-1 text-[11px] text-destructive">{overdue} atrasada(s)</span>}
+                  <ArrowRight size={16} className="text-muted-foreground"/>
+                </Link>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button onClick={() => { toggleTheme(); setMoreOpen(false); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-3 text-xs font-bold text-muted-foreground">{theme === "dark" ? <Sun size={16}/> : <Moon size={16}/>} {theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
+              <button onClick={() => void signOut()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-destructive/25 px-3 py-3 text-xs font-bold text-destructive"><LogOut size={16}/> Sair da conta</button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      <nav aria-label="Navegação rápida" className="finance-bottom-nav fixed inset-x-0 bottom-0 z-30 border-t border-border backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+        <div className="mx-auto grid max-w-2xl grid-cols-5">
+          {MOBILE_ITEMS.map(({ to, short, icon: Icon }) => {
             const on = isActive(path, to);
             return (
-              <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex flex-col items-center gap-0.5 py-2.5 text-[10px] font-semibold transition ${on ? "text-primary" : "text-muted-foreground"}`}>
-                {on && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-primary" />}
-                <span className="relative"><Icon size={19} />{to === "/agenda" && overdue > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}{to === "/pix" && pixWaiting > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}{to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute -right-1.5 -top-1.5 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}</span>
+              <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 py-2 text-[10px] font-bold transition ${on ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                {on && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
+                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary/12" : ""}`}>
+                  <Icon size={20} strokeWidth={on ? 2.5 : 2} />
+                  {to === "/pix" && pixWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}
+                  {to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}
+                </span>
                 <span>{short}</span>
               </Link>
             );
           })}
+          <button onClick={() => setMoreOpen((current) => !current)} aria-label="Mais opções" aria-expanded={moreOpen} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 py-2 text-[10px] font-bold transition ${moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to)) ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+            {(moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to))) && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
+            <span className="relative grid h-8 w-11 place-items-center rounded-xl"><MoreHorizontal size={23}/>{overdue > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
+            <span>Mais</span>
+          </button>
         </div>
       </nav>
     </div>
@@ -238,33 +290,16 @@ export function Stat({
   icon?: LucideIcon;
   hint?: string;
 }) {
-  const color =
-    tone === "pos" ? "text-success" : tone === "neg" ? "text-destructive" : "text-foreground";
+  const color = tone === "pos" ? "text-success" : tone === "neg" ? "text-destructive" : "text-foreground";
+  const iconTone = tone === "pos" ? "bg-success/12 text-success" : tone === "neg" ? "bg-destructive/12 text-destructive" : "bg-info/12 text-info";
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-[0_10px_30px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-lg md:p-5">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
-          {label}
-        </p>
-        {Icon && (
-          <span
-            className={`grid h-8 w-8 place-items-center rounded-lg ${
-              tone === "pos"
-                ? "bg-success/15 text-success"
-                : tone === "neg"
-                ? "bg-destructive/15 text-destructive"
-                : "bg-secondary text-muted-foreground"
-            }`}
-          >
-            <Icon size={15} />
-          </span>
-        )}
+    <article data-tone={tone ?? "default"} className="finance-stat-card group min-w-0 overflow-hidden px-4 pb-5 pt-5 sm:px-5 sm:pb-6">
+      <div className="flex min-h-8 items-start justify-between gap-2">
+        <p className="max-w-[80%] text-[10px] font-extrabold uppercase leading-relaxed tracking-[0.12em] text-muted-foreground sm:text-[11px]">{label}</p>
+        {Icon && <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl ${iconTone}`}><Icon size={17} strokeWidth={2.2}/></span>}
       </div>
-      <p className={`mt-3 font-display text-xl font-extrabold leading-tight tracking-tight tabular-nums sm:text-2xl ${color}`}>
-        {value}
-      </p>
-      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
-      <span className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-primary/5 opacity-0 transition group-hover:opacity-100" />
-    </div>
+      <p className={`mt-3 min-w-0 break-words font-display text-[clamp(1.08rem,2.1vw,1.75rem)] font-extrabold leading-tight tracking-tight tabular-nums ${color}`}>{value}</p>
+      {hint && <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{hint}</p>}
+    </article>
   );
 }

@@ -31,14 +31,15 @@ import {
 } from "recharts";
 import { AppShell, Stat } from "@/components/AppShell";
 import { FinancialBriefing } from "@/components/FinancialBriefing";
+import { PendingReviewBanner, RecentActivity } from "@/components/DashboardActivity";
 import {
   alerts,
   addMonths,
-  allMonths,
   brl,
   currentMonth,
   debtFreeMonth,
   debtRemaining,
+  outstandingDebtBalance,
   monthLabel,
   monthSummary,
   setState,
@@ -83,12 +84,11 @@ function SectionTitle({
 function Dashboard() {
   const s = useFinance();
   if (!s.ready) return <AppShell><div /></AppShell>;
-  const months = allMonths(s);
   const cm = currentMonth();
   const now = monthSummary(s, cm);
-  const totalRemaining = s.debts.reduce((a, d) => a + debtRemaining(d).remaining, 0);
+  const totalRemaining = outstandingDebtBalance(s);
   const future = Array.from({ length: 6 }, (_, index) => addMonths(cm, index));
-  const chart = months.filter((m) => m >= addMonths(cm, -3) && m <= addMonths(cm, 5)).map((m) => {
+  const chart = Array.from({ length: 9 }, (_, index) => addMonths(cm, index - 3)).map((m) => {
     const x = monthSummary(s, m);
     return { mes: monthLabel(m), Entradas: +x.income.toFixed(2), Saídas: +x.out.toFixed(2) };
   });
@@ -158,26 +158,46 @@ function Dashboard() {
         </Link>
       </div>
 
-      <div className="finance-hero mt-6 overflow-hidden rounded-3xl border border-primary/15 px-5 py-6 text-white md:px-8 md:py-8">
-        <div className="relative z-10 flex flex-col justify-between gap-5 md:flex-row md:items-end">
-          <div className="max-w-xl">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-200">Seu dinheiro, com clareza</p>
-            <h2 className="mt-3 font-display text-2xl font-extrabold leading-tight tracking-tight md:text-4xl">Planeje hoje.<br />Viva mais tranquilo amanhã.</h2>
-            <p className="mt-3 max-w-md text-sm leading-relaxed text-slate-200">Acompanhe seus compromissos, entenda suas despesas e saiba o que precisa de atenção antes do vencimento.</p>
+      <section className="finance-hero mt-6 overflow-hidden rounded-3xl px-5 py-7 text-white sm:px-7 sm:py-8 md:px-9 md:py-10" aria-label="Resumo financeiro do mês">
+        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
+          <div className="min-w-0">
+            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/25 bg-white/8 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-200">
+              <Sparkles size={13}/> FINANÇAS EM FOCO · {monthLabel(cm, true)}
+            </span>
+            <p className="mt-5 text-sm font-semibold tracking-wide text-slate-200">Sua sobra prevista para o mês</p>
+            <h2 className={"mt-1 break-words font-display text-[clamp(2.25rem,5vw,3.8rem)] font-extrabold leading-tight tracking-tight tabular-nums " + (now.balance >= 0 ? "text-white" : "text-rose-200")}>{brl(now.balance)}</h2>
+            <p className="mt-3 max-w-lg text-xs leading-relaxed text-slate-200 sm:text-sm">
+              {now.income > 0
+                ? "Estimativa a partir da sua renda e dos compromissos cadastrados. Não representa o saldo da sua conta bancária."
+                : "Cadastre sua renda para ter uma previsão mais útil. Seus compromissos e movimentações continuam disponíveis abaixo."}
+            </p>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Link to="/dividas" className="inline-flex items-center gap-2 rounded-xl bg-emerald-300 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-emerald-200">Ver contas <ArrowRight size={16} /></Link>
-            <Link to="/lancamentos" className="inline-flex items-center gap-2 rounded-xl border border-white/25 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20">Novo lançamento</Link>
+          <div className="min-w-0 w-full rounded-2xl border border-white/15 bg-white/8 p-4 backdrop-blur-sm lg:w-[285px] lg:shrink-0">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold uppercase tracking-[0.11em] text-slate-200">Parcelas deste mês</span>
+              <span className="font-display text-lg font-extrabold text-emerald-200">{paidPct}%</span>
+            </div>
+            <div role="progressbar" aria-label="Percentual das contas do mês já pagas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={paidPct} className="mt-3 h-2 overflow-hidden rounded-full bg-white/15">
+              <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-300" style={{ width: paidPct + "%" }}/>
+            </div>
+            <p className="mt-2 text-[11px] text-slate-200">{brl(now.paid)} pagos · {brl(now.pending)} pendentes</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <Link to="/agenda" className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-300 px-2.5 py-2.5 text-xs font-extrabold text-slate-950 transition hover:bg-emerald-200">Ver agenda <ArrowRight size={14}/></Link>
+              <Link to="/lancamentos" className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">Movimentações</Link>
+            </div>
           </div>
         </div>
-      </div>
+      </section>
+
+      <PendingReviewBanner state={s} />
 
       <div className="mt-5 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Stat
-          label="Total que ainda devo"
+          label="Dívidas a quitar"
           value={brl(totalRemaining)}
-          tone="neg"
+          tone={totalRemaining > 0 ? "neg" : "pos"}
           icon={TrendingDown}
+          hint="Sem contar fixas futuras"
         />
         <Stat
           label="A pagar neste mês"
@@ -191,19 +211,20 @@ function Dashboard() {
           icon={ArrowDownLeft}
         />
         <Stat
-          label="Sobra prevista"
-          value={brl(now.balance)}
-          tone={now.balance >= 0 ? "pos" : "neg"}
+          label="Despesas do mês"
+          value={brl(now.out)}
+          tone="neg"
           icon={PiggyBank}
+          hint="Contas previstas + saídas"
         />
       </div>
 
       {endingDebts.length > 0 && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-accent/30 bg-accent/6 p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-500/20 text-amber-500"><PartyPopper size={20} /></span>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent/20 text-accent"><PartyPopper size={20} /></span>
             <div>
-              <p className="font-semibold text-amber-600 dark:text-amber-400">Você está quase lá!</p>
+              <p className="font-semibold text-accent">Você está quase lá!</p>
               <p className="text-sm text-muted-foreground">
                 {endingDebts.length === 1 ? "1 conta" : `${endingDebts.length} contas`} na última parcela: {endingDebts.map(d => d.name).join(", ")}
               </p>
@@ -241,8 +262,8 @@ function Dashboard() {
 
       <FinancialBriefing state={s} />
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <Link to="/agenda" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
+      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <Link to="/agenda" className="finance-feature group flex items-center gap-4 rounded-2xl p-4">
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary"><CalendarDays size={22} /></span>
           <span className="min-w-0 flex-1"><b className="block font-display text-base">Agenda de vencimentos</b><span className="mt-0.5 block text-xs text-muted-foreground">Veja cada dia e marque contas como pagas.</span></span>
           <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
@@ -259,8 +280,10 @@ function Dashboard() {
         </Link>
       </div>
 
+      <RecentActivity state={s} />
+
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
           <SectionTitle icon={<CalendarClock size={16} />}>Atenção</SectionTitle>
           {al.length === 0 ? (
             <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-success/40 bg-success/5 py-8 text-center">
@@ -321,15 +344,15 @@ function Dashboard() {
           )}
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<TrendingUp size={16} />}>Despesas por categoria</SectionTitle>
+        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
+          <SectionTitle icon={<TrendingUp size={16} />}>Compromissos por categoria</SectionTitle>
           {pie.length === 0 ? (
             <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border py-10 text-center">
               <p className="text-sm text-muted-foreground">Sem contas neste mês.</p>
             </div>
           ) : (
-            <div className="mt-4 flex items-center gap-4">
-              <div className="h-40 w-40 shrink-0">
+            <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+              <div className="h-44 w-44 shrink-0">
                 <ResponsiveContainer>
                   <PieChart>
                     <Pie
@@ -356,7 +379,7 @@ function Dashboard() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <ul className="min-w-0 flex-1 space-y-1.5 text-sm">
+              <ul className="w-full min-w-0 flex-1 space-y-2 text-sm">
                 {pie.slice(0, 6).map((c, i) => (
                   <li key={c.name} className="flex items-center gap-2">
                     <i
@@ -373,8 +396,9 @@ function Dashboard() {
         </section>
       </div>
 
-      <section className="mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
+      <section className="finance-surface mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
         <SectionTitle icon={<ArrowLeftRight size={16} />}>Entradas x despesas previstas</SectionTitle>
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Comparativo dos últimos 3 meses e dos próximos 5, incluindo compromissos cadastrados.</p>
         <div className="mt-4 h-56 md:h-72">
           <ResponsiveContainer>
             <BarChart data={chart}>
@@ -398,7 +422,7 @@ function Dashboard() {
       </section>
 
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
           <SectionTitle icon={<CalendarClock size={16} />}>Próximos meses</SectionTitle>
           <p className="mt-1 text-xs text-muted-foreground">Previsão baseada nas contas e na renda informadas.</p>
           <div className="mt-4 overflow-x-auto">
@@ -434,7 +458,7 @@ function Dashboard() {
           </div>
         </section>
 
-        <section className="rounded-2xl border border-border bg-card p-4 md:p-5">
+        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
           <SectionTitle
             icon={<Wallet size={16} />}
             right={
@@ -445,16 +469,18 @@ function Dashboard() {
           >
             Maiores dívidas restantes
           </SectionTitle>
-          <ul className="mt-4 space-y-4">
+          {top.length === 0 ? (
+            <div className="mt-4 rounded-xl border border-dashed border-border p-6 text-center"><p className="text-sm font-bold text-success">Nenhuma parcela em aberto</p><p className="mt-1 text-xs text-muted-foreground">Se você cadastrar uma dívida parcelada, a evolução dela aparecerá aqui.</p></div>
+          ) : <ul className="mt-4 space-y-4">
             {top.map(({ d, r }) => {
-              const pct = Math.round(((r.count - r.left) / r.count) * 100);
+              const pct = Math.round(((r.count - r.left) / Math.max(r.count, 1)) * 100);
               const isLast = r.left === 1;
               return (
                 <li key={d.id}>
                   <div className="flex justify-between text-sm">
                     <span className="flex items-center gap-1.5 font-medium">
                       {d.name}
-                      {isLast && <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">Última</span>}
+                      {isLast && <span className="rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">Última</span>}
                       {d.due ? (
                         <span className="text-xs text-muted-foreground"> · dia {d.due}</span>
                       ) : null}
@@ -478,7 +504,7 @@ function Dashboard() {
                 </li>
               );
             })}
-          </ul>
+          </ul>}
         </section>
       </div>
     </AppShell>

@@ -21,16 +21,16 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">Página não encontrada</h2>
         <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
+          O endereço pode ter mudado ou não existir mais.
         </p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go home
+            Voltar ao painel
           </Link>
         </div>
       </div>
@@ -49,10 +49,10 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          Não foi possível carregar esta tela
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
+          Ocorreu um problema inesperado. Tente recarregar esta tela ou volte ao painel.
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
@@ -62,13 +62,13 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            Tentar novamente
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            Voltar ao painel
           </a>
         </div>
       </div>
@@ -81,12 +81,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Meu Caixa — Controle de dívidas" },
-      { name: "description", content: "Controle financeiro pessoal: contas, calendário de vencimentos, orçamento e metas." },
+      { title: "Meu Caixa — Seu controle financeiro" },
+      { name: "description", content: "Meu Caixa: entradas, despesas, Pix, repasses, parcelas, vencimentos, orçamento e metas num só lugar." },
       { name: "theme-color", content: "#111b26" },
       { name: "robots", content: "noindex, nofollow, noarchive" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "application-name", content: "Meu Caixa" },
+      { name: "mobile-web-app-capable", content: "yes" },
 
     ],
     links: [
@@ -126,6 +128,8 @@ function RootComponent() {
 
   useEffect(() => {
     document.documentElement.dataset["theme"] = localStorage.getItem("meu-caixa-theme") === "light" ? "light" : "dark";
+    const savedAccent = localStorage.getItem("meu-caixa-accent");
+    document.documentElement.dataset["accent"] = savedAccent === "ocean" || savedAccent === "violet" ? savedAccent : "emerald";
     // Registro necessário para os avisos do navegador e instalação do app.
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);

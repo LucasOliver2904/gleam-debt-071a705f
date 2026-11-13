@@ -78,7 +78,7 @@ export function PixAutomationPanel() {
   }
 
   return (
-    <section className="mt-6 overflow-hidden rounded-3xl border border-primary/20 bg-card p-4 shadow-sm sm:p-6">
+    <section className="finance-surface mt-6 overflow-hidden rounded-3xl border border-primary/30 bg-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Smartphone size={21} /></span>
@@ -86,7 +86,7 @@ export function PixAutomationPanel() {
             <p className="finance-kicker">PIX AUTOMÁTICO / ANDROID</p>
             <h2 className="mt-1 font-display text-xl font-extrabold">Conecte seus bancos e a Carteira do Google</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Use o MacroDroid para enviar avisos de Pix recebidos, Pix enviados e compras. Tudo fica em conferência antes de alterar os totais. Com avisos de vários apps, identificamos possíveis duplicidades.
+              Conecte seus bancos e a Carteira do Google pelo complemento Android privado ou pelo MacroDroid. Pix e compras chegam para sua conferência, sem alterar os totais automaticamente.
             </p>
           </div>
         </div>
@@ -126,8 +126,26 @@ export function PixAutomationPanel() {
 
       {expanded && (
         <div className="mt-5 space-y-4 rounded-2xl border border-border bg-secondary/25 p-4 sm:p-5">
-          <h3 className="font-display text-base font-extrabold">Configure uma vez no seu Android</h3>
-          <ol className="list-inside list-decimal space-y-3 text-sm leading-relaxed text-foreground">
+          <h3 className="font-display text-base font-extrabold">Configure em seu Android</h3>
+          <div className="rounded-2xl border border-primary/30 bg-card p-4 sm:p-5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div><span className="finance-pill">MÉTODO RECOMENDADO</span><h4 className="mt-2 font-display text-lg font-extrabold">Meu Caixa · Android privado</h4></div>
+              <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/12 text-primary"><Smartphone size={22}/></span>
+            </div>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Instale o complemento Android gratuito e selecione quais aplicativos bancários ele pode acompanhar. É uma ferramenta pessoal e não exige conta na Play Store.</p>
+            <ol className="mt-4 list-inside list-decimal space-y-2 text-sm leading-relaxed">
+              <li><a target="_blank" rel="noreferrer" href="https://github.com/LucasOliver2904/gleam-debt-071a705f/actions/workflows/meu-caixa-android.yml" className="font-bold text-primary hover:underline">Abra o instalador privado no seu GitHub <ExternalLink size={13} className="inline" /></a>, baixe o ZIP em <b>Artifacts</b> e extraia o APK.</li>
+              <li>Instale e abra <strong>Meu Caixa · Android</strong> no seu celular.</li>
+              <li>Crie sua chave nesta página, copie e cole no complemento. Toque em <strong>Testar conexão HTTPS</strong>.</li>
+              <li>Marque apenas seus bancos e a Carteira do Google. Conceda acesso a notificações e ative a captura.</li>
+              <li>Confira um recebimento ou uma compra real no Meu Caixa antes de desativar o MacroDroid.</li>
+            </ol>
+            <p className="mt-3 rounded-xl border border-accent/30 bg-accent/10 p-3 text-xs leading-relaxed text-muted-foreground">O instalador é um APK privado de testes. A leitura de notificações depende das permissões Android e da mensagem do banco. Não deixe duas automações ativas sem necessidade.</p>
+          </div>
+
+          <details className="rounded-2xl border border-border bg-card p-4 sm:p-5">
+            <summary className="cursor-pointer text-sm font-bold text-primary">Prefiro usar o MacroDroid · Ver instruções alternativas</summary>
+            <ol className="mt-4 list-inside list-decimal space-y-3 text-sm leading-relaxed text-foreground">
             <li><a href={bankAppUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">Instale o MacroDroid pela Play Store <ExternalLink size={13} /></a> e conceda acesso às notificações do Android quando solicitado.</li>
             <li>Toque em <strong>Adicionar macro</strong>. No gatilho <strong>Notificação recebida</strong>, escolha apenas os bancos para sua macro de Pix. Filtre por <strong>Pix</strong> e escolha notificação recebida (não removida).</li>
             <li>Para compras, crie outra macro com <strong>Carteira do Google</strong> e os bancos que notificam compras. Filtre pelo texto <strong>Compra</strong> ou <strong>Pagamento</strong>, conforme as notificações reais. A macro de Pix existente pode continuar igual.</li>
@@ -147,9 +165,10 @@ export function PixAutomationPanel() {
             <pre className="overflow-x-auto rounded-xl border border-border bg-background p-3 text-xs leading-relaxed text-foreground">{'{not_title}\n{notification}'}</pre>
           </div>
 
+          </details>
           <p className="flex gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
             <ShieldCheck size={17} className="mt-0.5 shrink-0 text-primary" />
-            O Android concede ao MacroDroid acesso amplo às notificações. Configure as macros <strong className="text-foreground">somente para bancos e Carteira do Google</strong>, com filtros que excluam avisos não financeiros e códigos de segurança. O Meu Caixa não guarda o texto completo das mensagens.
+            O Android dá ao leitor de notificações uma permissão ampla. Escolha exclusivamente os bancos e a Carteira do Google e nunca inclua apps de mensagens ou códigos de autenticação. O Meu Caixa guarda apenas os campos financeiros reconhecidos, não o texto completo da notificação.
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">Alguns bancos ocultam detalhes do Pix. O Android também pode limitar notificações sensíveis. Faça primeiro um teste com um recebimento real e confira o extrato do banco. Se a notificação não mostrar valor, a automação não tem como adivinhá-lo.</p>
         </div>

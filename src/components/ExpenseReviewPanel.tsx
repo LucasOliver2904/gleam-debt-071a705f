@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertCircle, ArrowDownRight, Check, CheckCheck, CreditCard,
   Pencil, ShieldAlert, ShoppingBag, Trash2, Wallet, X,
@@ -35,9 +35,17 @@ type Draft = {
 export function ExpenseReviewPanel() {
   const state = useFinance();
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [showAll, setShowAll] = useState(false);
   const inbox = [...(state.expenseInbox ?? [])].sort((a, b) => b.receivedAt.localeCompare(a.receivedAt));
   const posted = [...state.txs].filter((tx) => tx.kind === "saida" && tx.expenseAuto)
     .sort((a, b) => (b.expenseAuto?.receivedAt ?? "").localeCompare(a.expenseAuto?.receivedAt ?? ""));
+  useEffect(() => {
+    if (!draft) return;
+    const frame = requestAnimationFrame(() =>
+      document.getElementById("expense-review-editor")?.scrollIntoView({ behavior: "smooth", block: "center" })
+    );
+    return () => cancelAnimationFrame(frame);
+  }, [draft?.id, draft?.origin]);
 
   function duplicateId(item: ExpenseInboxItem) {
     // Verificação no momento da revisão: o primeiro aviso pode já ter sido confirmado.
@@ -67,7 +75,6 @@ export function ExpenseReviewPanel() {
       date: item.date,
       alreadyIncluded: false,
     });
-    document.getElementById("expense-review-editor")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function editPosted(tx: Tx) {
@@ -76,7 +83,6 @@ export function ExpenseReviewPanel() {
       name: tx.description, category: tx.category ?? "Outros", date: tx.date,
       alreadyIncluded: Boolean(tx.excludedFromTotals),
     });
-    document.getElementById("expense-review-editor")?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   function ignore(item: ExpenseInboxItem) {
@@ -149,7 +155,7 @@ export function ExpenseReviewPanel() {
   }
 
   return (
-    <section className="mt-6 rounded-3xl border border-primary/20 bg-card p-4 shadow-sm sm:p-6">
+    <section id="expense-review-panel" className="finance-surface mt-6 scroll-mt-24 rounded-3xl border border-primary/30 bg-card p-4 sm:p-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="finance-kicker">ANDROID / COMPRAS E PAGAMENTOS</p>
@@ -256,10 +262,11 @@ export function ExpenseReviewPanel() {
         <div className="mt-6 border-t border-border pt-5">
           <div className="flex items-center gap-2">
             <ShoppingBag size={18} className="text-primary"/>
-            <h3 className="font-display text-base font-bold">Últimas despesas importadas</h3>
+            <h3 className="font-display text-base font-bold">Despesas já importadas</h3>
+            <span className="rounded-full bg-secondary px-2 py-1 text-[10px] font-bold text-muted-foreground">{posted.length}</span>
           </div>
           <ul className="mt-3 divide-y divide-border">
-            {posted.slice(0, 8).map((tx) => (
+            {(showAll ? posted : posted.slice(0, 8)).map((tx) => (
               <li key={tx.id} className="flex items-center gap-3 py-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-secondary text-muted-foreground"><Wallet size={17}/></span>
                 <div className="min-w-0 flex-1">
@@ -271,6 +278,11 @@ export function ExpenseReviewPanel() {
               </li>
             ))}
           </ul>
+          {posted.length > 8 && (
+            <button type="button" onClick={() => setShowAll((old) => !old)} className="mt-3 w-full rounded-xl border border-border px-4 py-2.5 text-xs font-bold text-primary hover:bg-primary/10">
+              {showAll ? "Mostrar somente as 8 mais recentes" : "Ver todas as " + posted.length + " despesas importadas"}
+            </button>
+          )}
         </div>
       )}
     </section>
