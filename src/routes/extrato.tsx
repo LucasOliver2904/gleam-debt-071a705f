@@ -144,8 +144,8 @@ function StatementImportPage() {
     const gross = parseMoney(amounts[row.id] ?? "");
     const kept = row.isPix && row.kind === "entrada" ? parseMoney(keptAmounts[row.id] ?? "") : gross;
     // Valor de repasse 100% é válido, portanto "0" é uma opção expressa.
-    const validKept = row.isPix && row.kind === "entrada" && (keptAmounts[row.id] ?? "").replace(/\s/g, "") === "0"
-      ? 0 : kept;
+    const keptInput = (keptAmounts[row.id] ?? "").replace(/\s/g, "");
+    const validKept = row.isPix && row.kind === "entrada" && /^0+(?:[,.]0{1,2})?$/.test(keptInput) ? 0 : kept;
     return { gross, kept: validKept };
   }
 
