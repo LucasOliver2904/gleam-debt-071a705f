@@ -39,6 +39,7 @@ import {
   currentMonth,
   debtFreeMonth,
   debtRemaining,
+  outstandingDebtBalance,
   monthLabel,
   monthSummary,
   setState,
@@ -85,7 +86,7 @@ function Dashboard() {
   if (!s.ready) return <AppShell><div /></AppShell>;
   const cm = currentMonth();
   const now = monthSummary(s, cm);
-  const totalRemaining = s.debts.reduce((a, d) => a + debtRemaining(d).remaining, 0);
+  const totalRemaining = outstandingDebtBalance(s);
   const future = Array.from({ length: 6 }, (_, index) => addMonths(cm, index));
   const chart = Array.from({ length: 9 }, (_, index) => addMonths(cm, index - 3)).map((m) => {
     const x = monthSummary(s, m);
@@ -192,10 +193,11 @@ function Dashboard() {
 
       <div className="mt-5 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
         <Stat
-          label="Total que ainda devo"
+          label="Dívidas a quitar"
           value={brl(totalRemaining)}
-          tone="neg"
+          tone={totalRemaining > 0 ? "neg" : "pos"}
           icon={TrendingDown}
+          hint="Sem contar fixas futuras"
         />
         <Stat
           label="A pagar neste mês"
@@ -343,7 +345,7 @@ function Dashboard() {
         </section>
 
         <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<TrendingUp size={16} />}>Despesas por categoria</SectionTitle>
+          <SectionTitle icon={<TrendingUp size={16} />}>Compromissos por categoria</SectionTitle>
           {pie.length === 0 ? (
             <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border py-10 text-center">
               <p className="text-sm text-muted-foreground">Sem contas neste mês.</p>

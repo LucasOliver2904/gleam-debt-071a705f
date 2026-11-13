@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck, X } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
-import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, type Debt, type DebtType } from "@/lib/finance";
+import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
 
 export const Route = createFileRoute("/dividas")({
   head: () => ({
@@ -33,7 +33,7 @@ function Dividas() {
   const months = allMonths(s);
   const cm = currentMonth();
   const summary = monthSummary(s, cm);
-  const totalRemaining = s.debts.filter((d) => d.type !== "fixa").reduce((sum, debt) => sum + debtRemaining(debt).remaining, 0);
+  const totalRemaining = outstandingDebtBalance(s);
   const waiting = s.debts.filter((debt) => debt.payments[cm] && !debt.payments[cm]!.paid).length;
   const settled = s.debts.filter((debt) => debt.payments[cm]?.paid).length;
 

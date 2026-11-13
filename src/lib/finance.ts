@@ -314,6 +314,14 @@ export function monthSummary(s: State, m: string) {
   return { debts, paid, pending: debts - paid, income, out, balance: income - out };
 }
 
+/** Dívida a quitar: exclui contas fixas recorrentes, que são compromissos futuros
+ * e não saldo de financiamento/parcelas em aberto. */
+export function outstandingDebtBalance(state: State) {
+  return state.debts
+    .filter((debt) => debt.type !== "fixa")
+    .reduce((sum, debt) => sum + debtRemaining(debt).remaining, 0);
+}
+
 export function debtRemaining(d: Debt) {
   const ps = Object.entries(d.payments).filter(([m]) => d.type !== "fixa" || m <= currentMonth()).map(([, p]) => p);
   const open = ps.filter((p) => !p.paid);
