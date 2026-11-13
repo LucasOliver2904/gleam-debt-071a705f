@@ -51,7 +51,23 @@ export type SavingsGoal = { id: string; name: string; target: number; saved: num
 export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
 
 export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
-const KEY = "minhas-financas-v1";
+// Chaves locais separadas por UID. Nunca expor os dados de outra conta ao trocar login.
+const LEGACY_KEY = "minhas-financas-v1";
+const KEY_PREFIX = "meu-caixa-private-v2:";
+let activeFinanceUser: string | null = null;
+function storageKey() { return activeFinanceUser ? KEY_PREFIX + activeFinanceUser : null; }
+export function setFinanceUser(userId: string | null) {
+  if (userId === activeFinanceUser) return;
+  activeFinanceUser = userId;
+  state = null;
+  listeners.forEach((listener) => listener());
+}
+export function hasLegacyLocalBackup() {
+  return typeof localStorage !== "undefined" && localStorage.getItem(LEGACY_KEY) !== null;
+}
+export function legacyLocalBackup() {
+  return typeof localStorage === "undefined" ? null : localStorage.getItem(LEGACY_KEY);
+}
 const CURRENT = "2026-10";
 
 export const uid = () => Math.random().toString(36).slice(2, 10);
@@ -179,12 +195,25 @@ export function skipMonth(id: string, m: string) {
 }
 
 export function exportBackup() {
-  return JSON.stringify(load(), null, 2);
+  // Nunca incluir o hash de pareamento em backups: restauração não pode reativar
+  // uma chave que já foi revogada ou transferi-la para outra conta.
+  const { pixAutomationHash: _ignored, ...backup } = load();
+  return JSON.stringify(backup, null, 2);
 }
 export function importBackup(json: string) {
+  if (json.length > 15_000_000) throw new Error("Arquivo muito grande");
   const data = JSON.parse(json) as State;
-  if (!Array.isArray(data.debts) || typeof data.income !== "object" || !Array.isArray(data.txs)) throw new Error("Arquivo inválido");
-  setState(() => data);
+  if (!data || !Array.isArray(data.debts) ||
+      !data.income || typeof data.income !== "object" ||
+      !Array.isArray(data.txs)) throw new Error("Arquivo inválido");
+  setState((current) => ({
+    ...data,
+    pixAutomationHash: current.pixAutomationHash,
+    // Não perde avisos chegados do Android enquanto um backup era restaurado.
+    pixInbox: current.pixInbox,
+    expenseInbox: current.expenseInbox,
+    handledInboxIds: current.handledInboxIds,
+  }));
 }
 export function resetAll(withExample: boolean) {
   setState(() => (withExample ? seed() : { debts: [], income: {}, txs: [] }));
@@ -221,14 +250,17 @@ let state: State | null = null;
 const listeners = new Set<() => void>();
 function load(): State {
   if (state) return state;
+  const key = storageKey();
+  if (!key || typeof localStorage === "undefined") return EMPTY;
   try {
-    const raw = localStorage.getItem(KEY);
-    state = raw ? JSON.parse(raw) : seed();
-    state = normalize(state!);
+    const raw = localStorage.getItem(key);
+    // Não importa o legado automaticamente: poderia ser de outro login no mesmo aparelho.
+    state = normalize(raw ? JSON.parse(raw) as State : { debts: [], income: {}, txs: [] });
   } catch {
-    state = seed();
+    // Se o cache está corrompido, o Supabase ainda pode ter a cópia válida.
+    state = { debts: [], income: {}, txs: [] };
   }
-  return state!;
+  return state;
 }
 let syncHandler: ((s: State) => void) | null = null;
 export function setSyncHandler(h: ((s: State) => void) | null) {
@@ -238,13 +270,17 @@ export function getState() {
   return load();
 }
 export function applyRemote(s: State) {
+  const key = storageKey();
+  if (!key) return;
   state = normalize(s);
-  localStorage.setItem(KEY, JSON.stringify(state));
+  localStorage.setItem(key, JSON.stringify(state));
   listeners.forEach((l) => l());
 }
 export function setState(fn: (s: State) => State) {
+  const key = storageKey();
+  if (!key) return; // Proíbe edição local sem usuário autenticado.
   state = normalize(fn(load()));
-  localStorage.setItem(KEY, JSON.stringify(state));
+  localStorage.setItem(key, JSON.stringify(state));
   listeners.forEach((l) => l());
   syncHandler?.(state);
 }

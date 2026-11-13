@@ -4,9 +4,11 @@ import { Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { startSync } from "@/lib/sync";
+import { setFinanceUser } from "@/lib/finance";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(undefined);
+  const [syncedUser, setSyncedUser] = useState<string | null>(null);
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
@@ -16,7 +18,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   const userId = session?.user.id;
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) { setFinanceUser(null); return; }
+    setFinanceUser(userId);
     let stop: (() => void) | undefined;
     let cancelled = false;
     let retry: ReturnType<typeof setTimeout> | undefined;
@@ -24,7 +27,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       try {
         const cleanup = await startSync(userId);
         if (cancelled) cleanup();
-        else stop = cleanup;
+        else { stop = cleanup; setSyncedUser(userId); }
       } catch (error) {
         console.error("O Meu Caixa tentará restabelecer a sincronização.", error);
         if (!cancelled) retry = setTimeout(() => void connect(), 15000);
@@ -35,16 +38,18 @@ export function AuthGate({ children }: { children: ReactNode }) {
       cancelled = true;
       clearTimeout(retry);
       stop?.();
+      setFinanceUser(null);
     };
   }, [userId]);
 
   if (session === undefined) return <div className="min-h-screen bg-background" />;
   if (!session) return <Login />;
+  if (syncedUser !== userId) return <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">Carregando seus dados com segurança...</div>;
   return <>{children}</>;
 }
 
 function Login() {
-  const [mode, setMode] = useState<"entrar" | "criar">("entrar");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -54,13 +59,8 @@ function Login() {
     e.preventDefault();
     setBusy(true);
     setMsg(null);
-    if (mode === "entrar") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMsg("E-mail ou senha incorretos.");
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
-      setMsg(error ? error.message : "Conta criada! Confira seu e-mail para confirmar e depois entre.");
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setMsg("E-mail ou senha incorretos.");
     setBusy(false);
   }
 
@@ -87,13 +87,11 @@ function Login() {
           <input type="email" required placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground" />
           <input type="password" required minLength={6} placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground" />
           <button disabled={busy} className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
-            {mode === "entrar" ? "Entrar" : "Criar conta"}
+            Entrar
           </button>
         </form>
         {msg && <p className="mt-3 text-center text-sm text-muted-foreground">{msg}</p>}
-        <button onClick={() => { setMode(mode === "entrar" ? "criar" : "entrar"); setMsg(null); }} className="mt-4 w-full text-center text-sm text-primary">
-          {mode === "entrar" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
-        </button>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Acesso pessoal · somente contas já existentes. A criação de novas contas está oculta nesta interface; o bloqueio definitivo de cadastro deve ser configurado no serviço de autenticação.</p>
       </div>
     </div>
   );

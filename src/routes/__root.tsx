@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "Meu Caixa — Controle de dívidas" },
       { name: "description", content: "Controle financeiro pessoal: contas, calendário de vencimentos, orçamento e metas." },
       { name: "theme-color", content: "#111b26" },
+      { name: "robots", content: "noindex, nofollow, noarchive" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
 

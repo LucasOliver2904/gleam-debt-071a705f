@@ -1,8 +1,9 @@
 {
-  "name": "Meu Caixa — Controle de dívidas",
+  "name": "Meu Caixa — Finanças pessoais",
   "short_name": "Meu Caixa",
-  "description": "Controle de dívidas, parcelas, entradas e saídas.",
-  "start_url": "/",
+  "description": "Contas, Pix, despesas, metas e planejamento pessoal.",
+  "id": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
