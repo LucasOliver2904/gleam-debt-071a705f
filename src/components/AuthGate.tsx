@@ -49,7 +49,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
 }
 
 function Login() {
-  const [mode, setMode] = useState<"entrar" | "criar">("entrar");
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
@@ -59,13 +59,8 @@ function Login() {
     e.preventDefault();
     setBusy(true);
     setMsg(null);
-    if (mode === "entrar") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMsg("E-mail ou senha incorretos.");
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } });
-      setMsg(error ? error.message : "Conta criada! Confira seu e-mail para confirmar e depois entre.");
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setMsg("E-mail ou senha incorretos.");
     setBusy(false);
   }
 
@@ -92,13 +87,11 @@ function Login() {
           <input type="email" required placeholder="E-mail" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground" />
           <input type="password" required minLength={6} placeholder="Senha" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full rounded-lg border border-border bg-background px-3 py-2.5 text-sm text-foreground" />
           <button disabled={busy} className="w-full rounded-lg bg-primary py-2.5 text-sm font-semibold text-primary-foreground disabled:opacity-60">
-            {mode === "entrar" ? "Entrar" : "Criar conta"}
+            Entrar
           </button>
         </form>
         {msg && <p className="mt-3 text-center text-sm text-muted-foreground">{msg}</p>}
-        <button onClick={() => { setMode(mode === "entrar" ? "criar" : "entrar"); setMsg(null); }} className="mt-4 w-full text-center text-sm text-primary">
-          {mode === "entrar" ? "Não tem conta? Criar conta" : "Já tem conta? Entrar"}
-        </button>
+        <p className="mt-4 text-center text-xs text-muted-foreground">Acesso pessoal · somente contas já existentes. A criação de novas contas está oculta nesta interface; o bloqueio definitivo de cadastro deve ser configurado no serviço de autenticação.</p>
       </div>
     </div>
   );
