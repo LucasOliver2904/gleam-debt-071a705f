@@ -4,7 +4,7 @@ import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { InstallAppCard } from "@/components/InstallAppCard";
-import { alerts, exportBackup, importBackup, resetAll, setState, useFinance } from "@/lib/finance";
+import { alerts, exportBackup, hasLegacyLocalBackup, importBackup, legacyLocalBackup, resetAll, setState, useFinance } from "@/lib/finance";
 import { DEFAULT_REMINDER_CONFIG, reminderConfig, type ReminderConfig } from "@/lib/reminders";
 
 export const Route = createFileRoute("/ajustes")({
@@ -218,6 +218,19 @@ function Ajustes() {
           <div className="grid gap-2 sm:grid-cols-2">
             <ActionRow icon={Download} title="Baixar backup" description="Guarde uma cópia dos seus dados em JSON." action={download} />
             <ActionRow icon={Upload} title="Restaurar backup" description="Importe um backup salvo anteriormente." action={() => backupInput.current?.click()} />
+            {hasLegacyLocalBackup() && (
+              <ActionRow icon={RotateCcw} title="Recuperar dados locais antigos" description="Se você usava o Meu Caixa antes, pode importar o cache antigo deste aparelho, após conferir que os dados são seus." action={() => {
+                if (!window.confirm("Existe um cache antigo neste navegador, que pode pertencer a outro login. Só importe se reconhecer que ele contém SEUS dados. Fazer backup dos dados atuais antes?")) return;
+                const legacy = legacyLocalBackup();
+                if (!legacy) return toast.error("Cache antigo indisponível.");
+                try {
+                  importBackup(legacy);
+                  toast.success("Dados locais antigos restaurados nesta conta.");
+                } catch {
+                  toast.error("Cache antigo inválido. Os dados atuais foram preservados.");
+                }
+              }} />
+            )}
             <input hidden ref={backupInput} type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restore(file); event.target.value = ""; }} />
           </div>
         </section>

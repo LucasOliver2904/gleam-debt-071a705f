@@ -195,12 +195,25 @@ export function skipMonth(id: string, m: string) {
 }
 
 export function exportBackup() {
-  return JSON.stringify(load(), null, 2);
+  // Nunca incluir o hash de pareamento em backups: restauração não pode reativar
+  // uma chave que já foi revogada ou transferi-la para outra conta.
+  const { pixAutomationHash: _ignored, ...backup } = load();
+  return JSON.stringify(backup, null, 2);
 }
 export function importBackup(json: string) {
+  if (json.length > 15_000_000) throw new Error("Arquivo muito grande");
   const data = JSON.parse(json) as State;
-  if (!Array.isArray(data.debts) || typeof data.income !== "object" || !Array.isArray(data.txs)) throw new Error("Arquivo inválido");
-  setState(() => data);
+  if (!data || !Array.isArray(data.debts) ||
+      !data.income || typeof data.income !== "object" ||
+      !Array.isArray(data.txs)) throw new Error("Arquivo inválido");
+  setState((current) => ({
+    ...data,
+    pixAutomationHash: current.pixAutomationHash,
+    // Não perde avisos chegados do Android enquanto um backup era restaurado.
+    pixInbox: current.pixInbox,
+    expenseInbox: current.expenseInbox,
+    handledInboxIds: current.handledInboxIds,
+  }));
 }
 export function resetAll(withExample: boolean) {
   setState(() => (withExample ? seed() : { debts: [], income: {}, txs: [] }));

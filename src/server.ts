@@ -44,18 +44,35 @@ function isH3SwallowedErrorBody(body: string): boolean {
   }
 }
 
+function secureHeaders(response: Response, request: Request): Response {
+  if (response.status === 101) return response;
+  const headers = new Headers(response.headers);
+  headers.set("X-Content-Type-Options", "nosniff");
+  headers.set("Referrer-Policy", "no-referrer");
+  headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  const mime = headers.get("content-type") ?? "";
+  if (mime.includes("text/html") || new URL(request.url).pathname.startsWith("/api/")) {
+    headers.set("Cache-Control", "private, no-store, max-age=0");
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      return secureHeaders(await normalizeCatastrophicSsrResponse(response), request);
     } catch (error) {
       console.error(error);
-      return new Response(renderErrorPage(), {
+      return secureHeaders(new Response(renderErrorPage(), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
-      });
+      }), request);
     }
   },
 };
