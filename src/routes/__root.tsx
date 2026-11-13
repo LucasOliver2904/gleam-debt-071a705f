@@ -126,6 +126,8 @@ function RootComponent() {
 
   useEffect(() => {
     document.documentElement.dataset["theme"] = localStorage.getItem("meu-caixa-theme") === "light" ? "light" : "dark";
+    const savedAccent = localStorage.getItem("meu-caixa-accent");
+    document.documentElement.dataset["accent"] = savedAccent === "ocean" || savedAccent === "violet" ? savedAccent : "emerald";
     // Registro necessário para os avisos do navegador e instalação do app.
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(console.error);

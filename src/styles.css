@@ -389,3 +389,34 @@ html[data-theme="light"] .finance-stat-card {
 @media (prefers-reduced-motion: reduce) {
   .finance-stat-card:hover, .finance-feature:hover { transform: none; }
 }
+
+
+/* Esquemas de destaque opcionais: contrastes específicos por modo. */
+html[data-accent="ocean"] {
+  --primary: oklch(0.78 0.15 243);
+  --primary-foreground: oklch(0.11 0.03 251);
+  --ring: oklch(0.78 0.15 243);
+  --sidebar-primary: oklch(0.78 0.15 243);
+  --sidebar-primary-foreground: oklch(0.11 0.03 251);
+}
+html[data-theme="light"][data-accent="ocean"] {
+  --primary: oklch(0.445 0.145 244);
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.445 0.145 244);
+  --sidebar-primary: oklch(0.445 0.145 244);
+  --sidebar-primary-foreground: oklch(1 0 0);
+}
+html[data-accent="violet"] {
+  --primary: oklch(0.80 0.14 305);
+  --primary-foreground: oklch(0.14 0.026 250);
+  --ring: oklch(0.80 0.14 305);
+  --sidebar-primary: oklch(0.80 0.14 305);
+  --sidebar-primary-foreground: oklch(0.14 0.026 250);
+}
+html[data-theme="light"][data-accent="violet"] {
+  --primary: oklch(0.45 0.15 303);
+  --primary-foreground: oklch(1 0 0);
+  --ring: oklch(0.45 0.15 303);
+  --sidebar-primary: oklch(0.45 0.15 303);
+  --sidebar-primary-foreground: oklch(1 0 0);
+}
