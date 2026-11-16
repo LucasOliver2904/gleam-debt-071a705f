@@ -68,9 +68,10 @@ export function hasLegacyLocalBackup() {
 export function legacyLocalBackup() {
   return typeof localStorage === "undefined" ? null : localStorage.getItem(LEGACY_KEY);
 }
-const CURRENT = "2026-10";
-
-export const uid = () => Math.random().toString(36).slice(2, 10);
+export const uid = () =>
+  typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : Math.random().toString(36).slice(2, 10) + Math.random().toString(36).slice(2, 10);
 
 export function addMonths(m: string, n: number) {
   const [y = 2026, mo = 1] = m.split("-").map(Number);
@@ -100,43 +101,36 @@ export function localToday() {
 }
 
 function seed(): State {
-  const start = "2026-08";
+  // Apenas dados FICTÍCIOS para demonstração em perfis novos.
+  // Nunca expor dívidas ou dados pessoais reais como exemplos no código.
+  const now = currentMonth();
+  const start = addMonths(now, -2);
   const mk = (name: string, type: DebtType, vals: (number | null)[]): Debt => {
     const payments: Record<string, Payment> = {};
-    vals.forEach((v, i) => {
-      if (v == null) return;
-      const m = addMonths(start, i);
-      payments[m] = { amount: v, paid: m <= CURRENT };
+    vals.forEach((value, index) => {
+      if (value === null) return;
+      const month = addMonths(start, index);
+      payments[month] = { amount: value, paid: month < now };
     });
     return fixDue({ id: uid(), name, type, payments });
   };
-  const r = (v: number, n: number) => Array(n).fill(v);
+  const repeat = (value: number, count: number): number[] => Array(count).fill(value);
   const debts = [
-    mk("Máq. Barb + Remed. + Bingo (Sandra)", "parcelada", [156.74, 360.71, 360.71, 712.09]),
-    mk("Bradescard", "parcelada", r(53.32, 7)),
-    mk("Bicicleta (Sônia)", "parcelada", [166, 166, null, ...r(166, 7)]),
-    mk("Itaú 1", "parcelada", r(65.78, 7)),
-    mk("Nacional", "parcelada", r(70, 9)),
-    mk("Raquete (Julia)", "parcelada", [280, 280, ...r(290, 8)]),
-    mk("Guido Chato", "parcelada", [180, 120, 169.9]),
-    mk("Shopee (01)", "parcelada", r(19.6, 4)),
-    mk("Shopee (03)", "parcelada", r(72.48, 5)),
-    mk("Shopee (16)", "parcelada", [90.81, 90.81, 90.77]),
-    mk("Shopee (16) B", "parcelada", r(133.33, 4)),
-    mk("Shopee (19)", "parcelada", r(78.62, 5)),
-    mk("Shopee (20)", "parcelada", r(46.5, 8)),
-    mk("Shopee (21)", "parcelada", [null, null, ...r(480, 8)]),
-    mk("Shopee (28)", "parcelada", r(104.84, 3)),
-    mk("Shopee (28) B", "parcelada", r(84.9, 5)),
-    mk("Sicredi", "parcelada", r(630, 10)),
-    mk("Lucas (Aulas Beach)", "fixa", [90, 180, 225, ...r(180, 7)]),
-    mk("Spotify", "fixa", r(40.9, 10)),
-    mk("Netflix", "fixa", [null, ...r(59.9, 9)]),
-    mk("TIM", "fixa", r(38, 10)),
+    mk("Cartão Aurora (10)", "parcelada", repeat(142.5, 8)),
+    mk("Notebook (05)", "parcelada", repeat(389.9, 10)),
+    mk("Reforma da cozinha (15)", "parcelada", repeat(450, 6)),
+    mk("Empréstimo Horizonte (20)", "parcelada", repeat(620, 12)),
+    mk("Geladeira (08)", "parcelada", repeat(215.4, 5)),
+    mk("Curso de inglês (12)", "fixa", repeat(189.9, 8)),
+    mk("Internet (10)", "fixa", repeat(99.9, 8)),
+    mk("Streaming (22)", "fixa", repeat(39.9, 8)),
+    mk("Plano de celular (18)", "fixa", repeat(49.9, 8)),
+    mk("Academia (03)", "fixa", repeat(109.9, 8)),
   ];
-  const sal = [2750, 2750, 2750, 2600, 2600, 2600, 2600, 2600, 2800, 2814.55];
   const income: Record<string, number> = {};
-  sal.forEach((v, i) => (income[addMonths(start, i)] = v));
+  [3200, 3200, 3200, 3200, 3200, 3350, 3350, 3350].forEach((value, index) => {
+    income[addMonths(start, index)] = value;
+  });
   return { debts, income, txs: [] };
 }
 

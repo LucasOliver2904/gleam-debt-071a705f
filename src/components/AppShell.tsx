@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import {
   ArrowDownLeft,
   ArrowLeftRight,
@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import type { ReactNode } from "react";
 import { CATEGORIES, alerts, localToday, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
 import { supabase } from "@/integrations/supabase/client";
+import { useProfile } from "@/lib/use-profile";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const NAV = [
   { to: "/", label: "Painel", short: "Início", icon: LayoutDashboard },
@@ -57,10 +59,10 @@ function Brand({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function Avatar() {
+function Avatar({ initial }: { initial: string }) {
   return (
     <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-info/20 text-sm font-extrabold text-primary ring-1 ring-primary/25" aria-hidden="true">
-      L
+      {initial}
     </span>
   );
 }
@@ -68,6 +70,7 @@ function Avatar() {
 const input = "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 function QuickAdd({ onClose }: { onClose: () => void }) {
+  const formId = useId();
   const [kind, setKind] = useState<Tx["kind"]>("saida");
   const [desc, setDesc] = useState("");
   const [amount, setAmount] = useState("");
@@ -75,69 +78,66 @@ function QuickAdd({ onClose }: { onClose: () => void }) {
   const [date, setDate] = useState(() => localToday());
   const [err, setErr] = useState("");
 
-  const submit = () => {
-    const v = parseMoney(amount);
-    if (!desc.trim() || desc.length > 100) return setErr("Informe uma descrição.");
-    if (!(v > 0)) return setErr("Valor inválido.");
-    setState((st) => ({ ...st, txs: [{ id: uid(), date, description: desc.trim(), amount: v, kind, category }, ...st.txs] }));
+  const submit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const value = parseMoney(amount);
+    if (!desc.trim() || desc.trim().length > 100) return setErr("Informe uma descrição de até 100 caracteres.");
+    if (!(value > 0) || value > 1_000_000_000) return setErr("Informe um valor válido.");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date + "T12:00:00"))) {
+      return setErr("Informe uma data válida.");
+    }
+    setState((state) => ({
+      ...state,
+      txs: [{ id: uid(), date, description: desc.trim(), amount: value, kind, category }, ...state.txs],
+    }));
     toast.success(kind === "entrada" ? "Entrada registrada" : "Saída registrada");
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-background/75 backdrop-blur-sm sm:items-center sm:p-4" role="presentation" onMouseDown={onClose}>
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto rounded-t-3xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl sm:p-6" role="dialog" aria-modal="true" aria-label="Novo lançamento rápido" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}>
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-border sm:hidden" />
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">Novo lançamento</h2>
-          <button onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">
-            <X size={18} />
-          </button>
-        </div>
-        
-        <div className="mt-5 space-y-4">
-          <div className="flex gap-2">
-            <button onClick={() => setKind("entrada")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition ${kind === "entrada" ? "border-success bg-success/15 text-success" : "border-border text-muted-foreground hover:bg-secondary"}`}>
-              <ArrowDownLeft size={15} /> Entrada
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-md overflow-y-auto rounded-3xl border-border bg-card p-5 sm:p-6">
+        <DialogHeader>
+          <DialogTitle className="font-display text-xl font-extrabold">Novo lançamento</DialogTitle>
+          <DialogDescription>Registre uma entrada ou saída em poucos segundos.</DialogDescription>
+        </DialogHeader>
+        <form className="mt-3 space-y-4" onSubmit={submit}>
+          <div role="group" aria-label="Tipo de lançamento" className="flex gap-2">
+            <button type="button" aria-pressed={kind === "entrada"} onClick={() => setKind("entrada")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition ${kind === "entrada" ? "border-success bg-success/15 text-success" : "border-border text-muted-foreground hover:bg-secondary"}`}>
+              <ArrowDownLeft size={16} /> Entrada
             </button>
-            <button onClick={() => setKind("saida")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition ${kind === "saida" ? "border-destructive bg-destructive/15 text-destructive" : "border-border text-muted-foreground hover:bg-secondary"}`}>
-              <ArrowUpRight size={15} /> Saída
+            <button type="button" aria-pressed={kind === "saida"} onClick={() => setKind("saida")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition ${kind === "saida" ? "border-destructive bg-destructive/15 text-destructive" : "border-border text-muted-foreground hover:bg-secondary"}`}>
+              <ArrowUpRight size={16} /> Saída
             </button>
           </div>
-
-          <div>
-            <label className="block text-sm text-muted-foreground">Valor</label>
-            <div className="relative mt-1">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">R$</span>
-              <input autoFocus className={input + " pl-10 text-lg font-semibold"} inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0,00" />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm text-muted-foreground">Descrição</label>
-            <input className={input + " mt-1"} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Ex: Mercado, Uber..." />
-          </div>
-
-          <div>
-            <label className="block text-sm text-muted-foreground">Data</label>
-            <input className={input + " mt-1"} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          </div>
-
-          <div><label className="block text-sm text-muted-foreground">Categoria</label><select className={input + " mt-1"} value={category} onChange={(e) => setCategory(e.target.value)}>{CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
-          {err && <p className="text-sm text-destructive">{err}</p>}
-          
-          <button onClick={submit} className={`w-full rounded-xl py-3.5 font-semibold text-primary-foreground transition hover:opacity-90 ${kind === "entrada" ? "bg-success" : "bg-primary"}`}>
-            Lançar {kind === "entrada" ? "Entrada" : "Saída"}
+          <label htmlFor={formId + "-valor"} className="block text-sm font-semibold text-muted-foreground">Valor (R$)
+            <input id={formId + "-valor"} autoFocus required className={input + " mt-1.5 text-lg font-bold"} inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0,00" aria-invalid={err.includes("valor")} />
+          </label>
+          <label htmlFor={formId + "-descricao"} className="block text-sm font-semibold text-muted-foreground">Descrição
+            <input id={formId + "-descricao"} required maxLength={100} className={input + " mt-1.5"} value={desc} onChange={(event) => setDesc(event.target.value)} placeholder="Ex.: Mercado, transporte..." />
+          </label>
+          <label htmlFor={formId + "-data"} className="block text-sm font-semibold text-muted-foreground">Data
+            <input id={formId + "-data"} required type="date" className={input + " mt-1.5"} value={date} onChange={(event) => setDate(event.target.value)} />
+          </label>
+          <label htmlFor={formId + "-categoria"} className="block text-sm font-semibold text-muted-foreground">Categoria
+            <select id={formId + "-categoria"} className={input + " mt-1.5"} value={category} onChange={(event) => setCategory(event.target.value)}>
+              {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
+            </select>
+          </label>
+          {err && <p role="alert" className="text-xs font-semibold text-destructive">{err}</p>}
+          <button type="submit" className={`w-full rounded-xl py-3.5 font-bold text-primary-foreground transition hover:opacity-90 ${kind === "entrada" ? "bg-success" : "bg-primary"}`}>
+            Lançar {kind === "entrada" ? "entrada" : "saída"}
           </button>
-        </div>
-      </div>
-    </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const finances = useFinance();
+  const profile = useProfile();
   const overdue = finances.ready ? alerts(finances).filter((item) => item.status === "atrasada").length : 0;
   const pixWaiting = finances.ready ? (finances.pixInbox?.length ?? 0) : 0;
   const expensesWaiting = finances.ready ? (finances.expenseInbox?.length ?? 0) : 0;
@@ -185,9 +185,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <button onClick={toggleTheme} className="mb-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}{theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
           <div className="flex items-center gap-3 rounded-xl px-2 py-2">
-            <Avatar />
+            <Avatar initial={profile.initial} />
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold">Lucas</p>
+              <p className="truncate text-sm font-semibold">{profile.name ?? "Minha conta"}</p>
               <p className="truncate text-xs text-muted-foreground">Seu espaço financeiro</p>
             </div>
             <button aria-label="Sair da conta" onClick={() => void signOut()} className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-secondary hover:text-foreground">

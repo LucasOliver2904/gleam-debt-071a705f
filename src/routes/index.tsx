@@ -30,6 +30,9 @@ import {
   YAxis,
 } from "recharts";
 import { AppShell, Stat } from "@/components/AppShell";
+import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useProfile } from "@/lib/use-profile";
 import { FinancialBriefing } from "@/components/FinancialBriefing";
 import { PendingReviewBanner, RecentActivity } from "@/components/DashboardActivity";
 import { FileImage } from "lucide-react";
@@ -82,9 +85,30 @@ function SectionTitle({
   );
 }
 
+function DashboardSkeleton() {
+  return (
+    <div role="status" aria-live="polite" aria-label="Carregando painel financeiro" className="space-y-5">
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-8 w-56" />
+        <Skeleton className="h-4 w-72 max-w-full" />
+      </div>
+      <Skeleton className="h-56 w-full rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
+      </div>
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Skeleton className="h-72 rounded-2xl" />
+        <Skeleton className="h-72 rounded-2xl" />
+      </div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const s = useFinance();
-  if (!s.ready) return <AppShell><div /></AppShell>;
+  const profile = useProfile();
+  if (!s.ready) return <AppShell><DashboardSkeleton /></AppShell>;
   const cm = currentMonth();
   const now = monthSummary(s, cm);
   const totalRemaining = outstandingDebtBalance(s);
@@ -116,15 +140,22 @@ function Dashboard() {
     "var(--muted-foreground)",
   ];
   const paidPct = now.debts ? Math.round((now.paid / now.debts) * 100) : 0;
-  const pay = (id: string, m: string) =>
-    setState((st) => ({
-      ...st,
-      debts: st.debts.map((d) =>
-        d.id !== id
-          ? d
-          : { ...d, payments: { ...d.payments, [m]: { ...d.payments[m]!, paid: true } } },
-      ),
+  const setPaid = (id: string, m: string, paid: boolean) => {
+    setState((state) => ({
+      ...state,
+      debts: state.debts.map((debt) => {
+        const payment = debt.payments[m];
+        if (debt.id !== id || !payment) return debt;
+        return { ...debt, payments: { ...debt.payments, [m]: { ...payment, paid } } };
+      }),
     }));
+  };
+  const pay = (id: string, m: string) => {
+    setPaid(id, m, true);
+    toast.success("Conta marcada como paga", {
+      action: { label: "Desfazer", onClick: () => setPaid(id, m, false) },
+    });
+  };
   
   const top = s.debts
     .filter((d) => d.type === "parcelada")
@@ -146,7 +177,7 @@ function Dashboard() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="finance-kicker">MEU CAIXA / VISÃO GERAL</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Olá, Lucas 👋</h1>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">{profile.name ? `Olá, ${profile.name} 👋` : "Olá 👋"}</h1>
           <p className="mt-1 text-sm capitalize text-muted-foreground">
             {hoje} · Resumo de {monthLabel(cm, true)}
           </p>
@@ -235,30 +266,11 @@ function Dashboard() {
         </div>
       )}
 
-      <div className="mt-4 rounded-2xl border border-border bg-card p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 text-sm">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-success/15 text-success">
-              <Sparkles size={16} />
-            </span>
-            <span className="font-medium">Contas de {monthLabel(cm, true)}</span>
-          </div>
-          <span className="rounded-full bg-success/15 px-2.5 py-1 text-xs font-bold tabular-nums text-success">
-            {paidPct}%
-          </span>
-        </div>
-        <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-secondary">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-success/70 to-success transition-all duration-500"
-            style={{ width: `${paidPct}%` }}
-          />
-        </div>
-        <p className="mt-2 text-xs text-muted-foreground">
-          {brl(now.paid)} pagos de {brl(now.debts)}
-          {free
-            ? ` · parceladas terminam em ${monthLabel(free, true)}`
-            : " · você está livre de parceladas 🎉"}
-        </p>
+      <div className="mt-4 flex items-center gap-2.5 rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
+          <Sparkles size={16} />
+        </span>
+        <span>{free ? `Suas dívidas parceladas terminam em ${monthLabel(free, true)}.` : "Você está livre de dívidas parceladas 🎉"}</span>
       </div>
 
       <FinancialBriefing state={s} />
