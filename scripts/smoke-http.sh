@@ -31,4 +31,11 @@ for route in / /dividas /lancamentos /pix /extrato /ajustes; do
     exit 1
   fi
 done
-echo 'OK: painel e todas as rotas críticas abriram de verdade via HTTP'
+for asset in /favicon.png /favicon.ico /icons/icon.svg /icons/icon-192.png /icons/icon-512.png /icons/icon-maskable-512.png /apple-touch-icon.png /manifest.webmanifest; do
+  code=$(curl --max-time 8 --silent --output /tmp/meu-caixa-asset.dat --write-out '%{http_code}' "http://127.0.0.1:4173$asset" || true)
+  if [ "$code" != "200" ] || [ ! -s /tmp/meu-caixa-asset.dat ]; then
+    echo "ERRO: o ícone/recurso $asset não está acessível (HTTP $code)"
+    exit 1
+  fi
+done
+echo 'OK: painel, rotas e ícones oficiais abriram pelo servidor real'
