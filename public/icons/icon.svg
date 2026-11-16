@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+<title>Meu Caixa — carteira esmeralda e seta de crescimento</title>
+<defs>
+<linearGradient id="navy" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#063856"/><stop offset=".52" stop-color="#091a38"/><stop offset="1" stop-color="#0c123d"/></linearGradient>
+<radialGradient id="halo" cx=".19" cy=".07" r=".91"><stop stop-color="#19e8cc" stop-opacity=".36"/><stop offset=".58" stop-color="#0c5e66" stop-opacity=".08"/><stop offset="1" stop-color="#050d24" stop-opacity="0"/></radialGradient>
+<linearGradient id="wallet" x1="0" x2=".93" y1="0" y2="1"><stop stop-color="#36ffcc"/><stop offset=".37" stop-color="#08c991"/><stop offset=".86" stop-color="#066b70"/><stop offset="1" stop-color="#06415e"/></linearGradient>
+<linearGradient id="front" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#20e6ae"/><stop offset=".58" stop-color="#00896e"/><stop offset="1" stop-color="#05465b"/></linearGradient>
+<linearGradient id="back" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#8cffd3"/><stop offset=".45" stop-color="#22bfa9"/><stop offset="1" stop-color="#065a65"/></linearGradient>
+<linearGradient id="gold" x1=".1" x2=".85" y1="1" y2="0"><stop stop-color="#ffbc32"/><stop offset=".42" stop-color="#fff28c"/><stop offset=".72" stop-color="#ffce48"/><stop offset="1" stop-color="#ffe768"/></linearGradient>
+<linearGradient id="clasp" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#3fffd0"/><stop offset="1" stop-color="#07796e"/></linearGradient>
+<filter id="shadow" x="-25%" y="-35%" width="150%" height="180%"><feGaussianBlur stdDeviation="23"/></filter>
+</defs>
+<rect x="0" y="0" width="1024" height="1024" rx="215" fill="url(#navy)"/>
+<rect x="0" y="0" width="1024" height="1024" rx="215" fill="url(#halo)"/>
+<circle cx="837" cy="815" r="283" fill="#0088a0" opacity=".13"/>
+<ellipse cx="511" cy="830" rx="300" ry="54" fill="#000716" opacity=".7" filter="url(#shadow)"/>
+<path d="M269 317c-4-33 19-65 53-74l361-95c35-9 69 12 78 47l77 290-527 142z" fill="url(#back)" stroke="#8cffd3" stroke-opacity=".25" stroke-width="9"/>
+<path d="M242 372c0-41 33-74 74-74h416c50 0 90 40 90 90v334c0 47-38 85-85 85H296c-41 0-74-33-74-74V436c0-27 6-44 20-64z" fill="url(#wallet)" stroke="#69ffdb" stroke-opacity=".38" stroke-width="12"/>
+<rect x="224" y="422" width="592" height="364" rx="72" fill="url(#front)"/>
+<path d="M275 468h467" stroke="#7bffdc" stroke-opacity=".68" stroke-width="12" stroke-linecap="round"/>
+<rect x="255" y="455" width="530" height="298" rx="54" stroke="#5fffd8" stroke-width="6" stroke-dasharray="12 21" stroke-opacity=".4" fill="none"/>
+<path d="M641 527h152c42 0 76 34 76 76v70c0 38-31 69-69 69H641c-43 0-78-35-78-78v-59c0-43 35-78 78-78z" fill="url(#clasp)" stroke="#54ffd5" stroke-width="10"/>
+<circle cx="745" cy="635" r="35" fill="url(#gold)" stroke="#fff2a2" stroke-width="8"/>
+<path d="M178 771C367 782 637 622 791 297" fill="none" stroke="#3b3218" stroke-opacity=".43" stroke-width="76" stroke-linecap="round"/>
+<path d="M178 761C367 772 637 612 791 287" fill="none" stroke="url(#gold)" stroke-width="51" stroke-linecap="round"/>
+<path d="M723 285l141-115-5 186-63-51-73-20z" fill="url(#gold)" stroke="#fff3a2" stroke-width="8" stroke-linejoin="round"/>
+<path d="M235 772q17 1 42-2" stroke="#fff3a2" stroke-width="7" stroke-linecap="round" opacity=".8"/>
+</svg>
