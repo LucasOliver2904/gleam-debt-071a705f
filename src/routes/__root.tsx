@@ -77,6 +77,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // App financeiro privado: páginas, autenticação e dados só são renderizados no navegador.
+  // Evita execução de integrações de browser durante SSR e falhas 500 ao abrir pelo Android.
+  ssr: false,
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -104,6 +107,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   shellComponent: RootShell,
+  pendingComponent: () => <div role="status" className="flex min-h-screen items-center justify-center bg-background px-5 text-sm text-muted-foreground">Abrindo Meu Caixa…</div>,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -116,6 +120,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <noscript>O Meu Caixa precisa de JavaScript para carregar seu painel financeiro.</noscript>
         {children}
         <Scripts />
       </body>

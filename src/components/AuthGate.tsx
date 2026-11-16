@@ -2,7 +2,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { ArrowRight, Eye, EyeOff, Fingerprint, LockKeyhole, ReceiptText, ShieldCheck, Sparkles, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
+// O adaptador OAuth do Lovable é carregado somente após o clique no navegador.
+// Não inicializar o SDK de OAuth durante a avaliação dos módulos no servidor.
 import { startSync } from "@/lib/sync";
 import { setFinanceUser } from "@/lib/finance";
 
@@ -73,6 +74,7 @@ function Login() {
     setBusy(true);
     setMsg(null);
     try {
+      const { lovable } = await import("@/integrations/lovable/index");
       const result = await lovable.auth.signInWithOAuth("google", { redirect_uri: window.location.origin });
       if (result.error) setMsg("Não foi possível entrar com o Google.");
     } catch {
