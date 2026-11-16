@@ -77,6 +77,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  // App financeiro privado: páginas, autenticação e dados só são renderizados no navegador.
+  // Evita execução de integrações de browser durante SSR e falhas 500 ao abrir pelo Android.
+  ssr: false,
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -98,12 +101,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" },
-      { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
-      { rel: "apple-touch-icon", href: "/icons/icon-192.png" },
+      { rel: "manifest", href: "/manifest.webmanifest?v=3" },
+      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=3" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=3" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=3" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=3" },
     ],
   }),
   shellComponent: RootShell,
+  pendingComponent: () => <div role="status" className="flex min-h-screen items-center justify-center bg-background px-5 text-sm text-muted-foreground">Abrindo Meu Caixa…</div>,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -116,6 +122,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <noscript>O Meu Caixa precisa de JavaScript para carregar seu painel financeiro.</noscript>
         {children}
         <Scripts />
       </body>
