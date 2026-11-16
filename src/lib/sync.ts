@@ -3,13 +3,20 @@ import type { Json } from "@/integrations/supabase/types";
 import { applyRemote, getState, setSyncHandler, uid, type State } from "./finance";
 import { mergePendingNotifications } from "./notification-merge";
 
-const clientId = uid() + uid();
+// Cloudflare Workers bloqueia crypto.randomUUID() durante a avaliação de módulos.
+// Geramos a identidade do cliente somente quando a sincronização inicia no navegador.
+let clientId: string | null = null;
+function getClientId(): string {
+  if (!clientId) clientId = uid() + "-" + uid();
+  return clientId;
+}
 
 /**
  * Protege os registros financeiros: uma falha ao ler o estado remoto NUNCA
  * pode ser interpretada como um usuário sem dados (e sobrescrever o banco).
  */
 export async function startSync(userId: string): Promise<() => void> {
+  getClientId();
   const { data: row, error } = await supabase
     .from("user_state")
     .select("data")
@@ -65,7 +72,7 @@ export async function startSync(userId: string): Promise<() => void> {
       (payload) => {
         const incoming = payload.new as { data?: State; client_id?: string } | undefined;
         // Don't discard an edit that is still queued locally.
-        if (!disposed && !pending && incoming?.data && incoming.client_id !== clientId) {
+        if (!disposed && !pending && incoming?.data && incoming.client_id !== getClientId()) {
           applyRemote(incoming.data);
         }
       },
@@ -87,7 +94,7 @@ export async function startSync(userId: string): Promise<() => void> {
       console.error("Sem conexão para atualizar os dados financeiros.", readError);
       return;
     }
-    if (!disposed && data?.data && data.client_id !== clientId) {
+    if (!disposed && data?.data && data.client_id !== getClientId()) {
       applyRemote(data.data as unknown as State);
     }
   };
@@ -114,7 +121,7 @@ async function push(userId: string, state: State): Promise<State> {
     if (readError) throw new Error("Falha ao ler as finanças antes de salvar: " + readError.message);
     if (!row) {
       const { error } = await supabase.from("user_state").upsert({
-        user_id: userId, data: state as unknown as Json, client_id: clientId,
+        user_id: userId, data: state as unknown as Json, client_id: getClientId(),
         updated_at: new Date().toISOString(),
       });
       if (error) throw new Error("Falha ao criar estado financeiro: " + error.message);
@@ -126,7 +133,7 @@ async function push(userId: string, state: State): Promise<State> {
     const timestamp = new Date(Math.max(Date.now(), Date.parse(row.updated_at ?? "") + 1 || 0)).toISOString();
     const { data: updated, error } = await supabase.from("user_state").update({
       data: merged as unknown as Json,
-      client_id: clientId,
+      client_id: getClientId(),
       updated_at: timestamp,
     })
       .eq("user_id", userId)
