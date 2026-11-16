@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
-bun x vite preview --host 127.0.0.1 --port 4173 --strictPort > /tmp/meu-caixa-preview.log 2>&1 &
+bun x wrangler@4 dev --config .output/server/wrangler.json --local --port 4173 --ip 127.0.0.1 > /tmp/meu-caixa-preview.log 2>&1 &
 PREVIEW_PID=$!
 trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
 ok=0
-for i in $(seq 1 40); do
+for i in $(seq 1 65); do
   code=$(curl --max-time 4 --silent --output /tmp/meu-caixa-home.html --write-out '%{http_code}' http://127.0.0.1:4173/ || true)
   if [ "$code" = "200" ]; then
     ok=1
