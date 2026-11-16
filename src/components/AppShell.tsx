@@ -49,9 +49,7 @@ const isActive = (path: string, to: string) =>
 function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link to="/" className={`flex items-center gap-2.5 ${compact ? "" : "px-5 py-5"}`}>
-      <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/10">
-        <Wallet size={20} strokeWidth={2.2} />
-      </span>
+      <img src="/icons/icon.svg?v=3" width={40} height={40} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-md shadow-primary/10" />
       {!compact && (
         <span><span className="block font-display text-lg font-extrabold tracking-tight">Meu Caixa</span><span className="block text-[9px] font-semibold tracking-[0.16em] text-muted-foreground">FINANÇAS PESSOAIS</span></span>
       )}
@@ -200,7 +198,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <div className="min-w-0 lg:pl-[266px]">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
           <Link to="/" className="flex items-center gap-2.5" aria-label="Meu Caixa, voltar ao painel">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/15"><Wallet size={19} strokeWidth={2.25} /></span>
+            <img src="/icons/icon.svg?v=3" width={40} height={40} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-lg shadow-primary/15" />
             <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Meu Caixa</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
           </Link>
           <div className="flex items-center gap-1.5">

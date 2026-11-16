@@ -91,7 +91,7 @@ function Login() {
       <div className="relative grid w-full max-w-[960px] overflow-hidden rounded-[1.75rem] border border-border bg-card shadow-[0_34px_100px_rgba(0,0,0,0.20)] lg:grid-cols-[1.08fr_0.92fr]">
         <section className="finance-hero hidden min-h-[620px] flex-col justify-between border-0 p-10 text-white lg:flex">
           <div className="flex items-center gap-3">
-            <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-300 text-slate-950"><Wallet size={24}/></span>
+            <img src="/icons/icon.svg?v=3" width={48} height={48} alt="" aria-hidden="true" className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-xl" />
             <div><p className="font-display text-xl font-extrabold tracking-tight">Meu Caixa</p><p className="text-[10px] font-extrabold tracking-[0.18em] text-emerald-200">FINANÇAS PESSOAIS</p></div>
           </div>
           <div className="max-w-sm">
@@ -110,7 +110,7 @@ function Login() {
           <div className="mb-8">
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 text-[10px] font-extrabold tracking-[0.14em] text-primary"><Fingerprint size={14}/> ACESSO SEGURO</span>
             <span className="mt-5 flex items-center gap-3 lg:hidden">
-              <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary text-primary-foreground"><Wallet size={22}/></span>
+              <img src="/icons/icon.svg?v=3" width={44} height={44} alt="" aria-hidden="true" className="h-11 w-11 shrink-0 rounded-xl object-cover shadow-lg" />
               <span className="font-display text-lg font-extrabold">Meu Caixa</span>
             </span>
             <h1 className="mt-5 font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">Bem-vindo de volta</h1>
