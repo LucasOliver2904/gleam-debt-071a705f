@@ -4,9 +4,11 @@ on:
     branches:
       - main
       - "feat/**"
+      - "fix/**"
   pull_request:
     branches:
       - main
+
 permissions:
   contents: read
 
@@ -16,9 +18,9 @@ concurrency:
 
 jobs:
   quality:
-    name: Testes e compilação
+    name: Testes, compilação e acesso HTTP real
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Obter código
         uses: actions/checkout@v4
@@ -30,47 +32,8 @@ jobs:
         run: bun install --frozen-lockfile
       - name: Gerar rotas e compilar aplicação
         run: bun run build
-      - name: Verificar abertura real do aplicativo no servidor
-        shell: bash
-        run: |
-          set -euo pipefail
-          (bun x vite preview --host 127.0.0.1 --port 4173 --strictPort > /tmp/meu-caixa-preview.log 2>&1) &
-          PREVIEW_PID=$!
-          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
-          READY=0
-          for i in $(seq 1 40); do
-            if curl --max-time 4 --silent --output /tmp/meu-caixa-home.html --write-out '%{http_code}' http://127.0.0.1:4173/ | grep -q '^200
-      - name: Auditar lint (informativo)
-        run: bun run lint
-        continue-on-error: true
-      - name: Rodar testes
-        run: bun run test
-; then
-              READY=1
-              break
-            fi
-            sleep 1
-          done
-          if [ "$READY" != "1" ]; then
-            echo 'ERROR: a tela inicial não retornou HTTP 200'
-            tail -120 /tmp/meu-caixa-preview.log
-            exit 1
-          fi
-          if grep -Eiq "This page didn't load|Something went wrong on our end|<title>Meu Caixa — Não foi possível carregar</title>" /tmp/meu-caixa-home.html; then
-            echo "ERROR: rota inicial respondeu com a página de falha"
-            tail -120 /tmp/meu-caixa-preview.log
-            exit 1
-          fi
-          grep -qi '<html' /tmp/meu-caixa-home.html
-          for path in /dividas /lancamentos /extrato /pix /ajustes; do
-            status=$(curl --max-time 8 --silent --output /tmp/meu-caixa-route.html --write-out '%{http_code}' "http://127.0.0.1:4173${path}")
-            if [ "$status" != "200" ] || ! grep -qi '<html' /tmp/meu-caixa-route.html; then
-              echo "ERROR: ${path} retornou ${status}"
-              tail -120 /tmp/meu-caixa-preview.log
-              exit 1
-            fi
-          done
-          echo 'OK: rotas de acesso, Pix, extrato e contas abriram pelo servidor sem HTTP 500'
+      - name: Testar acesso HTTP ao servidor
+        run: bash scripts/smoke-http.sh
       - name: Validar TypeScript
         run: bun x tsc --noEmit
       - name: Auditar lint (informativo)
