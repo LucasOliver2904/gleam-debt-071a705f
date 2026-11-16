@@ -7,6 +7,13 @@ on:
   pull_request:
     branches:
       - main
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   quality:
     name: Testes e compilação
@@ -25,5 +32,8 @@ jobs:
         run: bun run build
       - name: Validar TypeScript
         run: bun x tsc --noEmit
+      - name: Auditar lint (informativo)
+        run: bun run lint
+        continue-on-error: true
       - name: Rodar testes
         run: bun run test
