@@ -1,3 +1,5 @@
+import { useMoneyPrivacy } from "@/lib/money-privacy";
+import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
@@ -61,8 +63,8 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
     toast.success("Progresso da meta atualizado.");
   }
 
-  function removeGoal() {
-    if (!window.confirm('Excluir a meta "' + goal.name + '"? Os registros de finanças não serão alterados.')) return;
+  async function removeGoal() {
+    if (!await confirmAction('Excluir a meta "' + goal.name + '"? Os registros de finanças não serão alterados.')) return;
     setState((s) => ({
       ...s,
       savingsGoals: (s.savingsGoals ?? []).filter((item) => item.id !== goal.id),
@@ -116,6 +118,7 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
 }
 
 function Planejamento() {
+  const valuesHidden = useMoneyPrivacy();
   const s = useFinance();
   const [month, setMonth] = useState(currentMonth());
   const [category, setCategory] = useState<string>("Alimentação");
@@ -245,7 +248,7 @@ function Planejamento() {
             <Link to="/agenda" className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline">Ver agenda <ArrowRight size={14} /></Link>
           </div>
           <div className="mt-5 h-60 sm:h-72">
-            <ResponsiveContainer width="100%" height="100%">
+            {valuesHidden ? <div className="flex h-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border p-4 text-center text-sm text-muted-foreground"><p className="font-semibold">Projeção oculta</p><p>Use Mostrar valores no menu para consultar o gráfico.</p></div> : <ResponsiveContainer width="100%" height="100%">
               <LineChart data={forecast} margin={{ top: 8, right: 5, left: -24, bottom: 0 }}>
                 <CartesianGrid stroke="var(--border)" vertical={false} />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} />
@@ -255,11 +258,11 @@ function Planejamento() {
                 <Line type="monotone" dataKey="Entradas" stroke="var(--success)" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 6 }} />
                 <Line type="monotone" dataKey="Despesas" stroke="var(--destructive)" strokeWidth={3} dot={{ r: 3 }} activeDot={{ r: 6 }} />
               </LineChart>
-            </ResponsiveContainer>
+            </ResponsiveContainer>}
           </div>
           <div className="mt-3 flex gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
             <Sparkles size={16} className="mt-0.5 shrink-0 text-primary" />
-            Projeções ajudam a evitar novas parcelas em meses que já estão comprometidos. Cadastre sua renda futura em Dívidas para estimativas melhores.
+            Projeções ajudam a evitar novas parcelas em meses que já estão comprometidos. Cadastre sua renda futura em Contas para estimativas melhores.
           </div>
         </section>
 

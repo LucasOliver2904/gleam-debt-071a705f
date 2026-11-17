@@ -1,7 +1,9 @@
-import { useEffect, useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, Check, Pencil, X } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PrivateEditor } from "@/components/PrivateEditor";
+import { useState } from "react";
+import { ArrowDownLeft, ArrowUpRight, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { CATEGORIES, parseMoney, setState, type Tx } from "@/lib/finance";
+import { CATEGORIES, getFinanceUser, getState, parseMoney, setState, type Tx } from "@/lib/finance";
 
 const field = "mt-1.5 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary";
 
@@ -16,16 +18,16 @@ export function TransactionEditor({ transaction, onClose }: {
   const [category, setCategory] = useState(transaction.category || "Outros");
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", closeOnEscape);
-    return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [onClose]);
+  const [owner] = useState(getFinanceUser);
 
   function save(event: React.FormEvent) {
     event.preventDefault();
+    if (!owner || getFinanceUser() !== owner) { onClose(); return; }
+    const current = getState().txs.find((tx) => tx.id === transaction.id);
+    if (!current || current.pix || current.expenseAuto || ["description", "amount", "date", "category", "kind"].some((key) => current[key as keyof Tx] !== transaction[key as keyof Tx])) {
+      setError("Este lançamento foi atualizado ou removido. Feche a edição e confira os dados mais recentes.");
+      return;
+    }
     const total = parseMoney(amount);
     if (!description.trim() || description.trim().length > 100) return setError("Informe uma descrição de até 100 caracteres.");
     if (!(total > 0) || total > 1_000_000_000) return setError("Informe um valor válido.");
@@ -42,16 +44,14 @@ export function TransactionEditor({ transaction, onClose }: {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-background/80 backdrop-blur-sm sm:items-center sm:p-4" onMouseDown={onClose} role="presentation">
-      <section role="dialog" aria-modal="true" aria-labelledby="tx-edit-title" className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-border bg-card p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl sm:p-6" onMouseDown={(event) => event.stopPropagation()}>
-        <header className="flex items-center justify-between gap-3">
-          <div>
-            <p className="finance-kicker">MOVIMENTAÇÃO / EDIÇÃO</p>
-            <h2 id="tx-edit-title" className="mt-1 flex items-center gap-2 font-display text-xl font-extrabold"><Pencil size={19} className="text-primary"/> Editar lançamento</h2>
-          </div>
-          <button type="button" onClick={onClose} aria-label="Fechar edição" className="grid h-10 w-10 place-items-center rounded-xl border border-border text-muted-foreground hover:bg-secondary"><X size={18}/></button>
-        </header>
-        <form onSubmit={save} className="mt-6 space-y-4">
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[92dvh] bg-card p-5 sm:p-6">
+        <DialogHeader>
+          <p className="finance-kicker">MOVIMENTAÇÃO / EDIÇÃO</p>
+          <DialogTitle className="flex items-center gap-2 font-display text-xl font-bold"><Pencil size={19} className="text-primary"/>Editar lançamento</DialogTitle>
+          <DialogDescription>Altere o registro existente sem criar uma nova movimentação.</DialogDescription>
+        </DialogHeader>
+        <PrivateEditor><form onSubmit={save} className="mt-6 space-y-4">
           <fieldset>
             <legend className="finance-field-label">Tipo de movimentação</legend>
             <div className="grid grid-cols-2 gap-2">
@@ -84,8 +84,8 @@ export function TransactionEditor({ transaction, onClose }: {
             <button type="button" onClick={onClose} className="rounded-xl border border-border px-4 py-3 text-sm font-bold text-muted-foreground hover:bg-secondary">Cancelar</button>
             <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-extrabold text-primary-foreground hover:opacity-90"><Check size={17}/> Salvar alterações</button>
           </div>
-        </form>
-      </section>
-    </div>
+        </form></PrivateEditor>
+      </DialogContent>
+    </Dialog>
   );
 }

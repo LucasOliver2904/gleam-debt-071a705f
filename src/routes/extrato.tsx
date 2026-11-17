@@ -1,3 +1,4 @@
+import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import {
@@ -149,7 +150,7 @@ function StatementImportPage() {
     return { gross, kept: validKept };
   }
 
-  function importChecked() {
+  async function importChecked() {
     const selected = checkedRows();
     if (!selected.length) { toast.error("Selecione ao menos uma movimentação para importar."); return; }
     const prepared: { row: StatementRow; gross: number; kept: number }[] = [];
@@ -169,7 +170,7 @@ function StatementImportPage() {
     const current = getState();
     const suspect = prepared.filter(({ row, gross }) =>
       statementDuplicate({ ...row, gross }, current) || row.warning);
-    if (suspect.length && !window.confirm(suspect.length + " lançamento(s) selecionado(s) podem estar duplicados ou já previstos. Você conferiu no banco e deseja importar mesmo assim?")) return;
+    if (suspect.length && !await confirmAction(suspect.length + " lançamento(s) selecionado(s) podem estar duplicados ou já previstos. Você conferiu no banco e deseja importar mesmo assim?")) return;
     const count = prepared.length;
     const importedAt = new Date().toISOString();
     const freshTxs: Tx[] = prepared.map(({ row, gross, kept }) => ({
@@ -313,7 +314,7 @@ function StatementImportPage() {
           </div>
           <div className="flex flex-wrap gap-2">
             {rows.length > 0 && <button onClick={() => setRows((old) => old.map((row) => row.needsReview || row.warning ? row : { ...row, included: true }))} className="rounded-xl border border-primary/30 px-3 py-2 text-xs font-bold text-primary hover:bg-primary/10"><CheckCheck size={15} className="mr-1 inline"/> Marcar confiáveis</button>}
-            {rows.length > 0 && <button onClick={() => { if (!window.confirm("Limpar a prévia? Nenhum lançamento já salvo será excluído.")) return; setRows([]); setAmounts({}); setKeptAmounts({}); setNotes([]); }} className="rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:text-destructive"><Trash2 size={15} className="mr-1 inline"/> Limpar prévia</button>}
+            {rows.length > 0 && <button onClick={async () => { if (!await confirmAction("Limpar a prévia? Nenhum lançamento já salvo será excluído.")) return; setRows([]); setAmounts({}); setKeptAmounts({}); setNotes([]); }} className="rounded-xl border border-border px-3 py-2 text-xs font-bold text-muted-foreground hover:text-destructive"><Trash2 size={15} className="mr-1 inline"/> Limpar prévia</button>}
           </div>
         </header>
 

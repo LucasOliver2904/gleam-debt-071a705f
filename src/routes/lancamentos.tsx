@@ -1,3 +1,4 @@
+import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Download, FileImage, FilterX, Pencil, Receipt, Search, Trash2 } from "lucide-react";
@@ -48,8 +49,8 @@ function Lancamentos() {
     toast.success(kind === "entrada" ? "Entrada registrada" : "Saída registrada");
   };
 
-  const del = (t: Tx) => {
-    if (!confirm(`Excluir "${t.description}"?`)) return;
+  const del = async (t: Tx) => {
+    if (!await confirmAction(`Excluir "${t.description}"?`)) return;
     setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }));
     toast("Lançamento excluído");
   };

@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppShell } from "@/components/AppShell";
 import { DashboardHome } from "@/components/DashboardHome";
+import { FirstSteps } from "@/components/FirstSteps";
 import {
   PendingReviewBanner,
   RecentActivity,
@@ -110,6 +111,7 @@ function Dashboard() {
       </header>
 
       <PendingReviewBanner state={state} />
+      <FirstSteps key={getFinanceUser()} state={state} />
       <DashboardHome state={state} month={month} onPay={pay} />
       <WeeklyOverview state={state} />
       <RecentActivity state={state} />

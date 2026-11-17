@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { displayMoney, useMoneyPrivacy } from "./money-privacy";
 import { backupFingerprint, parseBackup, preserveLiveFields, readRecoveryPoint, saveRecoveryPoint, serializeBackup } from "./backup";
 import { resetSyncStatus, setSyncStatus } from "./sync-status";
 import { preparePendingJournal, commitPendingJournal, abortPreparedJournal, clearOwnJournal, type PendingJournal } from "./sync-journal";
@@ -98,7 +99,7 @@ export const monthLabel = (m: string, long = false) => {
   const [y = 2026, mo = 1] = m.split("-").map(Number);
   return `${(long ? MESES_L : MESES)[mo - 1]}/${String(y).slice(long ? 0 : 2)}`;
 };
-export const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const brl = displayMoney;
 /** Arredonda para centavos e evita "-0" (que o formatador mostraria como "-R$ 0,00"). */
 export const round2 = (v: number) => Math.round(v * 100) / 100 + 0;
 export function parseMoney(raw: string): number {
@@ -388,6 +389,7 @@ export function setState(fn: (s: State) => State, options?: { requireDurable?: b
 }
 const EMPTY: State = { debts: [], income: {}, txs: [] };
 export function useFinance(): State & { ready: boolean } {
+  useMoneyPrivacy();
   const s = useSyncExternalStore(
     (l) => (listeners.add(l), () => listeners.delete(l)),
     () => load(),

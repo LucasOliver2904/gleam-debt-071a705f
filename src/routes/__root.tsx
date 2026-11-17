@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
 import { AuthGate } from "@/components/AuthGate";
+import { ConfirmProvider } from "@/components/ConfirmProvider";
 import { ReminderAgent } from "@/components/ReminderAgent";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -147,8 +148,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <AuthGate>
-        <ReminderAgent />
-        <Outlet />
+        <ConfirmProvider>
+          <ReminderAgent />
+          <Outlet />
+        </ConfirmProvider>
       </AuthGate>
       <Toaster position="top-center" />
     </QueryClientProvider>

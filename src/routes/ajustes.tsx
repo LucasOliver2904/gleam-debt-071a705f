@@ -1,3 +1,4 @@
+import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff, Info, MonitorSmartphone, RotateCcw, ShieldCheck, Trash2, Upload } from "lucide-react";
@@ -298,14 +299,14 @@ function Ajustes() {
           <h2 className="font-display text-lg font-bold text-destructive">Zona de cuidado</h2>
           <p className="mb-4 mt-1 text-xs text-muted-foreground">Ações que substituem ou excluem registros financeiros. Baixe um backup antes de prosseguir.</p>
           <div className="grid gap-2 sm:grid-cols-2">
-            <ActionRow icon={RotateCcw} danger title="Carregar dados de exemplo" description="Substitui todos os registros atuais por exemplos." action={() => {
-              if (window.confirm("Isso substituirá todos os dados deste app. Deseja continuar?")) {
+            <ActionRow icon={RotateCcw} danger title="Carregar dados de exemplo" description="Substitui todos os registros atuais por exemplos." action={async () => {
+              if (await confirmAction("Isso substituirá todos os registros atuais por exemplos. Baixe um backup antes de continuar.", { title: "Substituir por dados de exemplo?", confirmLabel: "Carregar exemplos", tone: "warning" })) {
                 resetAll(true);
                 toast("Dados de exemplo carregados.");
               }
             }} />
-            <ActionRow icon={Trash2} danger title="Apagar tudo" description="Remove todos os dados financeiros armazenados." action={() => {
-              if (window.confirm("Tem certeza? Todos os registros financeiros serão apagados e a alteração será sincronizada.")) {
+            <ActionRow icon={Trash2} danger title="Apagar tudo" description="Remove todos os dados financeiros armazenados." action={async () => {
+              if (await confirmAction("Todos os registros financeiros serão apagados e essa alteração será sincronizada nos seus aparelhos. Baixe um backup antes de continuar.", { title: "Apagar todos os registros?", confirmLabel: "Apagar tudo", tone: "danger" })) {
                 resetAll(false);
                 toast("Registros apagados.");
               }
