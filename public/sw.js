@@ -6,7 +6,7 @@ self.addEventListener("message", (event) => {
     const title = String(event.data.title || "Prumo");
     const body = String(event.data.body || "");
     event.waitUntil(self.registration.showNotification(title, {
-      body, icon: "/icons/icon-192.png?v=3", badge: "/favicon.png?v=3",
+      body, icon: "/icons/icon-192.png?v=4", badge: "/favicon.png?v=4",
       tag: "meu-caixa-vencimentos", data: { url: "/" },
     }));
   }
@@ -20,7 +20,7 @@ self.addEventListener("push", (event) => {
   const title = String(payload.title || "Lembrete do Prumo");
   const body = String(payload.body || "Confira suas contas próximas do vencimento.");
   event.waitUntil(self.registration.showNotification(title, {
-    body, icon: "/icons/icon-192.png?v=3", badge: "/favicon.png?v=3",
+    body, icon: "/icons/icon-192.png?v=4", badge: "/favicon.png?v=4",
     tag: "meu-caixa-vencimentos", data: { url: "/" },
   }));
 });

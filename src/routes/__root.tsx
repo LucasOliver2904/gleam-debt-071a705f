@@ -86,7 +86,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Prumo — Seu controle financeiro" },
       { name: "description", content: "Prumo: entradas, despesas, Pix, repasses, parcelas, vencimentos, orçamento e metas num só lugar." },
-      { name: "theme-color", content: "#111b26" },
+      { name: "theme-color", content: "#07131A" },
       { name: "robots", content: "noindex, nofollow, noarchive" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -101,11 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" },
-      { rel: "manifest", href: "/manifest.webmanifest?v=3" },
-      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=3" },
-      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=3" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=3" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=3" },
+      { rel: "manifest", href: "/manifest.webmanifest?v=4" },
+      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=4" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=4" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=4" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=4" },
     ],
   }),
   shellComponent: RootShell,
@@ -139,7 +139,7 @@ function RootComponent() {
     document.documentElement.dataset["accent"] = savedAccent === "ocean" || savedAccent === "violet" ? savedAccent : "emerald";
     // Registro necessário para os avisos do navegador e instalação do app.
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(console.error);
+      navigator.serviceWorker.register('/sw.js?v=4', { updateViaCache: 'none' }).catch(console.error);
     }
   }, []);
 
