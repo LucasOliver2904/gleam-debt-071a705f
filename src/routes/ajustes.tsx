@@ -5,7 +5,9 @@ import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { InstallAppCard } from "@/components/InstallAppCard";
 import { AccentPicker } from "@/components/AccentPicker";
-import { alerts, exportBackup, hasLegacyLocalBackup, importBackup, legacyLocalBackup, resetAll, setState, useFinance } from "@/lib/finance";
+import { alerts, exportBackup, getBackupRecovery, getFinanceUser, getState, hasLegacyLocalBackup, importBackup, legacyLocalBackup, monthLabel, resetAll, setState, undoBackupRestore, useFinance } from "@/lib/finance";
+import { backupFingerprint, MAX_BACKUP_BYTES, parseBackup, type BackupRecovery, type BackupSummary } from "@/lib/backup";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DEFAULT_REMINDER_CONFIG, reminderConfig, type ReminderConfig } from "@/lib/reminders";
 
 export const Route = createFileRoute("/ajustes")({
@@ -52,7 +54,13 @@ function Ajustes() {
   const s = useFinance();
   const backupInput = useRef<HTMLInputElement>(null);
   const [permission, setPermission] = useState<NotificationPermission | "unsupported">("default");
+  const [pendingBackup, setPendingBackup] = useState<{ text: string; summary: BackupSummary; owner: string; source: string } | null>(null);
+  const [pendingUndo, setPendingUndo] = useState<{ owner: string; fingerprint: string; changed: boolean } | null>(null);
   const prefs = reminderConfig(s);
+  let recovery: BackupRecovery | null = null;
+  let recoveryError = "";
+  try { recovery = getBackupRecovery(); }
+  catch (error) { recoveryError = error instanceof Error ? error.message : "Não foi possível ler a cópia anterior."; }
 
   useEffect(() => {
     setPermission("Notification" in window ? Notification.permission : "unsupported");
@@ -102,28 +110,61 @@ function Ajustes() {
   };
 
   const download = () => {
-    const blob = new Blob([exportBackup()], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "meu-caixa-backup-" + new Date().toLocaleDateString("en-CA") + ".json";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.setTimeout(() => URL.revokeObjectURL(url), 500);
-    toast.success("Backup baixado com sucesso.");
+    try {
+      const blob = new Blob([exportBackup()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "meu-caixa-backup-" + new Date().toLocaleDateString("en-CA") + ".json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 500);
+      toast.success("Backup baixado com sucesso.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível baixar o backup.");
+    }
+  };
+
+  const previewRestore = (text: string, source: string, owner: string | null) => {
+    if (!owner || owner !== getFinanceUser()) throw new Error("A conta mudou. Selecione o backup novamente.");
+    const parsed = parseBackup(text);
+    setPendingBackup({ text, summary: parsed.summary, owner, source });
   };
 
   const restore = async (file: File) => {
+    const owner = getFinanceUser();
     try {
+      if (file.size > MAX_BACKUP_BYTES) throw new Error("O backup excede o limite de 15 MB.");
       const text = await file.text();
-      const parsed = JSON.parse(text) as { debts?: unknown[] };
-      if (!Array.isArray(parsed.debts)) throw new Error("Formato desconhecido");
-      if (!window.confirm("Substituir seus dados atuais por este backup? Faça uma cópia antes de continuar.")) return;
-      importBackup(text);
-      toast.success("Backup restaurado.");
-    } catch {
-      toast.error("Arquivo inválido. Selecione um backup do Prumo.");
+      previewRestore(text, file.name, owner);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Arquivo inválido. Seus dados foram preservados.");
+    }
+  };
+
+  const confirmRestore = () => {
+    if (!pendingBackup) return;
+    try {
+      if (pendingBackup.owner !== getFinanceUser()) throw new Error("A conta mudou. Selecione o backup novamente.");
+      importBackup(pendingBackup.text);
+      setPendingBackup(null);
+      toast.success("Backup restaurado. A cópia anterior foi guardada neste aparelho.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível restaurar. Seus dados foram preservados.");
+    }
+  };
+
+  const confirmUndo = () => {
+    if (!pendingUndo) return;
+    try {
+      if (pendingUndo.owner !== getFinanceUser()) throw new Error("A conta mudou. Confira novamente a cópia desta conta.");
+      undoBackupRestore(pendingUndo.fingerprint);
+      setPendingUndo(null);
+      toast.success("Cópia anterior recuperada. Os dados substituídos também ficaram guardados neste aparelho.");
+    } catch (error) {
+      setPendingUndo(null);
+      toast.error(error instanceof Error ? error.message : "Não foi possível recuperar a cópia anterior.");
     }
   };
 
@@ -221,19 +262,27 @@ function Ajustes() {
             <ActionRow icon={Upload} title="Restaurar backup" description="Importe um backup salvo anteriormente." action={() => backupInput.current?.click()} />
             {hasLegacyLocalBackup() && (
               <ActionRow icon={RotateCcw} title="Recuperar dados locais antigos" description="Se você usava o Prumo antes, pode importar o cache antigo deste aparelho, após conferir que os dados são seus." action={() => {
-                if (!window.confirm("Existe um cache antigo neste navegador, que pode pertencer a outro login. Só importe se reconhecer que ele contém SEUS dados. Fazer backup dos dados atuais antes?")) return;
                 const legacy = legacyLocalBackup();
                 if (!legacy) { toast.error("Cache antigo indisponível."); return; }
                 try {
-                  importBackup(legacy);
-                  toast.success("Dados locais antigos restaurados nesta conta.");
-                } catch {
-                  toast.error("Cache antigo inválido. Os dados atuais foram preservados.");
+                  previewRestore(legacy, "Cache antigo deste navegador — confira se os dados são seus", getFinanceUser());
+                } catch (error) {
+                  toast.error(error instanceof Error ? error.message : "Cache antigo inválido. Os dados atuais foram preservados.");
                 }
               }} />
             )}
-            <input hidden ref={backupInput} type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restore(file); event.target.value = ""; }} />
+            <input hidden aria-label="Selecionar arquivo de backup" ref={backupInput} type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restore(file); event.target.value = ""; }} />
           </div>
+          {recovery && <div className="mt-4 rounded-xl border border-primary/30 bg-primary/5 p-4">
+            <p className="text-sm font-bold">Cópia anterior disponível</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Guardada em {new Date(recovery.savedAt).toLocaleString("pt-BR")}, apenas neste aparelho e nesta conta. {recovery.changedSinceRestore ? "Você fez alterações depois da restauração. Confira antes de substituir seus dados." : "Você pode desfazer a última substituição dos seus dados."}</p>
+            {!recovery.durable && <p role="alert" className="mt-2 text-xs font-semibold text-destructive">Esta cópia está disponível apenas nesta sessão. Não feche o app; libere espaço e tente recuperar novamente.</p>}
+            <button type="button" className="mt-3 inline-flex items-center gap-2 rounded-xl border border-primary/30 px-3 py-2 text-xs font-bold text-primary" onClick={() => {
+              const owner = getFinanceUser();
+              if (owner) setPendingUndo({ owner, fingerprint: backupFingerprint(getState()), changed: recovery.changedSinceRestore });
+            }}><RotateCcw size={15} /> Recuperar cópia anterior</button>
+          </div>}
+          {recoveryError && <p role="alert" className="mt-3 text-xs text-destructive">{recoveryError}</p>}
           <p className="mt-4 rounded-xl border border-accent/25 bg-accent/7 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mr-2 inline text-accent"/> O arquivo de backup contém seus dados financeiros em texto legível. Guarde-o em local privado e protegido. As chaves de automação não são incluídas.</p>
         </section>
 
@@ -265,6 +314,30 @@ function Ajustes() {
         </section>
         <p className="text-center text-[11px] text-muted-foreground">Prumo · Controle financeiro pessoal · Configuração padrão: {DEFAULT_REMINDER_CONFIG.daysBefore.length} intervalos de aviso</p>
       </div>
+      <Dialog open={pendingBackup !== null && pendingBackup.owner === getFinanceUser()} onOpenChange={(open) => { if (!open) setPendingBackup(null); }}>
+        <DialogContent className="max-h-[90dvh] w-[calc(100%-2rem)] overflow-y-auto rounded-2xl">
+          <DialogHeader><DialogTitle>Conferir backup antes de restaurar</DialogTitle><DialogDescription>Confira o conteúdo. A restauração substitui seus registros financeiros atuais.</DialogDescription></DialogHeader>
+          {pendingBackup && <>
+            <p className="break-words text-xs text-muted-foreground">Arquivo: {pendingBackup.source}</p>
+            <dl className="grid grid-cols-3 gap-3 rounded-xl bg-secondary/40 p-4 text-center">
+              <div><dt className="text-xs text-muted-foreground">Contas</dt><dd className="mt-1 text-xl font-bold">{pendingBackup.summary.debts}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Lançamentos</dt><dd className="mt-1 text-xl font-bold">{pendingBackup.summary.transactions}</dd></div>
+              <div><dt className="text-xs text-muted-foreground">Metas</dt><dd className="mt-1 text-xl font-bold">{pendingBackup.summary.goals}</dd></div>
+            </dl>
+            <p className="text-sm">Período: {pendingBackup.summary.firstMonth && pendingBackup.summary.lastMonth ? monthLabel(pendingBackup.summary.firstMonth, true) + " a " + monthLabel(pendingBackup.summary.lastMonth, true) : "sem registros com data"}.</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">Seus {s.debts.length} registros de contas e {s.txs.length} lançamentos atuais serão substituídos. Uma cópia anterior será guardada neste aparelho para desfazer. As notificações pendentes e o pareamento Android da conta serão preservados.</p>
+            <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={() => setPendingBackup(null)} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold">Cancelar</button><button type="button" onClick={confirmRestore} className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Restaurar este backup</button></div>
+          </>}
+        </DialogContent>
+      </Dialog>
+      <Dialog open={pendingUndo !== null && pendingUndo.owner === getFinanceUser()} onOpenChange={(open) => { if (!open) setPendingUndo(null); }}>
+        <DialogContent className="w-[calc(100%-2rem)] rounded-2xl">
+          <DialogHeader><DialogTitle>Recuperar a cópia anterior?</DialogTitle><DialogDescription>{pendingUndo?.changed ? "Você alterou seus dados depois da restauração. Essas alterações serão substituídas pela cópia anterior." : "Isso desfaz a última substituição e recupera os registros anteriores."}</DialogDescription></DialogHeader>
+          <p className="text-xs leading-relaxed text-muted-foreground">Os registros atuais ficarão guardados neste aparelho para recuperar novamente. Você também pode baixar um backup antes de continuar.</p>
+          <button type="button" onClick={download} className="justify-self-start text-sm font-bold text-primary">Baixar backup atual</button>
+          <div className="flex flex-wrap justify-end gap-2"><button type="button" onClick={() => setPendingUndo(null)} className="rounded-xl border border-border px-4 py-2.5 text-sm font-semibold">Cancelar</button><button type="button" onClick={confirmUndo} className="rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground">Confirmar recuperação</button></div>
+        </DialogContent>
+      </Dialog>
     </AppShell>
   );
 }

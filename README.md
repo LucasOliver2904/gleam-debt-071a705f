@@ -8,8 +8,11 @@ sai, acompanhe parcelas, vencimentos e quanto ainda falta pagar, mês a mês.
 
 ## Funcionalidades
 
-- **Painel**: sobra prevista do mês, contas pagas e pendentes, dívidas a quitar,
-  gastos por categoria e comparativo de entradas x saídas (3 meses atrás, 5 à frente).
+- **Painel**: sobra prevista do mês, contas pagas e pendentes e dívidas a quitar.
+- **Resumo da semana e histórico**: contas a vencer nos próximos sete dias,
+  atrasos separados e últimas movimentações na tela inicial.
+- **Lançamento rápido**: atalhos de mercado, transporte e descrições frequentes,
+  com opção de desfazer sem apagar outros registros.
 - **Dívidas**: parceladas, fixas (recorrentes) e únicas, com saldo restante e parcelas.
 - **Agenda**: vencimentos por dia, com marcação de contas como pagas (e desfazer).
 - **Lançamentos**: entradas e saídas, categorias e conferência de gastos pendentes.
@@ -19,6 +22,11 @@ sai, acompanhe parcelas, vencimentos e quanto ainda falta pagar, mês a mês.
   e proteção contra duplicidade antes de lançar.
 - **Planejamento**: orçamentos por categoria, metas de economia e previsões.
 - **Lembretes** de vencimento, tema claro/escuro e instalação como PWA.
+- **Sincronização acompanhada**: indicador de envio, pendências preservadas no
+  aparelho e conferência quando dois aparelhos alteram os mesmos dados.
+- **Backup com recuperação**: validação e prévia antes de restaurar, cópia anterior
+  por conta e recuperação reversível neste aparelho. Aceita backups antigos e o
+  novo formato versionado; as chaves de automação não entram no arquivo.
 
 ## Tecnologias
 

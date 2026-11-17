@@ -1,4 +1,7 @@
 import { useSyncExternalStore } from "react";
+import { backupFingerprint, parseBackup, preserveLiveFields, readRecoveryPoint, saveRecoveryPoint, serializeBackup } from "./backup";
+import { resetSyncStatus, setSyncStatus } from "./sync-status";
+import { preparePendingJournal, commitPendingJournal, abortPreparedJournal, clearOwnJournal, type PendingJournal } from "./sync-journal";
 
 export type DebtType = "parcelada" | "fixa" | "unica";
 export const TYPE_INFO: Record<DebtType, { label: string; short: string; desc: string }> = {
@@ -55,11 +58,18 @@ export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStar
 const LEGACY_KEY = "minhas-financas-v1";
 const KEY_PREFIX = "meu-caixa-private-v2:";
 let activeFinanceUser: string | null = null;
+export function getFinanceUser() { return activeFinanceUser; }
 function storageKey() { return activeFinanceUser ? KEY_PREFIX + activeFinanceUser : null; }
 export function setFinanceUser(userId: string | null) {
   if (userId === activeFinanceUser) return;
   activeFinanceUser = userId;
   state = null;
+  syncBase = null;
+  syncPending = false;
+  cacheExists = false;
+  storageDurable = true;
+  syncHandler = null;
+  resetSyncStatus(userId);
   listeners.forEach((listener) => listener());
 }
 export function hasLegacyLocalBackup() {
@@ -178,7 +188,7 @@ function guessCategory(d: Debt) {
   if (/\(/.test(d.name)) return "Pessoas";
   return "Outros";
 }
-function normalize(s: State): State {
+export function normalizeFinanceState(s: State): State {
   return { ...s, debts: s.debts.map(normalizeDebt) };
 }
 
@@ -191,25 +201,45 @@ export function skipMonth(id: string, m: string) {
 }
 
 export function exportBackup() {
-  // Nunca incluir o hash de pareamento em backups: restauração não pode reativar
-  // uma chave que já foi revogada ou transferi-la para outra conta.
-  const { pixAutomationHash: _ignored, ...backup } = load();
-  return JSON.stringify(backup, null, 2);
+  return serializeBackup(load());
 }
 export function importBackup(json: string) {
-  if (json.length > 15_000_000) throw new Error("Arquivo muito grande");
-  const data = JSON.parse(json) as State;
-  if (!data || !Array.isArray(data.debts) ||
-      !data.income || typeof data.income !== "object" ||
-      !Array.isArray(data.txs)) throw new Error("Arquivo inválido");
-  setState((current) => ({
-    ...data,
-    pixAutomationHash: current.pixAutomationHash,
-    // Não perde avisos chegados do Android enquanto um backup era restaurado.
-    pixInbox: current.pixInbox,
-    expenseInbox: current.expenseInbox,
-    handledInboxIds: current.handledInboxIds,
-  }));
+  const userId = getFinanceUser();
+  if (!userId) throw new Error("Entre na sua conta antes de restaurar um backup.");
+  const parsed = parseBackup(json);
+  const current = load();
+  const next = normalizeFinanceState(preserveLiveFields(parsed.state, current));
+  // A cópia precisa estar durável antes de substituir qualquer registro.
+  const rollbackRecovery = saveRecoveryPoint(userId, current, next);
+  try {
+    setState(() => next, { requireDurable: true });
+  } catch (error) {
+    rollbackRecovery();
+    throw error;
+  }
+}
+export function getBackupRecovery() {
+  const userId = getFinanceUser();
+  return userId ? readRecoveryPoint(userId, load()) : null;
+}
+export function undoBackupRestore(expectedFingerprint: string) {
+  const userId = getFinanceUser();
+  if (!userId) throw new Error("Entre na sua conta antes de recuperar a cópia anterior.");
+  const current = load();
+  const recovery = readRecoveryPoint(userId, current);
+  if (!recovery) throw new Error("Nenhuma cópia anterior disponível nesta conta.");
+  if (backupFingerprint(current) !== expectedFingerprint) {
+    throw new Error("Seus dados mudaram. Confira novamente antes de desfazer.");
+  }
+  const next = normalizeFinanceState(preserveLiveFields(recovery.before, current));
+  // A recuperação também pode ser desfeita, preservando edições posteriores.
+  const rollbackRecovery = saveRecoveryPoint(userId, current, next);
+  try {
+    setState(() => next, { requireDurable: true });
+  } catch (error) {
+    rollbackRecovery();
+    throw error;
+  }
 }
 export function resetAll(withExample: boolean) {
   setState(() => (withExample ? seed() : { debts: [], income: {}, txs: [] }));
@@ -243,41 +273,117 @@ export function debtFreeMonth(s: State) {
 }
 
 let state: State | null = null;
+let syncBase: State | null = null;
+let syncPending = false;
+let cacheExists = false;
+let storageDurable = true;
 const listeners = new Set<() => void>();
+type CachedFinance = { syncVersion: 1; data: State; base: State | null; pending: boolean };
 function load(): State {
   if (state) return state;
   const key = storageKey();
   if (!key || typeof localStorage === "undefined") return EMPTY;
   try {
     const raw = localStorage.getItem(key);
-    // Não importa o legado automaticamente: poderia ser de outro login no mesmo aparelho.
-    state = normalize(raw ? JSON.parse(raw) as State : { debts: [], income: {}, txs: [] });
+    cacheExists = raw !== null;
+    if (raw) {
+      const cached = JSON.parse(raw) as CachedFinance | State;
+      if ("syncVersion" in cached && cached.syncVersion === 1) {
+        state = normalizeFinanceState(cached.data);
+        syncBase = cached.base;
+        syncPending = cached.pending;
+      } else {
+        // An older cache may contain offline edits. Never assume it is a clean remote copy.
+        state = normalizeFinanceState(cached as State);
+        syncBase = null;
+        syncPending = true;
+      }
+    } else state = { debts: [], income: {}, txs: [] };
   } catch {
-    // Se o cache está corrompido, o Supabase ainda pode ter a cópia válida.
     state = { debts: [], income: {}, txs: [] };
+    storageDurable = false;
+    if (activeFinanceUser) setSyncStatus(activeFinanceUser, "error", "Não foi possível ler o cache deste aparelho. A cópia existente foi preservada.");
   }
   return state;
 }
+
+function persist(requireDurable = false) {
+  const key = storageKey();
+  if (!key || !state) return;
+  let prepared: PendingJournal | undefined;
+  let previousCache: string | null = null;
+  let cacheSaved = false;
+  try {
+    previousCache = localStorage.getItem(key);
+    const cached: CachedFinance = { syncVersion: 1, data: state, base: syncBase, pending: syncPending };
+    if (syncPending) prepared = preparePendingJournal(activeFinanceUser!, state, syncBase);
+    try {
+      localStorage.setItem(key, JSON.stringify(cached));
+      cacheSaved = true;
+    } catch (error) {
+      // Ordinary edits remain durably queued even if a different tab owns a full cache.
+      // A restore requires the complete transaction and must preserve the previous cache.
+      if (requireDurable || !prepared) throw error;
+    }
+    if (prepared) commitPendingJournal(activeFinanceUser!, prepared);
+    else clearOwnJournal(activeFinanceUser!);
+    cacheExists = true;
+    storageDurable = true;
+  } catch {
+    if (prepared) { try { abortPreparedJournal(prepared); } catch { /* an uncommitted revision is ignored */ } }
+    if (requireDurable && cacheSaved) {
+      try {
+        if (previousCache === null) localStorage.removeItem(key);
+        else localStorage.setItem(key, previousCache);
+      } catch { /* the previous journal is still retained for recovery */ }
+    }
+    storageDurable = false;
+    setSyncStatus(activeFinanceUser!, "error", "Não foi possível salvar neste aparelho. Mantenha o app aberto e tente sincronizar.");
+  }
+}
 let syncHandler: ((s: State) => void) | null = null;
-export function setSyncHandler(h: ((s: State) => void) | null) {
-  syncHandler = h;
+export function setSyncHandler(h: ((s: State) => void) | null) { syncHandler = h; }
+export function getState() { return load(); }
+export function hasFinanceCache() { load(); return cacheExists; }
+export function getSyncRecord() {
+  const data = load();
+  return { data, base: syncBase, pending: syncPending, durable: storageDurable };
 }
-export function getState() {
-  return load();
-}
+
+/** Used only after a confirmed remote read/write; local edits use setState instead. */
 export function applyRemote(s: State) {
-  const key = storageKey();
-  if (!key) return;
-  state = normalize(s);
-  localStorage.setItem(key, JSON.stringify(state));
-  listeners.forEach((l) => l());
+  if (!storageKey()) return;
+  state = normalizeFinanceState(s);
+  syncBase = s;
+  syncPending = false;
+  persist();
+  listeners.forEach((listener) => listener());
 }
-export function setState(fn: (s: State) => State) {
-  const key = storageKey();
-  if (!key) return; // Proíbe edição local sem usuário autenticado.
-  state = normalize(fn(load()));
-  localStorage.setItem(key, JSON.stringify(state));
-  listeners.forEach((l) => l());
+
+/** Rebase edits that arrived while a previous snapshot was being uploaded. */
+export function applySyncRebase(data: State, base: State | null) {
+  if (!storageKey()) return;
+  state = normalizeFinanceState(data);
+  syncBase = base;
+  syncPending = true;
+  persist();
+  listeners.forEach((listener) => listener());
+}
+export function setState(fn: (s: State) => State, options?: { requireDurable?: boolean }) {
+  if (!storageKey()) return;
+  const previous = { data: load(), base: syncBase, pending: syncPending, cacheExists, storageDurable };
+  state = normalizeFinanceState(fn(previous.data));
+  syncPending = true;
+  persist(options?.requireDurable);
+  if (!storageDurable && options?.requireDurable) {
+    state = previous.data;
+    syncBase = previous.base;
+    syncPending = previous.pending;
+    cacheExists = previous.cacheExists;
+    throw new Error("Não foi possível salvar a alteração neste aparelho. Seus dados atuais foram mantidos.");
+  }
+  if (storageDurable) setSyncStatus(activeFinanceUser!, "local");
+  listeners.forEach((listener) => listener());
   syncHandler?.(state);
 }
 const EMPTY: State = { debts: [], income: {}, txs: [] };

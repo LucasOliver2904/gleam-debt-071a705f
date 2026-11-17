@@ -5,9 +5,13 @@ import { supabase } from "@/integrations/supabase/client";
 // O adaptador OAuth do Lovable é carregado somente após o clique no navegador.
 // Não inicializar o SDK de OAuth durante a avaliação dos módulos no servidor.
 import { startSync } from "@/lib/sync";
-import { setFinanceUser } from "@/lib/finance";
+import { hasFinanceCache, setFinanceUser } from "@/lib/finance";
+
+import { useSyncStatus } from "@/lib/sync-status";
+import { SyncStatus } from "@/components/SyncStatus";
 
 export function AuthGate({ children }: { children: ReactNode }) {
+  const syncStatus = useSyncStatus();
   const [session, setSession] = useState<Session | null | undefined>(undefined);
   const [syncedUser, setSyncedUser] = useState<string | null>(null);
 
@@ -45,7 +49,12 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
   if (session === undefined) return <div className="min-h-screen bg-background" />;
   if (!session) return <Login />;
-  if (syncedUser !== userId) return <div className="flex min-h-screen items-center justify-center bg-background text-sm text-muted-foreground">Carregando seus dados com segurança...</div>;
+  if (syncedUser !== userId || !hasFinanceCache()) return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-5 text-center text-sm text-muted-foreground">
+      <p>{syncStatus.phase === "error" ? "Ainda não foi possível carregar seus dados neste aparelho." : "Carregando seus dados com segurança..."}</p>
+      <SyncStatus />
+    </div>
+  );
   return <>{children}</>;
 }
 
