@@ -22,6 +22,14 @@ sai, acompanhe parcelas, vencimentos e quanto ainda falta pagar, mês a mês.
   e proteção contra duplicidade antes de lançar.
 - **Planejamento**: orçamentos por categoria, metas de economia e previsões.
 - **Lembretes** de vencimento, tema claro/escuro e instalação como PWA.
+- **Modo privacidade**: o botão de olho oculta os valores de consulta em todas as
+  telas, inclusive gráficos e formulários preenchidos, com preferência neste
+  aparelho. Os arquivos exportados continuam completos.
+- **Primeiros passos**: guia opcional por conta para definir a renda base prevista,
+  cadastrar uma conta e registrar a primeira movimentação. A previsão explica
+  separadamente a renda base, as entradas registradas e as despesas.
+- **Interface consistente**: paleta teal com temas claro/escuro, confirmações no
+  aplicativo, navegação por teclado e controles de toque maiores.
 - **Sincronização acompanhada**: indicador de envio, pendências preservadas no
   aparelho e conferência quando dois aparelhos alteram os mesmos dados.
 - **Backup com recuperação**: validação e prévia antes de restaurar, cópia anterior

@@ -1,10 +1,11 @@
+import { confirmAction } from "@/lib/confirm-action";
 import { useState } from "react";
 import {
   BellRing, CheckCircle2, Clipboard, ExternalLink, KeyRound, LockKeyhole, RotateCcw,
   ShieldCheck, Smartphone, Unplug, Wifi,
 } from "lucide-react";
 import { toast } from "sonner";
-import { setState, useFinance } from "@/lib/finance";
+import { getFinanceUser, setState, useFinance } from "@/lib/finance";
 import { digestAutomationKey, generateAutomationKey } from "@/lib/pix-bridge";
 
 const endpoint = "/api/pix-notificacao";
@@ -29,15 +30,18 @@ export function PixAutomationPanel() {
   }
 
   async function pair() {
+    const owner = getFinanceUser();
+    if (!owner) return;
     if (!window.isSecureContext || !crypto.subtle || !crypto.getRandomValues) {
       toast.error("A conexão precisa ser HTTPS para configurar a automação.");
       return;
     }
-    if (enabled && !window.confirm("Gerar outra chave revogará a anterior e exigirá atualizar a macro no Android. Continuar?")) return;
+    if (enabled && !await confirmAction("Gerar outra chave revogará a anterior e exigirá atualizar a macro no Android. Continuar?")) return;
     setBusy(true);
     try {
       const rawKey = generateAutomationKey();
       const hash = await digestAutomationKey(rawKey);
+      if (getFinanceUser() !== owner) return;
       setState((state) => ({ ...state, pixAutomationHash: hash }));
       setKey(rawKey);
       setExpanded(true);
@@ -49,8 +53,8 @@ export function PixAutomationPanel() {
     }
   }
 
-  function revoke() {
-    if (!window.confirm("Desativar a integração? Seu celular não poderá enviar novos Pix até você gerar outra chave.")) return;
+  async function revoke() {
+    if (!await confirmAction("Desativar a integração? Seu celular não poderá enviar novos Pix até você gerar outra chave.")) return;
     setState((state) => ({ ...state, pixAutomationHash: undefined }));
     setKey("");
     toast.success("Integração desativada.");

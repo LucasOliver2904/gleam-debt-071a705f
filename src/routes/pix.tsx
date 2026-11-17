@@ -1,3 +1,5 @@
+import { PrivateEditor } from "@/components/PrivateEditor";
+import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
@@ -122,8 +124,8 @@ function PixPage() {
 
   }
 
-  function discardIncoming(item: PixInboxItem) {
-    if (!window.confirm("Ignorar este aviso de Pix? Você poderá cadastrá-lo manualmente depois.")) return;
+  async function discardIncoming(item: PixInboxItem) {
+    if (!await confirmAction("Ignorar este aviso de Pix? Você poderá cadastrá-lo manualmente depois.")) return;
     setState((current) => ({
       ...current,
       pixInbox: (current.pixInbox ?? []).filter((row) => row.id !== item.id),
@@ -204,8 +206,8 @@ function PixPage() {
     toast.success(next === "repassado" ? "Repasse marcado como feito." : "Repasse marcado como pendente.");
   }
 
-  function remove(tx: Tx) {
-    if (!window.confirm('Excluir o Pix "' + tx.description + '"? A receita pessoal correspondente também sairá dos lançamentos.')) return;
+  async function remove(tx: Tx) {
+    if (!await confirmAction('Excluir o Pix "' + tx.description + '"? A receita pessoal correspondente também sairá dos lançamentos.')) return;
     setState((current) => ({ ...current, txs: current.txs.filter((item) => item.id !== tx.id) }));
     if (tx.id === editId) resetForm();
     toast.success("Pix excluído.");
@@ -284,7 +286,7 @@ function PixPage() {
               <span className="mt-1 text-xs text-muted-foreground">Informe o total e quanto é seu, mesmo que o repasse seja feito depois.</span>
             </button>
           ) : (
-            <div className="mt-5 space-y-4">
+            <PrivateEditor active={Boolean(editId || reviewingId)}><div className="mt-5 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <label className="block text-xs font-semibold text-muted-foreground">Valor recebido (R$)
                   <input autoFocus className={input + " mt-1.5"} inputMode="decimal" placeholder="Ex: 500,00" value={gross} onChange={(e) => setGross(e.target.value)} />
@@ -336,7 +338,7 @@ function PixPage() {
               <button onClick={save} className="w-full rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground transition hover:opacity-90">
                 {reviewingId ? "Conferir e registrar" : editId ? "Salvar alterações" : "Registrar Pix"}
               </button>
-            </div>
+            </div></PrivateEditor>
           )}
         </section>
 

@@ -17,7 +17,6 @@ import {
   Sun,
   Settings,
   Wallet,
-  X,
   type LucideIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -27,13 +26,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/use-profile";
 import { QuickAdd } from "@/components/QuickAdd";
 import { SyncStatus } from "@/components/SyncStatus";
+import { PrivacyToggle } from "@/components/PrivacyToggle";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const NAV = [
   { to: "/", label: "Painel", short: "Início", icon: LayoutDashboard },
-  { to: "/dividas", label: "Dívidas", short: "Contas", icon: Wallet },
+  { to: "/dividas", label: "Contas", short: "Contas", icon: Wallet },
   { to: "/agenda", label: "Agenda", short: "Agenda", icon: CalendarDays },
   { to: "/pix", label: "Pix e repasses", short: "Pix", icon: QrCode },
-  { to: "/lancamentos", label: "Lançamentos", short: "Gastos", icon: ArrowLeftRight },
+  { to: "/lancamentos", label: "Lançamentos", short: "Lançamentos", icon: ArrowLeftRight },
   { to: "/extrato", label: "Importar extrato", short: "Extrato", icon: FileImage },
   { to: "/planejamento", label: "Planejamento", short: "Planos", icon: Target },
   { to: "/ajustes", label: "Ajustes", short: "Ajustes", icon: Settings },
@@ -58,7 +59,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
 
 function Avatar({ initial }: { initial: string }) {
   return (
-    <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-info/20 text-sm font-extrabold text-primary ring-1 ring-primary/25" aria-hidden="true">
+    <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/15 text-sm font-extrabold text-primary ring-1 ring-primary/25" aria-hidden="true">
       {initial}
     </span>
   );
@@ -80,14 +81,21 @@ export function AppShell({ children }: { children: ReactNode }) {
   const toggleTheme = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    localStorage.setItem("meu-caixa-theme", next);
     document.documentElement.dataset["theme"] = next;
+    try { localStorage.setItem("meu-caixa-theme", next); }
+    catch { toast("Tema aplicado nesta sessão. Não foi possível salvar a preferência no aparelho."); }
   };
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) toast.error("Não foi possível sair. Tente novamente.");
   };
   useEffect(() => { setMoreOpen(false); }, [path]);
+  useEffect(() => {
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const closeOnDesktop = () => { if (desktop.matches) setMoreOpen(false); };
+    desktop.addEventListener("change", closeOnDesktop);
+    return () => desktop.removeEventListener("change", closeOnDesktop);
+  }, []);
   useEffect(() => {
     const openQuickAdd = () => setQuickAddOpen(true);
     window.addEventListener("prumo:quick-add", openQuickAdd);
@@ -118,6 +126,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <ShieldCheck size={17} className="shrink-0 text-primary" />
             <span className="text-[11px] leading-relaxed text-muted-foreground"><b className="block text-foreground">Área pessoal</b>Finanças sob seu controle</span>
           </div>
+          <PrivacyToggle />
           <button onClick={toggleTheme} className="mb-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}{theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
           <div className="flex items-center gap-3 rounded-xl px-2 py-2">
             <Avatar initial={profile.initial} />
@@ -125,7 +134,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <p className="truncate text-sm font-semibold">{profile.name ?? "Minha conta"}</p>
               <p className="truncate text-xs text-muted-foreground">Seu espaço financeiro</p>
             </div>
-            <button aria-label="Sair da conta" onClick={() => void signOut()} className="grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition hover:bg-secondary hover:text-foreground">
+            <button aria-label="Sair da conta" onClick={() => void signOut()} className="grid h-11 w-11 place-items-center rounded-xl text-muted-foreground transition hover:bg-secondary hover:text-foreground">
               <LogOut size={15} />
             </button>
           </div>
@@ -139,11 +148,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Prumo</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
           </Link>
           <div className="flex items-center gap-1.5">
-            <Link to="/agenda" aria-label={overdue > 0 ? `${overdue} contas atrasadas. Ver agenda` : "Abrir agenda"} className="relative grid h-10 w-10 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">
+            <PrivacyToggle compact />
+            <Link to="/agenda" aria-label={overdue > 0 ? `${overdue} contas atrasadas. Ver agenda` : "Abrir agenda"} className="relative grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">
               <BellRing size={18} />
               {overdue > 0 && <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full border border-background bg-destructive" />}
             </Link>
-            <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} className="grid h-10 w-10 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">{theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}</button>
+            <button type="button" onClick={toggleTheme} aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"} className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">{theme === "dark" ? <Sun size={19} /> : <Moon size={19} />}</button>
           </div>
         </header>
 
@@ -156,7 +166,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Evita duplicar o botão Lançar na tela inicial. */}
       {path !== "/" && <button
         onClick={() => setQuickAddOpen(true)}
-        className="finance-floating-action fixed bottom-[calc(6.4rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-13 w-13 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
+        className="finance-floating-action fixed bottom-[calc(6.4rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-13 w-13 place-items-center rounded-2xl bg-primary text-primary-foreground transition hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
         aria-label="Novo lançamento rápido"
       >
         <Plus size={24} className="lg:size-8" />
@@ -165,12 +175,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       {quickAddOpen && <QuickAdd onClose={() => setQuickAddOpen(false)} />}
 
       {moreOpen && (
-        <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm lg:hidden" role="presentation" onMouseDown={() => setMoreOpen(false)}>
-          <section role="dialog" aria-modal="true" aria-label="Mais opções do Prumo" className="absolute inset-x-3 bottom-[calc(5.9rem+env(safe-area-inset-bottom))] mx-auto max-w-xl overflow-hidden rounded-3xl border border-primary/25 bg-card p-4 shadow-2xl" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}>
-            <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
-              <div><p className="finance-kicker">NAVEGAÇÃO</p><h2 className="mt-1 font-display text-lg font-extrabold">Mais do Prumo</h2></div>
-              <button aria-label="Fechar menu" onClick={() => setMoreOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-border text-muted-foreground hover:bg-secondary"><X size={17}/></button>
-            </div>
+        <Dialog open onOpenChange={setMoreOpen}>
+          <DialogContent className="bottom-[calc(5.9rem+env(safe-area-inset-bottom))] left-3 right-3 top-auto max-h-[calc(100dvh-8rem)] w-auto max-w-none translate-x-0 translate-y-0 rounded-2xl border-border bg-card p-4 lg:hidden">
+            <DialogHeader><p className="finance-kicker">NAVEGAÇÃO</p><DialogTitle className="font-display text-lg font-bold">Mais do Prumo</DialogTitle><DialogDescription className="sr-only">Acesse agenda, extrato, planejamento e ajustes.</DialogDescription></DialogHeader>
             <div className="mt-3 grid gap-2">
               {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/30 px-3 py-3 text-sm font-semibold transition hover:border-primary/40 hover:bg-primary/5">
@@ -184,8 +191,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               <button onClick={() => { toggleTheme(); setMoreOpen(false); }} className="inline-flex items-center justify-center gap-2 rounded-xl border border-border px-3 py-3 text-xs font-bold text-muted-foreground">{theme === "dark" ? <Sun size={16}/> : <Moon size={16}/>} {theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
               <button onClick={() => void signOut()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-destructive/25 px-3 py-3 text-xs font-bold text-destructive"><LogOut size={16}/> Sair da conta</button>
             </div>
-          </section>
-        </div>
+          </DialogContent>
+        </Dialog>
       )}
 
       <nav aria-label="Navegação rápida" className="finance-bottom-nav fixed bottom-[calc(0.7rem+env(safe-area-inset-bottom))] left-3 right-3 z-30 rounded-[1.6rem] border border-border p-1.5 backdrop-blur-xl lg:hidden">
@@ -193,14 +200,14 @@ export function AppShell({ children }: { children: ReactNode }) {
           {MOBILE_ITEMS.map(({ to, short, icon: Icon }) => {
             const on = isActive(path, to);
             return (
-              <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 py-1.5 text-[10px] font-bold transition ${on ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              <Link key={to} to={to} aria-label={short} aria-current={on ? "page" : undefined} className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 py-1.5 text-[10px] font-bold transition ${on ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                 {on && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
                 <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : ""}`}>
                   <Icon size={20} strokeWidth={on ? 2.5 : 2} />
                   {to === "/pix" && pixWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-warning" />}
                   {to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-warning" />}
                 </span>
-                <span>{short}</span>
+                <span className="max-w-full truncate px-0.5 tracking-tight">{short}</span>
               </Link>
             );
           })}

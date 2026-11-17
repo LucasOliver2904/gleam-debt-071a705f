@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight, Camera, Check, CircleCheck, PenLine, QrCode } from "lucide-react";
-import { brl, monthLabel, monthSummary, outstandingDebtBalance, type State } from "@/lib/finance";
+import { brl, monthLabel, monthSummary, outstandingDebtBalance, round2, type State } from "@/lib/finance";
 import { dashboardBills, dueDescription } from "@/lib/dashboard-home";
 
 type FocusTab = "saldo" | "pagar" | "dividas";
@@ -16,17 +16,20 @@ export function DashboardHome({
   onPay: (debtId: string, paymentMonth: string) => void;
 }) {
   const [tab, setTab] = useState<FocusTab>("saldo");
+  const panelId = useId();
   const summary = monthSummary(state, month);
   const debtBalance = outstandingDebtBalance(state);
   const bills = dashboardBills(state);
+  const registeredIncome = round2(state.txs.filter((tx) => tx.kind === "entrada" && tx.date.startsWith(month)).reduce((sum, tx) => sum + tx.amount, 0));
+  const registeredExpenses = round2(state.txs.filter((tx) => tx.kind === "saida" && !tx.excludedFromTotals && tx.date.startsWith(month)).reduce((sum, tx) => sum + tx.amount, 0));
   const info = {
     saldo: {
       title: "Sobra prevista",
       amount: summary.balance,
       description: "Previsão do mês, não saldo da conta",
-      primary: "Entrou",
+      primary: "Entradas previstas",
       primaryValue: summary.income,
-      secondary: "Saiu",
+      secondary: "Despesas previstas",
       secondaryValue: summary.out,
       to: "/lancamentos" as const,
       cta: "Ver lançamentos",
@@ -61,7 +64,7 @@ export function DashboardHome({
         <section className="prumo-balance-card relative isolate min-w-0 overflow-hidden rounded-[1.6rem] px-4 py-4 text-white sm:px-6 sm:py-5" aria-label="Saldo e compromissos financeiros">
           <div role="tablist" aria-label="Indicadores financeiros" className="prumo-balance-tabs grid grid-cols-3 gap-1 rounded-full p-1">
             {([
-              ["saldo", "Saldo"],
+              ["saldo", "Previsão"],
               ["pagar", "A pagar"],
               ["dividas", "Dívidas"],
             ] as const).map(([value, title]) => (
@@ -69,21 +72,39 @@ export function DashboardHome({
                 key={value}
                 type="button"
                 role="tab"
+                id={panelId + "-" + value}
+                tabIndex={tab === value ? 0 : -1}
                 aria-selected={tab === value}
-                aria-controls="prumo-finance-tab-panel"
+                aria-controls={panelId}
                 onClick={() => setTab(value)}
-                className={"prumo-balance-tab min-w-0 rounded-full px-2 py-2.5 text-xs font-extrabold transition-colors sm:text-sm " +
+                onKeyDown={(event) => {
+                  const order: FocusTab[] = ["saldo", "pagar", "dividas"];
+                  const index = order.indexOf(tab);
+                  const next = event.key === "ArrowRight" ? order[(index + 1) % 3] : event.key === "ArrowLeft" ? order[(index + 2) % 3] : event.key === "Home" ? order[0] : event.key === "End" ? order[2] : undefined;
+                  if (!next) return;
+                  event.preventDefault();
+                  setTab(next);
+                  document.getElementById(panelId + "-" + next)?.focus();
+                }}
+                className={"prumo-balance-tab min-h-11 min-w-0 rounded-full px-2 py-2.5 text-sm font-bold transition-colors " +
                   (tab === value ? "bg-white text-[#075464] shadow-sm" : "text-white/90 hover:bg-white/10")}
               >{title}</button>
             ))}
           </div>
-          <div id="prumo-finance-tab-panel" role="tabpanel" className="relative z-10 mt-6">
+          <div id={panelId} role="tabpanel" aria-labelledby={panelId + "-" + tab} className="relative z-10 mt-6">
             <p className="text-xs font-semibold text-white/90 sm:text-sm">{info.title} · {monthLabel(month)}</p>
             <p className="mt-1 break-words font-display text-[clamp(2.1rem,5vw,3.35rem)] font-extrabold leading-tight tracking-[-0.035em] tabular-nums">
               {brl(info.amount)}
             </p>
             <p className="mt-1 text-xs text-white/80">{info.description}</p>
           </div>
+          {tab === "saldo" && <details className="relative z-10 mt-4 rounded-xl border border-white/20 px-3 text-sm">
+            <summary className="flex min-h-11 cursor-pointer items-center font-semibold">Como calculamos esta previsão</summary>
+            <dl className="space-y-2 border-t border-white/20 py-3 text-xs sm:text-sm">
+              {[["Renda base prevista", state.income[month] ?? 0], ["Entradas registradas", registeredIncome], ["Contas do mês (pagas e pendentes)", summary.debts], ["Saídas avulsas registradas", registeredExpenses], ["Contas já marcadas como pagas", summary.paid]].map(([label, value]) => <div key={String(label)} className="flex flex-wrap justify-between gap-2"><dt>{label}</dt><dd className="font-bold tabular-nums">{brl(Number(value))}</dd></div>)}
+            </dl>
+            <p className="pb-3 text-xs leading-relaxed text-white/85">A renda base e as entradas registradas são somadas. Cadastre na base apenas a renda que não será lançada separadamente. A previsão considera todas as contas do mês e as saídas registradas; não consulta o saldo bancário.</p>
+          </details>}
           <div className="relative z-10 mt-5 grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
             <div>
               <p className="text-xs font-semibold text-white/75">{info.primary}</p>
@@ -129,7 +150,7 @@ export function DashboardHome({
                         title="Marcar como paga"
                         aria-label={"Marcar " + bill.debt.name + " como paga"}
                         onClick={() => onPay(bill.debt.id, bill.month)}
-                        className="grid h-9 w-9 place-items-center rounded-xl text-success transition hover:bg-success/10 focus-visible:outline-2 focus-visible:outline-success">
+                        className="grid h-11 w-11 place-items-center rounded-xl text-success transition hover:bg-success/10 focus-visible:outline-2 focus-visible:outline-success">
                         <Check size={17}/>
                       </button>
                     </div>

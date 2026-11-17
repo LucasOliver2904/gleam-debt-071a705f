@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 type Accent = "emerald" | "ocean" | "violet";
 const choices: { id: Accent; name: string; description: string; color: string; glow: string }[] = [
-  { id: "emerald", name: "Prumo · Teal", description: "Combina com o novo ícone", color: "#13B5A7", glow: "#0D5C63" },
+  { id: "emerald", name: "Prumo · Teal", description: "Combina com o novo ícone", color: "#2DD4BF", glow: "#0F4F4A" },
   { id: "ocean", name: "Azul executivo", description: "Clássico e tecnológico", color: "#4da6ff", glow: "#225a98" },
   { id: "violet", name: "Violeta", description: "Marcante e elegante", color: "#c4a0ff", glow: "#6e4dac" },
 ];
@@ -20,8 +20,9 @@ export function AccentPicker() {
   useEffect(() => { setAccent(currentAccent()); }, []);
   function choose(value: Accent) {
     setAccent(value);
-    localStorage.setItem("meu-caixa-accent", value);
     document.documentElement.dataset["accent"] = value;
+    try { localStorage.setItem("meu-caixa-accent", value); }
+    catch { toast("Visual aplicado nesta sessão. Não foi possível salvar a preferência no aparelho."); return; }
     toast.success("Visual atualizado para " + choices.find((item) => item.id === value)?.name + ".");
   }
   return (

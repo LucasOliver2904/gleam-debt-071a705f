@@ -9,11 +9,11 @@ import {
   setSyncHandler,
   uid,
   normalizeFinanceState,
-  brl,
   monthLabel,
   type State,
 } from "./finance";
 import { mergeFinanceStates, SyncConflictError } from "./sync-merge";
+import { formatMoney } from "./money-privacy";
 import { acknowledgeJournal, readPendingJournals, type PendingJournal } from "./sync-journal";
 import { registerSyncActions, setSyncStatus } from "./sync-status";
 
@@ -192,12 +192,12 @@ export async function startSync(userId: string): Promise<() => void> {
         const format = (value: unknown, path: string) => {
           if (value === undefined) return "Removido";
           if (typeof value === "boolean") return value ? "Sim" : "Não";
-          if (typeof value === "number") return brl(value);
+          if (typeof value === "number") return formatMoney(value);
           if (value && typeof value === "object") {
             const item = value as { name?: string; description?: string; amount?: number };
             return [
               item.name ?? item.description ?? "Registro",
-              item.amount === undefined ? "" : brl(item.amount),
+              item.amount === undefined ? "" : formatMoney(item.amount),
             ]
               .filter(Boolean)
               .join(" · ");

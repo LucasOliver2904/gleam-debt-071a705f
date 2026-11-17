@@ -1,3 +1,5 @@
+import { PrivateEditor } from "@/components/PrivateEditor";
+import { confirmAction } from "@/lib/confirm-action";
 import { useEffect, useState } from "react";
 import {
   AlertCircle, ArrowDownRight, Check, CheckCheck, CreditCard,
@@ -85,8 +87,8 @@ export function ExpenseReviewPanel() {
     });
   }
 
-  function ignore(item: ExpenseInboxItem) {
-    if (!window.confirm("Ignorar este aviso? Nenhuma despesa será lançada.")) return;
+  async function ignore(item: ExpenseInboxItem) {
+    if (!await confirmAction("Ignorar este aviso? Nenhuma despesa será lançada.")) return;
     setState((s) => ({
       ...s,
       expenseInbox: (s.expenseInbox ?? []).filter((row) => row.id !== item.id),
@@ -96,7 +98,7 @@ export function ExpenseReviewPanel() {
     toast.success("Aviso ignorado. Não foi contabilizado.");
   }
 
-  function save() {
+  async function save() {
     if (!draft) return;
     const amount = parseMoney(draft.amount);
     if (!(amount > 0) || amount > 1_000_000_000) { toast.error("Informe um valor válido."); return; }
@@ -112,7 +114,7 @@ export function ExpenseReviewPanel() {
         Math.abs(Date.parse(tx.expenseAuto?.receivedAt ?? "") - Date.parse(current.receivedAt)) <= 300_000 &&
         !tx.excludedFromTotals
       );
-      if (anotherConfirmed && !draft.alreadyIncluded && !window.confirm(
+      if (anotherConfirmed && !draft.alreadyIncluded && !await confirmAction(
         "Atenção: já existe outra despesa com o mesmo valor, registrada por outro aplicativo perto deste horário. Confirmar MAIS UM lançamento? Isso pode duplicar o gasto."
       )) return;
 
@@ -224,7 +226,7 @@ export function ExpenseReviewPanel() {
             <h3 className="font-display text-lg font-bold">{draft.origin === "tx" ? "Editar despesa registrada" : "Conferir despesa"}</h3>
             <button aria-label="Fechar formulário" onClick={() => setDraft(null)} className="rounded-lg border border-border p-2 hover:bg-secondary"><X size={17}/></button>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <PrivateEditor><div className="mt-4 grid gap-3 sm:grid-cols-2">
             <label className="text-xs font-semibold text-muted-foreground">Valor (R$)
               <input className={control + " mt-1.5"} inputMode="decimal" value={draft.amount} onChange={(e) => setDraft((s) => s && { ...s, amount: e.target.value })} />
             </label>
@@ -254,7 +256,7 @@ export function ExpenseReviewPanel() {
           </p>
           <button onClick={save} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground">
             <Check size={17}/> {draft.origin === "tx" ? "Salvar alterações" : draft.alreadyIncluded ? "Guardar sem duplicar gastos" : "Registrar nas despesas"}
-          </button>
+          </button></PrivateEditor>
         </div>
       )}
 

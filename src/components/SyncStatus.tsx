@@ -8,10 +8,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getFinanceUser, type State } from "@/lib/finance";
+import { MASKED_MONEY, useMoneyPrivacy } from "@/lib/money-privacy";
 import { resolveSyncConflict, retrySync, useSyncStatus } from "@/lib/sync-status";
 
 export function SyncStatus() {
   const status = useSyncStatus();
+  const hidden = useMoneyPrivacy();
   const [reviewing, setReviewing] = useState(false);
   const [downloadError, setDownloadError] = useState("");
   if (!status.userId) return null;
@@ -133,8 +135,8 @@ export function SyncStatus() {
               {status.conflicts.map((entry) => (
                 <div key={entry.field} className="text-xs">
                   <p className="break-all font-semibold">{entry.field}</p>
-                  <p className="mt-1 break-all">Neste aparelho: {entry.local}</p>
-                  <p className="mt-1 break-all">Na nuvem: {entry.remote}</p>
+                  <p className="mt-1 break-all">Neste aparelho: {hidden ? MASKED_MONEY : entry.local}</p>
+                  <p className="mt-1 break-all">Na nuvem: {hidden ? MASKED_MONEY : entry.remote}</p>
                 </div>
               ))}
             </div>

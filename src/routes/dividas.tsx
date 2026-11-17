@@ -1,6 +1,10 @@
+import { setMoneyHidden, useMoneyPrivacy } from "@/lib/money-privacy";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { PrivateEditor } from "@/components/PrivateEditor";
+import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck, X } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
 import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
@@ -8,9 +12,9 @@ import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, mon
 export const Route = createFileRoute("/dividas")({
   head: () => ({
     meta: [
-      { title: "Dívidas e parcelas — Prumo" },
+      { title: "Contas e parcelas — Prumo" },
       { name: "description", content: "Todas as suas dívidas, parcelas e contas fixas mês a mês." },
-      { property: "og:title", content: "Dívidas e parcelas — Prumo" },
+      { property: "og:title", content: "Contas e parcelas — Prumo" },
       { property: "og:description", content: "Planilha de dívidas com parcelas pagas e pendentes." },
     ],
   }),
@@ -49,8 +53,8 @@ function Dividas() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="finance-kicker">SEUS COMPROMISSOS</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Dívidas e parcelas</h1>
-          <p className="mt-1 hidden md:block text-sm text-muted-foreground">Clique numa parcela para marcar como paga / pendente. Clique no salário para editar.</p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Contas e parcelas</h1>
+          <p className="mt-1 hidden md:block text-sm text-muted-foreground">Clique numa parcela para marcar como paga / pendente. Clique na renda base prevista para editar.</p>
         </div>
         <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova conta</button>
       </div>
@@ -136,7 +140,7 @@ function TxsSection({ months, q }: { months: string[]; q: string }) {
             ))}
             <td />
             <td className="pr-2">
-              <button onClick={() => confirm(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+              <button aria-label={"Excluir " + t.description} onClick={async () => await confirmAction(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
             </td>
           </tr>
         );
@@ -170,7 +174,7 @@ function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string;
           <td key={m} className="p-0.5">
             {p ? (
               <button onClick={() => togglePaid(d.id, m)} title={p.paid ? "Pago — clique para pendente. Clique direito para remover o mês" : "Pendente — clique para pagar. Clique direito para remover o mês"}
-                onContextMenu={(e) => { e.preventDefault(); if (confirm(`Remover ${monthLabel(m, true)} de "${d.name}"?`)) skipMonth(d.id, m); }}
+                onContextMenu={async (e) => { e.preventDefault(); if (await confirmAction(`Remover ${monthLabel(m, true)} de "${d.name}"?`)) skipMonth(d.id, m); }}
                 className={`w-full rounded-md px-2 py-1.5 text-right tabular-nums transition hover:opacity-80 ${p.paid ? "bg-success/20 text-success" : m < cm ? "bg-destructive text-destructive-foreground" : "bg-destructive/20 text-destructive"}`}>
                 {brl(p.amount)}
               </button>
@@ -188,7 +192,7 @@ function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string;
         )}
       </td>
       <td className="pr-2">
-        <button onClick={() => confirm(`Excluir "${d.name}"?`) && setState((s) => ({ ...s, debts: s.debts.filter((x) => x.id !== d.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+        <button aria-label={"Excluir " + d.name} onClick={async () => await confirmAction(`Excluir "${d.name}"?`) && setState((s) => ({ ...s, debts: s.debts.filter((x) => x.id !== d.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
       </td>
     </tr>
   );
@@ -206,7 +210,8 @@ function SummaryRow({ label, months, get, colored }: { label: string; months: st
 
 function IncomeCell({ m, value }: { m: string; value: number }) {
   const [edit, setEdit] = useState(false);
-  if (!edit) return <button onClick={() => setEdit(true)} className="w-full rounded-md px-1 py-1.5 text-right tabular-nums hover:bg-secondary">{brl(value)}</button>;
+  const hidden = useMoneyPrivacy();
+  if (!edit || hidden) return <button aria-label={(hidden ? "Mostrar valores para editar renda de " : "Editar renda prevista de ") + monthLabel(m, true)} onClick={() => { if (hidden) setMoneyHidden(false); setEdit(true); }} className="w-full rounded-md px-1 py-1.5 text-right tabular-nums hover:bg-secondary">{brl(value)}</button>;
   return (
     <input autoFocus type="number" step="0.01" defaultValue={value} className="w-24 rounded-md border border-input bg-background px-1 py-1 text-right"
       onBlur={(e) => { const v = parseFloat(e.target.value) || 0; setState((s) => ({ ...s, income: { ...s.income, [m]: v } })); setEdit(false); }}
@@ -219,16 +224,12 @@ const num = (v: string) => (v.includes(",") ? parseFloat(v.replace(/\./g, "").re
 
 function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-background/70 backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
-      <div className="max-h-[92dvh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-border bg-card p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] sm:rounded-2xl sm:p-6" onClick={(e) => e.stopPropagation()}>
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-border sm:hidden" />
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl font-bold">{title}</h2>
-          <button onClick={onClose} aria-label="Fechar" className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary"><X size={18} /></button>
-        </div>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-h-[92dvh] bg-card p-5 sm:p-6">
+        <DialogHeader><DialogTitle className="font-display text-xl font-bold">{title}</DialogTitle><DialogDescription>Confira os dados da conta antes de salvar.</DialogDescription></DialogHeader>
         <div className="mt-5 space-y-4">{children}</div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -399,8 +400,8 @@ function EditDebt({ debt, onClose }: { debt: Debt; onClose: () => void }) {
     onClose();
   };
 
-  const del = () => {
-    if (!confirm(`Excluir "${debt.name}" e todos os meses?`)) return;
+  const del = async () => {
+    if (!await confirmAction(`Excluir "${debt.name}" e todos os meses?`)) return;
     setState((s) => ({ ...s, debts: s.debts.filter((x) => x.id !== debt.id) }));
     toast("Conta excluída");
     onClose();
@@ -410,7 +411,7 @@ function EditDebt({ debt, onClose }: { debt: Debt; onClose: () => void }) {
   const paid = rows.filter((r) => r.paid).reduce((a, r) => a + num(r.amount), 0);
 
   return (
-    <Sheet title="Editar conta" onClose={onClose}>
+    <Sheet title="Editar conta" onClose={onClose}><PrivateEditor>
       <TypePicker value={type} onChange={setType} />
       <label className="block text-sm">Nome<input className={input + " mt-1"} value={name} maxLength={80} onChange={(e) => setName(e.target.value)} /></label>
       <div className="grid grid-cols-2 gap-3">
@@ -467,7 +468,7 @@ function EditDebt({ debt, onClose }: { debt: Debt; onClose: () => void }) {
         <button type="button" onClick={del} className="flex items-center gap-1.5 rounded-xl border border-destructive/40 px-4 py-3 text-sm font-semibold text-destructive hover:bg-destructive/10"><Trash2 size={15} /> Excluir</button>
         <button onClick={submit} className="flex-1 rounded-xl bg-primary py-3 font-semibold text-primary-foreground hover:opacity-90">Salvar alterações</button>
       </div>
-    </Sheet>
+    </PrivateEditor></Sheet>
   );
 }
 
@@ -485,6 +486,7 @@ function BreakdownItem({ label, value, color }: { label: string; value: number; 
 }
 
 function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
+  const valuesHidden = useMoneyPrivacy();
   const s = useFinance();
   const months = allMonths(s);
   const [m, setM] = useState(() => (months.includes(currentMonth()) ? currentMonth() : months[0] ?? currentMonth()));
@@ -514,9 +516,9 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
   return (
     <div className="mt-4 md:hidden">
       <div className="finance-surface flex items-center justify-between rounded-2xl border border-border bg-card p-2">
-        <button disabled={i <= 0} onClick={() => setM(months[i - 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">‹</button>
+        <button aria-label="Mês anterior" disabled={i <= 0} onClick={() => setM(months[i - 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">‹</button>
         <span className="font-display text-lg font-bold">{monthLabel(m, true)}</span>
-        <button disabled={i >= months.length - 1} onClick={() => setM(months[i + 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">›</button>
+        <button aria-label="Próximo mês" disabled={i >= months.length - 1} onClick={() => setM(months[i + 1]!)} className="grid h-11 w-11 place-items-center rounded-xl text-xl disabled:opacity-30">›</button>
       </div>
 
       <div className="mt-3 space-y-2.5">
@@ -537,12 +539,12 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
           <div className="finance-surface rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Entradas previstas</p>
             <p className="mt-1 break-words font-display text-lg font-extrabold tabular-nums text-success">{brl(sum.income)}</p>
-            <label className="mt-2 block text-[11px] text-muted-foreground">Salário estimado (R$)
+            {valuesHidden ? <p className="mt-2 text-xs text-muted-foreground">Renda base oculta neste aparelho.</p> : <label className="mt-2 block text-xs text-muted-foreground">Renda base prevista (R$)
               <input type="number" inputMode="decimal" step="0.01" min="0" key={m} defaultValue={s.income[m] ?? 0} onBlur={(event) => {
                 const value = Math.max(0, Number(event.target.value) || 0);
                 if (value !== (s.income[m] ?? 0)) setState((st) => ({ ...st, income: { ...st.income, [m]: value } }));
               }} className="mt-1 w-full rounded-lg border border-input bg-background px-2 py-1.5 text-sm text-foreground outline-none focus:border-primary" />
-            </label>
+            </label>}
           </div>
           <div className="finance-surface rounded-2xl border border-border bg-card p-4">
             <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Sobra prevista</p>
@@ -614,7 +616,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
                     <p className="text-xs text-muted-foreground">{t.date.split("-").reverse().join("/")} · {entrada ? "Entrada" : "Saída"}{t.category ? " · " + t.category : ""}{t.excludedFromTotals ? " · já somada em outra despesa" : ""}</p>
                   </div>
                   <p className={`text-xs font-extrabold tabular-nums sm:text-sm ${t.excludedFromTotals ? "text-muted-foreground" : entrada ? "text-success" : "text-destructive"}`}>{t.excludedFromTotals ? "↳" : entrada ? "+" : "−"} {brl(t.amount)}</p>
-                  <button onClick={() => confirm(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
+                  <button aria-label={"Excluir " + t.description} onClick={async () => await confirmAction(`Excluir "${t.description}"?`) && setState((st) => ({ ...st, txs: st.txs.filter((x) => x.id !== t.id) }))} className="p-1 text-muted-foreground hover:text-destructive"><Trash2 size={14} /></button>
                 </li>
               );
             })}
