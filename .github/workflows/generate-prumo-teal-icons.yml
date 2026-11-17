@@ -4,6 +4,7 @@ on:
     branches: ["feat/prumo-teal-pwa-refresh-20261117"]
     paths:
       - "public/icons/icon.svg"
+      - "scripts/generate-app-icons.py"
       - ".github/workflows/generate-prumo-teal-icons.yml"
   workflow_dispatch:
 

@@ -25,10 +25,13 @@ for path, size in out.items():
     img.save(target, "PNG", optimize=True)
     print(f"Gerado: {target.relative_to(ROOT)} ({size}×{size})")
 
-# Background full-bleed, arte central dentro da margem de segurança do Android.
-maskable = svg.replace('rx="215"', 'rx="0"')
-img = Image.open(BytesIO(cairosvg.svg2png(bytestring=maskable.encode(), output_width=512, output_height=512))).convert("RGBA")
-img.save(ROOT / "public/icons/icon-maskable-512.png", "PNG", optimize=True)
+# O Android aplica máscaras circulares: o símbolo precisa caber na área segura.
+# Fundo preenchido até a borda e arte centralizada em 75% do canvas.
+maskable = Image.new("RGBA", (512, 512), "#07131A")
+foreground_png = cairosvg.svg2png(bytestring=svg.encode(), output_width=384, output_height=384)
+foreground = Image.open(BytesIO(foreground_png)).convert("RGBA")
+maskable.alpha_composite(foreground, (64, 64))
+maskable.save(ROOT / "public/icons/icon-maskable-512.png", "PNG", optimize=True)
 Image.open(ROOT / "public/favicon.png").convert("RGBA").save(
     ROOT / "public/favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)]
 )
