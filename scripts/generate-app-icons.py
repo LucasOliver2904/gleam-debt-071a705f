@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Gera ícones determinísticos do Meu Caixa a partir de um único SVG.
+"""Gera ícones determinísticos do Prumo a partir de um único SVG.
 Não usa imagens externas nem chaves. Requer CairoSVG e Pillow apenas no build.
 """
 from io import BytesIO

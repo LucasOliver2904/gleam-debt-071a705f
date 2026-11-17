@@ -31,7 +31,7 @@ import java.util.Set;
 
 /**
  * Companion privado: não embute navegador nem banco.
- * Interface principal do Meu Caixa abre no Chrome (mantém login Google/OAuth).
+ * Interface principal do Prumo abre no Chrome (mantém login Google/OAuth).
  */
 public final class MainActivity extends Activity {
     private static final int NAVY = Color.rgb(10, 18, 31);
@@ -58,7 +58,7 @@ public final class MainActivity extends Activity {
         TextView eyebrow = text("FINANÇAS PESSOAIS / ANDROID", 12, MINT, true);
         content.addView(eyebrow);
         content.addView(gap(8));
-        content.addView(text("Meu Caixa", 30, TEXT, true));
+        content.addView(text("Prumo", 30, TEXT, true));
         content.addView(gap(4));
         content.addView(text("Captura privada de notificações financeiras", 16, MUTED, false));
         content.addView(gap(18));
@@ -74,7 +74,7 @@ public final class MainActivity extends Activity {
         content.addView(statusLabel);
         content.addView(gap(12));
 
-        content.addView(text("1 · CHAVE PRIVADA DO MEU CAIXA", 12, MINT, true));
+        content.addView(text("1 · CHAVE PRIVADA DO PRUMO", 12, MINT, true));
         content.addView(gap(8));
         content.addView(text("Na aba Pix e repasses do site, crie uma chave de integração. Cole-a aqui. Ela será criptografada no Android Keystore e nunca aparecerá novamente.", 13, MUTED, false));
         content.addView(gap(10));
@@ -95,7 +95,7 @@ public final class MainActivity extends Activity {
                 toast("Chave protegida no Android.");
                 refresh();
             } else {
-                toast("A chave deve ter 64 caracteres hexadecimais. Crie-a no Meu Caixa.");
+                toast("A chave deve ter 64 caracteres hexadecimais. Crie-a no Prumo.");
             }
         });
         addButton("Testar conexão HTTPS", true, () -> {
@@ -132,7 +132,7 @@ public final class MainActivity extends Activity {
             }
         });
         content.addView(gap(8));
-        content.addView(text("Se o Android bloquear a permissão de um APK instalado manualmente, abra Configurações → Apps → Meu Caixa · Android → ⋮ → Permitir configurações restritas. Só faça isso se você confiar neste instalador privado.", 12, MUTED, false));
+        content.addView(text("Se o Android bloquear a permissão de um APK instalado manualmente, abra Configurações → Apps → Prumo · Android → ⋮ → Permitir configurações restritas. Só faça isso se você confiar neste instalador privado.", 12, MUTED, false));
         content.addView(gap(20));
 
         content.addView(text("4 · ATIVAR CAPTURA", 12, MINT, true));
@@ -146,12 +146,12 @@ public final class MainActivity extends Activity {
                 if (AppConfig.selectedApps(this).isEmpty()) { toast("Selecione os bancos antes de ativar."); return; }
                 if (!listenerGranted()) { toast("Libere a permissão de notificações no Android."); return; }
                 AppConfig.setEnabled(this, true);
-                toast("Captura ativada. Confira todas as sugestões no Meu Caixa.");
+                toast("Captura ativada. Confira todas as sugestões no Prumo.");
             }
             refresh();
         });
         content.addView(gap(9));
-        addButton("Abrir Meu Caixa no navegador", true, () -> {
+        addButton("Abrir Prumo no navegador", true, () -> {
             Intent open = new Intent(Intent.ACTION_VIEW, Uri.parse("https://gleam-debt.lovable.app/pix"));
             startActivity(open);
         });
@@ -159,7 +159,7 @@ public final class MainActivity extends Activity {
         addButton("Desativar e apagar chave deste Android", true, () ->
             new AlertDialog.Builder(this)
                 .setTitle("Desativar captura?")
-                .setMessage("A chave criptografada será apagada deste aparelho. Nenhum registro financeiro no Meu Caixa será removido.")
+                .setMessage("A chave criptografada será apagada deste aparelho. Nenhum registro financeiro no Prumo será removido.")
                 .setNegativeButton("Cancelar", null)
                 .setPositiveButton("Desativar", (dialog, which) -> {
                     AppConfig.clearToken(this);
@@ -168,7 +168,7 @@ public final class MainActivity extends Activity {
                 }).show());
 
         content.addView(gap(24));
-        content.addView(text("PRIVACIDADE: nenhuma senha bancária, notificação de aplicativo não selecionado, dados de WhatsApp ou histórico de notificações é transmitido. A mensagem financeira enviada vai para análise no servidor do Meu Caixa e somente entra nos totais depois da sua confirmação.", 12, MUTED, false));
+        content.addView(text("PRIVACIDADE: nenhuma senha bancária, notificação de aplicativo não selecionado, dados de WhatsApp ou histórico de notificações é transmitido. A mensagem financeira enviada vai para análise no servidor do Prumo e somente entra nos totais depois da sua confirmação.", 12, MUTED, false));
         refresh();
     }
 
