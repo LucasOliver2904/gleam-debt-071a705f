@@ -51,7 +51,7 @@ function Brand({ compact = false }: { compact?: boolean }) {
     <Link to="/" className={`flex items-center gap-2.5 ${compact ? "" : "px-5 py-5"}`}>
       <img src="/icons/icon.svg?v=3" width={40} height={40} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-md shadow-primary/10" />
       {!compact && (
-        <span><span className="block font-display text-lg font-extrabold tracking-tight">Meu Caixa</span><span className="block text-[9px] font-semibold tracking-[0.16em] text-muted-foreground">FINANÇAS PESSOAIS</span></span>
+        <span><span className="block font-display text-lg font-extrabold tracking-tight">Prumo</span><span className="block text-[9px] font-semibold tracking-[0.16em] text-muted-foreground">FINANÇAS PESSOAIS</span></span>
       )}
     </Link>
   );
@@ -197,9 +197,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className="min-w-0 lg:pl-[266px]">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
-          <Link to="/" className="flex items-center gap-2.5" aria-label="Meu Caixa, voltar ao painel">
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Prumo, voltar ao painel">
             <img src="/icons/icon.svg?v=3" width={40} height={40} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-lg shadow-primary/15" />
-            <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Meu Caixa</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
+            <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Prumo</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
           </Link>
           <div className="flex items-center gap-1.5">
             <Link to="/agenda" aria-label={overdue > 0 ? `${overdue} contas atrasadas. Ver agenda` : "Abrir agenda"} className="relative grid h-10 w-10 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">
@@ -228,9 +228,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {moreOpen && (
         <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm lg:hidden" role="presentation" onMouseDown={() => setMoreOpen(false)}>
-          <section role="dialog" aria-modal="true" aria-label="Mais opções do Meu Caixa" className="absolute inset-x-3 bottom-[calc(5.45rem+env(safe-area-inset-bottom))] mx-auto max-w-xl overflow-hidden rounded-3xl border border-primary/25 bg-card p-4 shadow-2xl" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}>
+          <section role="dialog" aria-modal="true" aria-label="Mais opções do Prumo" className="absolute inset-x-3 bottom-[calc(5.45rem+env(safe-area-inset-bottom))] mx-auto max-w-xl overflow-hidden rounded-3xl border border-primary/25 bg-card p-4 shadow-2xl" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}>
             <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
-              <div><p className="finance-kicker">NAVEGAÇÃO</p><h2 className="mt-1 font-display text-lg font-extrabold">Mais do Meu Caixa</h2></div>
+              <div><p className="finance-kicker">NAVEGAÇÃO</p><h2 className="mt-1 font-display text-lg font-extrabold">Mais do Prumo</h2></div>
               <button aria-label="Fechar menu" onClick={() => setMoreOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-border text-muted-foreground hover:bg-secondary"><X size={17}/></button>
             </div>
             <div className="mt-3 grid gap-2">

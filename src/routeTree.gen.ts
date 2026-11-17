@@ -10,13 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as DividasRouteImport } from './routes/dividas'
+import { Route as ExtratoRouteImport } from './routes/extrato'
 import { Route as LancamentosRouteImport } from './routes/lancamentos'
+import { Route as PixRouteImport } from './routes/pix'
+import { Route as PlanejamentoRouteImport } from './routes/planejamento'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as ApiPixNotificacaoRouteImport } from './routes/api/pix-notificacao'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgendaRoute = AgendaRouteImport.update({
+  id: '/agenda',
+  path: '/agenda',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AjustesRoute = AjustesRouteImport.update({
@@ -29,44 +40,124 @@ const DividasRoute = DividasRouteImport.update({
   path: '/dividas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ExtratoRoute = ExtratoRouteImport.update({
+  id: '/extrato',
+  path: '/extrato',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LancamentosRoute = LancamentosRouteImport.update({
   id: '/lancamentos',
   path: '/lancamentos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PixRoute = PixRouteImport.update({
+  id: '/pix',
+  path: '/pix',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanejamentoRoute = PlanejamentoRouteImport.update({
+  id: '/planejamento',
+  path: '/planejamento',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPixNotificacaoRoute = ApiPixNotificacaoRouteImport.update({
+  id: '/api/pix-notificacao',
+  path: '/api/pix-notificacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
+  '/extrato': typeof ExtratoRoute
   '/lancamentos': typeof LancamentosRoute
+  '/pix': typeof PixRoute
+  '/planejamento': typeof PlanejamentoRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/api/pix-notificacao': typeof ApiPixNotificacaoRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
+  '/extrato': typeof ExtratoRoute
   '/lancamentos': typeof LancamentosRoute
+  '/pix': typeof PixRoute
+  '/planejamento': typeof PlanejamentoRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/api/pix-notificacao': typeof ApiPixNotificacaoRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agenda': typeof AgendaRoute
   '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
+  '/extrato': typeof ExtratoRoute
   '/lancamentos': typeof LancamentosRoute
+  '/pix': typeof PixRoute
+  '/planejamento': typeof PlanejamentoRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/api/pix-notificacao': typeof ApiPixNotificacaoRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ajustes' | '/dividas' | '/lancamentos'
+  fullPaths:
+    | '/'
+    | '/agenda'
+    | '/ajustes'
+    | '/dividas'
+    | '/extrato'
+    | '/lancamentos'
+    | '/pix'
+    | '/planejamento'
+    | '/privacidade'
+    | '/api/pix-notificacao'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ajustes' | '/dividas' | '/lancamentos'
-  id: '__root__' | '/' | '/ajustes' | '/dividas' | '/lancamentos'
+  to:
+    | '/'
+    | '/agenda'
+    | '/ajustes'
+    | '/dividas'
+    | '/extrato'
+    | '/lancamentos'
+    | '/pix'
+    | '/planejamento'
+    | '/privacidade'
+    | '/api/pix-notificacao'
+  id:
+    | '__root__'
+    | '/'
+    | '/agenda'
+    | '/ajustes'
+    | '/dividas'
+    | '/extrato'
+    | '/lancamentos'
+    | '/pix'
+    | '/planejamento'
+    | '/privacidade'
+    | '/api/pix-notificacao'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgendaRoute: typeof AgendaRoute
   AjustesRoute: typeof AjustesRoute
   DividasRoute: typeof DividasRoute
+  ExtratoRoute: typeof ExtratoRoute
   LancamentosRoute: typeof LancamentosRoute
+  PixRoute: typeof PixRoute
+  PlanejamentoRoute: typeof PlanejamentoRoute
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  ApiPixNotificacaoRoute: typeof ApiPixNotificacaoRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -76,6 +167,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agenda': {
+      id: '/agenda'
+      path: '/agenda'
+      fullPath: '/agenda'
+      preLoaderRoute: typeof AgendaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ajustes': {
@@ -92,6 +190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DividasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/extrato': {
+      id: '/extrato'
+      path: '/extrato'
+      fullPath: '/extrato'
+      preLoaderRoute: typeof ExtratoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lancamentos': {
       id: '/lancamentos'
       path: '/lancamentos'
@@ -99,14 +204,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LancamentosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pix': {
+      id: '/pix'
+      path: '/pix'
+      fullPath: '/pix'
+      preLoaderRoute: typeof PixRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamento': {
+      id: '/planejamento'
+      path: '/planejamento'
+      fullPath: '/planejamento'
+      preLoaderRoute: typeof PlanejamentoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pix-notificacao': {
+      id: '/api/pix-notificacao'
+      path: '/api/pix-notificacao'
+      fullPath: '/api/pix-notificacao'
+      preLoaderRoute: typeof ApiPixNotificacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgendaRoute: AgendaRoute,
   AjustesRoute: AjustesRoute,
   DividasRoute: DividasRoute,
+  ExtratoRoute: ExtratoRoute,
   LancamentosRoute: LancamentosRoute,
+  PixRoute: PixRoute,
+  PlanejamentoRoute: PlanejamentoRoute,
+  PrivacidadeRoute: PrivacidadeRoute,
+  ApiPixNotificacaoRoute: ApiPixNotificacaoRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

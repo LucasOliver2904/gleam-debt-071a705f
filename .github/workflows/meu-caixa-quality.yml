@@ -1,4 +1,4 @@
-name: Validar Meu Caixa
+name: Validar Prumo
 on:
   push:
     branches:

@@ -65,7 +65,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/* Meu Caixa • premium financial design system */
+/* Prumo • premium financial design system */
 :root {
   color-scheme: dark;
   --radius: 1rem;
@@ -209,7 +209,7 @@ html[data-theme="light"] .finance-hero {
 }
 
 
-/* Meu Caixa Signature · contrast-first, accessible financial UI */
+/* Prumo Signature · contrast-first, accessible financial UI */
 @layer base {
   *, *::before, *::after { box-sizing: border-box; border-color: var(--color-border); }
   body {

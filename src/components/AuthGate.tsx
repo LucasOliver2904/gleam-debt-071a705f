@@ -30,7 +30,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
         if (cancelled) cleanup();
         else { stop = cleanup; setSyncedUser(userId); }
       } catch (error) {
-        console.error("O Meu Caixa tentará restabelecer a sincronização.", error);
+        console.error("O Prumo tentará restabelecer a sincronização.", error);
         if (!cancelled) retry = setTimeout(() => void connect(), 15000);
       }
     };
@@ -92,7 +92,7 @@ function Login() {
         <section className="finance-hero hidden min-h-[620px] flex-col justify-between border-0 p-10 text-white lg:flex">
           <div className="flex items-center gap-3">
             <img src="/icons/icon.svg?v=3" width={48} height={48} alt="" aria-hidden="true" className="h-12 w-12 shrink-0 rounded-2xl object-cover shadow-xl" />
-            <div><p className="font-display text-xl font-extrabold tracking-tight">Meu Caixa</p><p className="text-[10px] font-extrabold tracking-[0.18em] text-emerald-200">FINANÇAS PESSOAIS</p></div>
+            <div><p className="font-display text-xl font-extrabold tracking-tight">Prumo</p><p className="text-[10px] font-extrabold tracking-[0.18em] text-emerald-200">FINANÇAS PESSOAIS</p></div>
           </div>
           <div className="max-w-sm">
             <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-[11px] font-bold text-emerald-200"><Sparkles size={14}/> ORGANIZAÇÃO COMEÇA AQUI</span>
@@ -111,7 +111,7 @@ function Login() {
             <span className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-3 py-1.5 text-[10px] font-extrabold tracking-[0.14em] text-primary"><Fingerprint size={14}/> ACESSO SEGURO</span>
             <span className="mt-5 flex items-center gap-3 lg:hidden">
               <img src="/icons/icon.svg?v=3" width={44} height={44} alt="" aria-hidden="true" className="h-11 w-11 shrink-0 rounded-xl object-cover shadow-lg" />
-              <span className="font-display text-lg font-extrabold">Meu Caixa</span>
+              <span className="font-display text-lg font-extrabold">Prumo</span>
             </span>
             <h1 className="mt-5 font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">Bem-vindo de volta</h1>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Entre na sua conta para consultar suas finanças com segurança.</p>
@@ -136,7 +136,7 @@ function Login() {
             </label>
             {msg && <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-xs font-semibold leading-relaxed text-destructive">{msg}</p>}
             <button type="submit" disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 text-sm font-extrabold text-primary-foreground transition hover:opacity-90 disabled:opacity-60">
-              {busy ? "Verificando acesso..." : "Entrar no meu caixa"} {!busy && <ArrowRight size={17}/>}
+              {busy ? "Verificando acesso..." : "Entrar no Prumo"} {!busy && <ArrowRight size={17}/>}
             </button>
           </form>
           <div className="mt-8 flex items-start gap-2.5 rounded-xl border border-border bg-secondary/25 p-3.5">

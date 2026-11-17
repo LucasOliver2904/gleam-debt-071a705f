@@ -38,7 +38,7 @@ export function InstallAppCard() {
       const decision = await prompt.userChoice;
       if (decision.outcome === "accepted") setPrompt(null);
     } catch {
-      toast.error("Use o menu do navegador para instalar o Meu Caixa.");
+      toast.error("Use o menu do navegador para instalar o Prumo.");
     }
   };
 
@@ -48,7 +48,7 @@ export function InstallAppCard() {
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Smartphone size={21} /></span>
         <div>
           <p className="finance-kicker">ANDROID / INSTALAÇÃO PRIVADA</p>
-          <h2 className="mt-1 font-display text-lg font-bold">Meu Caixa no celular</h2>
+          <h2 className="mt-1 font-display text-lg font-bold">Prumo no celular</h2>
           <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
             Você não precisa publicar na Play Store. Instale este site como aplicativo,
             com ícone e janela própria, mantendo o login na sua conta.
@@ -56,9 +56,9 @@ export function InstallAppCard() {
         </div>
       </div>
       {installed ? (
-        <p className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-4 py-3 text-sm font-semibold text-success"><CheckCircle2 size={17}/> O Meu Caixa já está aberto em modo aplicativo.</p>
+        <p className="mt-4 flex items-center gap-2 rounded-xl bg-success/10 px-4 py-3 text-sm font-semibold text-success"><CheckCircle2 size={17}/> O Prumo já está aberto em modo aplicativo.</p>
       ) : prompt ? (
-        <button type="button" onClick={() => void install()} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"><Download size={16}/> Instalar Meu Caixa</button>
+        <button type="button" onClick={() => void install()} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"><Download size={16}/> Instalar Prumo</button>
       ) : (
         <p className="mt-4 rounded-xl border border-border bg-secondary/30 px-4 py-3 text-sm leading-relaxed">
           {android

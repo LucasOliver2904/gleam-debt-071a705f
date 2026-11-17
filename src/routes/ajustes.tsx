@@ -11,7 +11,7 @@ import { DEFAULT_REMINDER_CONFIG, reminderConfig, type ReminderConfig } from "@/
 export const Route = createFileRoute("/ajustes")({
   head: () => ({
     meta: [
-      { title: "Preferências e lembretes — Meu Caixa" },
+      { title: "Preferências e lembretes — Prumo" },
       { name: "description", content: "Personalize os lembretes de vencimento, notificações e backups." },
     ],
   }),
@@ -88,7 +88,7 @@ function Ajustes() {
     }
     try {
       const registration = await navigator.serviceWorker.ready;
-      await registration.showNotification("Meu Caixa • Tudo pronto!", {
+      await registration.showNotification("Prumo • Tudo pronto!", {
         body: "O teste de notificação funcionou. Seus vencimentos estão no painel.",
         icon: "/icons/icon-192.png",
         badge: "/favicon.png",
@@ -123,7 +123,7 @@ function Ajustes() {
       importBackup(text);
       toast.success("Backup restaurado.");
     } catch {
-      toast.error("Arquivo inválido. Selecione um backup do Meu Caixa.");
+      toast.error("Arquivo inválido. Selecione um backup do Prumo.");
     }
   };
 
@@ -220,7 +220,7 @@ function Ajustes() {
             <ActionRow icon={Download} title="Baixar backup" description="Guarde uma cópia dos seus dados em JSON." action={download} />
             <ActionRow icon={Upload} title="Restaurar backup" description="Importe um backup salvo anteriormente." action={() => backupInput.current?.click()} />
             {hasLegacyLocalBackup() && (
-              <ActionRow icon={RotateCcw} title="Recuperar dados locais antigos" description="Se você usava o Meu Caixa antes, pode importar o cache antigo deste aparelho, após conferir que os dados são seus." action={() => {
+              <ActionRow icon={RotateCcw} title="Recuperar dados locais antigos" description="Se você usava o Prumo antes, pode importar o cache antigo deste aparelho, após conferir que os dados são seus." action={() => {
                 if (!window.confirm("Existe um cache antigo neste navegador, que pode pertencer a outro login. Só importe se reconhecer que ele contém SEUS dados. Fazer backup dos dados atuais antes?")) return;
                 const legacy = legacyLocalBackup();
                 if (!legacy) { toast.error("Cache antigo indisponível."); return; }
@@ -263,7 +263,7 @@ function Ajustes() {
             }} />
           </div>
         </section>
-        <p className="text-center text-[11px] text-muted-foreground">Meu Caixa · Controle financeiro pessoal · Configuração padrão: {DEFAULT_REMINDER_CONFIG.daysBefore.length} intervalos de aviso</p>
+        <p className="text-center text-[11px] text-muted-foreground">Prumo · Controle financeiro pessoal · Configuração padrão: {DEFAULT_REMINDER_CONFIG.daysBefore.length} intervalos de aviso</p>
       </div>
     </AppShell>
   );

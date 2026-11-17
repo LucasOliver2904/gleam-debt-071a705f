@@ -77,8 +77,8 @@ export async function maybeNotifyDue(state: State): Promise<boolean> {
   const overdue = bills.filter((b) => b.daysUntil < 0).length;
   const amount = bills.reduce((total, b) => total + b.amount, 0);
   const title = overdue > 0
-    ? "Meu Caixa: " + overdue + " conta(s) atrasada(s)"
-    : "Meu Caixa: " + bills.length + " conta(s) para acompanhar";
+    ? "Prumo: " + overdue + " conta(s) atrasada(s)"
+    : "Prumo: " + bills.length + " conta(s) para acompanhar";
   const body = settings.showDetails
     ? bills.length + " conta(s), total de " + brl(amount) + ". Próxima: " + bills[0]!.debt.name + "."
     : "Você tem contas em aberto ou com vencimento próximo. Confira seu painel.";
@@ -94,7 +94,7 @@ export async function maybeNotifyDue(state: State): Promise<boolean> {
     localStorage.setItem(key, today);
     return true;
   } catch (error) {
-    console.warn("Não foi possível mostrar o lembrete do Meu Caixa.", error);
+    console.warn("Não foi possível mostrar o lembrete do Prumo.", error);
     return false;
   }
 }

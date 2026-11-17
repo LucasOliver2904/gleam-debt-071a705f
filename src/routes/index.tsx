@@ -54,9 +54,9 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Painel — Meu Caixa" },
+      { title: "Painel — Prumo" },
       { name: "description", content: "Veja quanto falta pagar das suas dívidas, mês a mês." },
-      { property: "og:title", content: "Painel — Meu Caixa" },
+      { property: "og:title", content: "Painel — Prumo" },
       { property: "og:description", content: "Controle de dívidas, parcelas, entradas e saídas." },
     ],
   }),
@@ -176,7 +176,7 @@ function Dashboard() {
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="finance-kicker">MEU CAIXA / VISÃO GERAL</p>
+          <p className="finance-kicker">PRUMO / VISÃO GERAL</p>
           <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">{profile.name ? `Olá, ${profile.name} 👋` : "Olá 👋"}</h1>
           <p className="mt-1 text-sm capitalize text-muted-foreground">
             {hoje} · Resumo de {monthLabel(cm, true)}

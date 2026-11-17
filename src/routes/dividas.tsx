@@ -8,9 +8,9 @@ import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, mon
 export const Route = createFileRoute("/dividas")({
   head: () => ({
     meta: [
-      { title: "Dívidas e parcelas — Meu Caixa" },
+      { title: "Dívidas e parcelas — Prumo" },
       { name: "description", content: "Todas as suas dívidas, parcelas e contas fixas mês a mês." },
-      { property: "og:title", content: "Dívidas e parcelas — Meu Caixa" },
+      { property: "og:title", content: "Dívidas e parcelas — Prumo" },
       { property: "og:description", content: "Planilha de dívidas com parcelas pagas e pendentes." },
     ],
   }),

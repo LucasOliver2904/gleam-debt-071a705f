@@ -1,4 +1,4 @@
-# Meu Caixa — revisão de segurança e privacidade (uso privado)
+# Prumo — revisão de segurança e privacidade (uso privado)
 
 ## Status do projeto
 
@@ -6,14 +6,14 @@
 - Aplicativo web já pode ser instalado pelo Google Chrome como PWA, sem taxa de Play Store.
 - Complemento Android em Java, com API HTTPS fixa, permissão de notificações sob controle do sistema e chave cifrada no Android Keystore. O workflow GitHub Actions gera APK debug privado (não publicar na loja).
 - Página de privacidade e instalação na aba Ajustes.
-- Autenticação: tela de cadastro removida para o uso privado. Isso **NÃO bloqueia** novos cadastros via API do provedor. Ainda é preciso verificar a configuração real do Supabase Auth do Meu Caixa.
+- Autenticação: tela de cadastro removida para o uso privado. Isso **NÃO bloqueia** novos cadastros via API do provedor. Ainda é preciso verificar a configuração real do Supabase Auth do Prumo.
 - Cache local: chaves separadas por UID autenticado, e não compartilhadas entre contas; cache antigo preservado só para importação manual confirmada.
 - Backups: não exportam o hash de pareamento do Android nem restauram chaves revogadas.
 - As regras da migração de código user_state usam RLS para SELECT/INSERT/UPDATE/DELETE, filtrando por auth.uid() = user_id. **Não verificamos o banco real**, porque ele está no projeto Lovable Cloud cmalxzidslfilcfnqfbx e a conexão Supabase desta sessão mostra somente projetos BR STORM. Não aplicar comandos em BR STORM.
 
 ## Checklist obrigatório no projeto financeiro real (pendente de acesso)
 
-**Abra SOMENTE o banco vinculado ao Meu Caixa no Lovable Cloud/Supabase.** Antes de usar para outro usuário ou divulgar, verificar:
+**Abra SOMENTE o banco vinculado ao Prumo no Lovable Cloud/Supabase.** Antes de usar para outro usuário ou divulgar, verificar:
 1. Supabase Database → Tables → user_state → Row Level Security habilitado.
 2. Policies: SELECT, INSERT, UPDATE e DELETE **somente quando user_id = auth.uid()**; na UPDATE conferir USING e WITH CHECK.
 3. Confirmar que a role anon não consegue ler nem gravar user_state; grants e políticas devem ser avaliados juntos.

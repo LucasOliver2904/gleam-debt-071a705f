@@ -1,9 +1,9 @@
-/* Service worker do Meu Caixa.
+/* Service worker do Prumo.
  * Exibe avisos locais enquanto a aplicação está em uso; push remoto só
  * funcionará após configurar um emissor autenticado e o servidor de push. */
 self.addEventListener("message", (event) => {
   if (event.data?.type === "SHOW_NOTIFICATION") {
-    const title = String(event.data.title || "Meu Caixa");
+    const title = String(event.data.title || "Prumo");
     const body = String(event.data.body || "");
     event.waitUntil(self.registration.showNotification(title, {
       body, icon: "/icons/icon-192.png?v=3", badge: "/favicon.png?v=3",
@@ -17,7 +17,7 @@ self.addEventListener("push", (event) => {
   let payload = {};
   try { payload = event.data.json(); }
   catch { payload = { body: event.data.text() }; }
-  const title = String(payload.title || "Lembrete do Meu Caixa");
+  const title = String(payload.title || "Lembrete do Prumo");
   const body = String(payload.body || "Confira suas contas próximas do vencimento.");
   event.waitUntil(self.registration.showNotification(title, {
     body, icon: "/icons/icon-192.png?v=3", badge: "/favicon.png?v=3",

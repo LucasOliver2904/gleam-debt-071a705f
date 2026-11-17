@@ -1,6 +1,6 @@
 {
-  "name": "Meu Caixa — Finanças pessoais",
-  "short_name": "Meu Caixa",
+  "name": "Prumo — Finanças pessoais",
+  "short_name": "Prumo",
   "description": "Contas, Pix, despesas, metas e planejamento pessoal.",
   "id": "/",
   "start_url": "/?source=pwa",

@@ -14,7 +14,7 @@ import { parseStatementText, statementCategory, statementDuplicate, type Stateme
 export const Route = createFileRoute("/extrato")({
   head: () => ({
     meta: [
-      { title: "Importar extrato privado — Meu Caixa" },
+      { title: "Importar extrato privado — Prumo" },
       { name: "description", content: "Leia prints de extrato no próprio aparelho, confira datas e valores antes de lançar." },
       { name: "robots", content: "noindex, nofollow, noarchive" },
     ],
@@ -195,7 +195,7 @@ function StatementImportPage() {
     setState((state) => ({ ...state, txs: [...freshTxs, ...state.txs] }));
     setRows((old) => old.filter((row) => !row.included));
     setError("");
-    toast.success(count + " movimentação(ões) adicionada(s) ao Meu Caixa.");
+    toast.success(count + " movimentação(ões) adicionada(s) ao Prumo.");
   }
 
   const selectedCount = rows.filter((row) => row.included).length;
@@ -218,7 +218,7 @@ function StatementImportPage() {
           <p className="finance-kicker">SÓ PARA VOCÊ / EXTRATO PRIVADO</p>
           <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Importar extrato por print</h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Envie imagens do extrato e o Meu Caixa tenta identificar valores, datas e quem recebeu ou enviou.
+            Envie imagens do extrato e o Prumo tenta identificar valores, datas e quem recebeu ou enviou.
             Você confere tudo antes de registrar.
           </p>
         </div>
@@ -230,7 +230,7 @@ function StatementImportPage() {
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary"><ShieldCheck size={24}/></span>
           <div>
             <h2 className="font-display text-lg font-extrabold">Seus prints ficam neste aparelho</h2>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">O reconhecimento é processado no seu navegador, sem enviar as fotos ao servidor do Meu Caixa ou a uma API de IA. O motor de OCR e os dados do idioma português são baixados da internet no primeiro uso. Somente os lançamentos que você confirmar serão sincronizados no seu espaço financeiro.</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">O reconhecimento é processado no seu navegador, sem enviar as fotos ao servidor do Prumo ou a uma API de IA. O motor de OCR e os dados do idioma português são baixados da internet no primeiro uso. Somente os lançamentos que você confirmar serão sincronizados no seu espaço financeiro.</p>
           </div>
         </div>
       </section>
@@ -321,7 +321,7 @@ function StatementImportPage() {
           <div className="mt-5 flex flex-col items-center rounded-2xl border border-dashed border-border bg-secondary/15 px-5 py-12 text-center">
             <span className="grid h-14 w-14 place-items-center rounded-2xl bg-info/12 text-info"><FileImage size={27}/></span>
             <p className="mt-4 font-display text-base font-extrabold">Nenhum extrato analisado ainda</p>
-            <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">Selecione seus prints e toque em “Ler imagens”. O Meu Caixa mostrará cada movimentação para revisão.</p>
+            <p className="mt-1 max-w-md text-xs leading-relaxed text-muted-foreground">Selecione seus prints e toque em “Ler imagens”. O Prumo mostrará cada movimentação para revisão.</p>
           </div>
         ) : (
           <>

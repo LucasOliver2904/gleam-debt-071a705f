@@ -84,13 +84,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Meu Caixa — Seu controle financeiro" },
-      { name: "description", content: "Meu Caixa: entradas, despesas, Pix, repasses, parcelas, vencimentos, orçamento e metas num só lugar." },
+      { title: "Prumo — Seu controle financeiro" },
+      { name: "description", content: "Prumo: entradas, despesas, Pix, repasses, parcelas, vencimentos, orçamento e metas num só lugar." },
       { name: "theme-color", content: "#111b26" },
       { name: "robots", content: "noindex, nofollow, noarchive" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "application-name", content: "Meu Caixa" },
+      { name: "application-name", content: "Prumo" },
       { name: "mobile-web-app-capable", content: "yes" },
 
     ],
@@ -109,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
   }),
   shellComponent: RootShell,
-  pendingComponent: () => <div role="status" className="flex min-h-screen items-center justify-center bg-background px-5 text-sm text-muted-foreground">Abrindo Meu Caixa…</div>,
+  pendingComponent: () => <div role="status" className="flex min-h-screen items-center justify-center bg-background px-5 text-sm text-muted-foreground">Abrindo Prumo…</div>,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -122,7 +122,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <noscript>O Meu Caixa precisa de JavaScript para carregar seu painel financeiro.</noscript>
+        <noscript>O Prumo precisa de JavaScript para carregar seu painel financeiro.</noscript>
         {children}
         <Scripts />
       </body>

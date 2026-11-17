@@ -18,7 +18,7 @@ import { budgetRows, financeCsv, projection } from "@/lib/planning";
 export const Route = createFileRoute("/planejamento")({
   head: () => ({
     meta: [
-      { title: "Planejamento, limites e metas — Meu Caixa" },
+      { title: "Planejamento, limites e metas — Prumo" },
       { name: "description", content: "Projete os próximos meses, configure limites de gastos e acompanhe suas metas de economia." },
     ],
   }),

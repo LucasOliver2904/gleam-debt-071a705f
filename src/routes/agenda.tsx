@@ -12,7 +12,7 @@ import { calendarDays, monthBills, type MonthBill } from "@/lib/planning";
 export const Route = createFileRoute("/agenda")({
   head: () => ({
     meta: [
-      { title: "Agenda de vencimentos — Meu Caixa" },
+      { title: "Agenda de vencimentos — Prumo" },
       { name: "description", content: "Calendário de contas e vencimentos com marcação de pagamentos." },
     ],
   }),

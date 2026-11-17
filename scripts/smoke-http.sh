@@ -17,7 +17,7 @@ if [ "$ok" != "1" ]; then
   tail -120 /tmp/meu-caixa-preview.log
   exit 1
 fi
-if grep -Eiq "This page didn't load|Something went wrong on our end|Não foi possível abrir o Meu Caixa" /tmp/meu-caixa-home.html; then
+if grep -Eiq "This page didn't load|Something went wrong on our end|Não foi possível abrir o Prumo" /tmp/meu-caixa-home.html; then
   echo 'ERRO: foi retornada a página de falha interna'
   tail -120 /tmp/meu-caixa-preview.log
   exit 1

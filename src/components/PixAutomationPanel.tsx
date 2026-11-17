@@ -129,16 +129,16 @@ export function PixAutomationPanel() {
           <h3 className="font-display text-base font-extrabold">Configure em seu Android</h3>
           <div className="rounded-2xl border border-primary/30 bg-card p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div><span className="finance-pill">MÉTODO RECOMENDADO</span><h4 className="mt-2 font-display text-lg font-extrabold">Meu Caixa · Android privado</h4></div>
+              <div><span className="finance-pill">MÉTODO RECOMENDADO</span><h4 className="mt-2 font-display text-lg font-extrabold">Prumo · Android privado</h4></div>
               <span className="grid h-11 w-11 place-items-center rounded-xl bg-primary/12 text-primary"><Smartphone size={22}/></span>
             </div>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Instale o complemento Android gratuito e selecione quais aplicativos bancários ele pode acompanhar. É uma ferramenta pessoal e não exige conta na Play Store.</p>
             <ol className="mt-4 list-inside list-decimal space-y-2 text-sm leading-relaxed">
               <li><a target="_blank" rel="noreferrer" href="https://github.com/LucasOliver2904/gleam-debt-071a705f/actions/workflows/meu-caixa-android.yml" className="font-bold text-primary hover:underline">Abra o instalador privado no seu GitHub <ExternalLink size={13} className="inline" /></a>, baixe o ZIP em <b>Artifacts</b> e extraia o APK.</li>
-              <li>Instale e abra <strong>Meu Caixa · Android</strong> no seu celular.</li>
+              <li>Instale e abra <strong>Prumo · Android</strong> no seu celular.</li>
               <li>Crie sua chave nesta página, copie e cole no complemento. Toque em <strong>Testar conexão HTTPS</strong>.</li>
               <li>Marque apenas seus bancos e a Carteira do Google. Conceda acesso a notificações e ative a captura.</li>
-              <li>Confira um recebimento ou uma compra real no Meu Caixa antes de desativar o MacroDroid.</li>
+              <li>Confira um recebimento ou uma compra real no Prumo antes de desativar o MacroDroid.</li>
             </ol>
             <p className="mt-3 rounded-xl border border-accent/30 bg-accent/10 p-3 text-xs leading-relaxed text-muted-foreground">O instalador é um APK privado de testes. A leitura de notificações depende das permissões Android e da mensagem do banco. Não deixe duas automações ativas sem necessidade.</p>
           </div>
@@ -168,12 +168,12 @@ export function PixAutomationPanel() {
           </details>
           <p className="flex gap-2 rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs leading-relaxed text-muted-foreground">
             <ShieldCheck size={17} className="mt-0.5 shrink-0 text-primary" />
-            O Android dá ao leitor de notificações uma permissão ampla. Escolha exclusivamente os bancos e a Carteira do Google e nunca inclua apps de mensagens ou códigos de autenticação. O Meu Caixa guarda apenas os campos financeiros reconhecidos, não o texto completo da notificação.
+            O Android dá ao leitor de notificações uma permissão ampla. Escolha exclusivamente os bancos e a Carteira do Google e nunca inclua apps de mensagens ou códigos de autenticação. O Prumo guarda apenas os campos financeiros reconhecidos, não o texto completo da notificação.
           </p>
           <p className="text-xs leading-relaxed text-muted-foreground">Alguns bancos ocultam detalhes do Pix. O Android também pode limitar notificações sensíveis. Faça primeiro um teste com um recebimento real e confira o extrato do banco. Se a notificação não mostrar valor, a automação não tem como adivinhá-lo.</p>
         </div>
       )}
-      <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">A chave autoriza somente importar sugestões de Pix e compras para sua conta, não fazer transações bancárias. Você pode revogá-la a qualquer momento. A integração exige que o servidor do Meu Caixa esteja acessível.</p>
+      <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">A chave autoriza somente importar sugestões de Pix e compras para sua conta, não fazer transações bancárias. Você pode revogá-la a qualquer momento. A integração exige que o servidor do Prumo esteja acessível.</p>
     </section>
   );
 }

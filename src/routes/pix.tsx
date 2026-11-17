@@ -16,7 +16,7 @@ import { parsePixNotification, pixAllocation } from "@/lib/pix";
 export const Route = createFileRoute("/pix")({
   head: () => ({
     meta: [
-      { title: "Meus Pix e repasses — Meu Caixa" },
+      { title: "Meus Pix e repasses — Prumo" },
       { name: "description", content: "Registre Pix recebidos, separe o valor que é seu e acompanhe os repasses." },
     ],
   }),
@@ -228,7 +228,7 @@ function PixPage() {
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Stat label="Pix recebidos" value={brl(grossTotal)} icon={QrCode} hint="Total bruto no filtro" />
-        <Stat label="Fica para mim" value={brl(keptTotal)} tone="pos" icon={Coins} hint="Entra na renda do Meu Caixa" />
+        <Stat label="Fica para mim" value={brl(keptTotal)} tone="pos" icon={Coins} hint="Entra na renda do Prumo" />
         <Stat label="Falta repassar" value={brl(pendingTotal)} tone={pendingTotal ? "neg" : "pos"} icon={AlertCircle} />
         <Stat label="Já repassado" value={brl(repassedTotal)} icon={CheckCheck} />
       </div>
@@ -248,7 +248,7 @@ function PixPage() {
           <div className="mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border px-5 py-8 text-center">
             <CheckCheck size={24} className="text-success" />
             <p className="mt-2 text-sm font-semibold">Nenhum aviso esperando conferência</p>
-            <p className="mt-1 max-w-md text-xs text-muted-foreground">Depois de configurar a automação e receber um Pix, ele aparecerá aqui mesmo se o Meu Caixa estiver fechado no celular.</p>
+            <p className="mt-1 max-w-md text-xs text-muted-foreground">Depois de configurar a automação e receber um Pix, ele aparecerá aqui mesmo se o Prumo estiver fechado no celular.</p>
           </div>
         ) : (
           <ul className="mt-4 space-y-2">

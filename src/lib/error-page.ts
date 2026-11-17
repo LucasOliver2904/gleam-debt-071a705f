@@ -6,7 +6,7 @@ export function renderErrorPage(): string {
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0d1b2c" />
     <meta name="robots" content="noindex,nofollow" />
-    <title>Meu Caixa — Não foi possível carregar</title>
+    <title>Prumo — Não foi possível carregar</title>
     <style>
       :root {color-scheme:dark}
       * {box-sizing:border-box}
@@ -25,7 +25,7 @@ export function renderErrorPage(): string {
   <body>
     <main>
       <svg aria-hidden="true" viewBox="0 0 64 64" fill="none"><rect width="64" height="64" rx="18" fill="#0a513d"/><path d="M12 25q0-8 8-8h23a8 8 0 0 1 8 8v26H20q-8 0-8-8V25z" fill="#22d9a2"/><path d="M15 28h39v18H15z" fill="#13745e"/><path d="M43 31h12v13H43a6 6 0 0 1 0-13z" fill="#ffe184"/><circle cx="47" cy="37.5" r="2" fill="#155544"/></svg>
-      <h1>Não foi possível abrir o Meu Caixa</h1>
+      <h1>Não foi possível abrir o Prumo</h1>
       <p>O aplicativo encontrou uma falha temporária. Seus dados não foram apagados por esta tela.</p>
       <div class="actions">
         <a href="/">Tentar novamente</a>

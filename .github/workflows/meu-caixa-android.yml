@@ -1,4 +1,4 @@
-name: Meu Caixa Android - instalador privado
+name: Prumo Android - instalador privado
 
 on:
   workflow_dispatch:

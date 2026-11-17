@@ -11,9 +11,9 @@ import { brl, CATEGORIES, currentMonth, localToday, monthLabel, parseMoney, setS
 export const Route = createFileRoute("/lancamentos")({
   head: () => ({
     meta: [
-      { title: "Lançamentos — Meu Caixa" },
+      { title: "Lançamentos — Prumo" },
       { name: "description", content: "Registre tudo que entra e tudo que sai." },
-      { property: "og:title", content: "Lançamentos — Meu Caixa" },
+      { property: "og:title", content: "Lançamentos — Prumo" },
       { property: "og:description", content: "Entradas e saídas do seu dinheiro." },
     ],
   }),
