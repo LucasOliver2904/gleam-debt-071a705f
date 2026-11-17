@@ -114,13 +114,13 @@ export function DashboardHome({
                 return (
                   <li key={bill.debt.id + "-" + bill.month} className="flex min-w-0 items-center gap-2.5 py-3 first:pt-0">
                     <span className={"flex h-11 w-11 shrink-0 flex-col items-center justify-center rounded-xl " +
-                      (late ? "bg-destructive/10 text-destructive" : soon ? "bg-accent/12 text-accent" : "bg-secondary text-foreground")}>
+                      (late ? "bg-destructive/10 text-destructive" : soon ? "bg-warning/12 text-warning" : "bg-secondary text-foreground")}>
                       <span className="font-display text-base font-extrabold leading-none tabular-nums">{bill.date.getDate()}</span>
                       <span className="mt-0.5 text-[10px] font-bold uppercase leading-none">{bill.date.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}</span>
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-bold">{bill.debt.name}</p>
-                      <p className={"mt-0.5 text-[11px] " + (late ? "font-semibold text-destructive" : soon ? "font-semibold text-accent" : "text-muted-foreground")}>{dueDescription(bill.daysUntil)}</p>
+                      <p className={"mt-0.5 text-[11px] " + (late ? "font-semibold text-destructive" : soon ? "font-semibold text-warning" : "text-muted-foreground")}>{dueDescription(bill.daysUntil)}</p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
                       <span className="max-w-28 text-right font-display text-xs font-extrabold tabular-nums sm:text-sm">{brl(bill.amount)}</span>
