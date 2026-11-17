@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
-  ArrowDownLeft, ArrowRight, ArrowUpRight, CalendarDays, Camera,
-  Check, ChevronRight, CircleCheck, FileText, PenLine, Plus,
-  QrCode, TrendingDown, Wallet,
+  ArrowRight, Camera, Check, ChevronRight, CircleCheck,
+  FileText, PenLine, QrCode, Wallet,
 } from "lucide-react";
 import { brl, monthLabel, monthSummary, outstandingDebtBalance, type State } from "@/lib/finance";
 import { dashboardBills, dueDescription } from "@/lib/dashboard-home";

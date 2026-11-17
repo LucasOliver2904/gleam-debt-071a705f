@@ -156,6 +156,11 @@ export function AppShell({ children }: { children: ReactNode }) {
     if (error) toast.error("Não foi possível sair. Tente novamente.");
   };
   useEffect(() => { setMoreOpen(false); }, [path]);
+  useEffect(() => {
+    const openQuickAdd = () => setQuickAddOpen(true);
+    window.addEventListener("prumo:quick-add", openQuickAdd);
+    return () => window.removeEventListener("prumo:quick-add", openQuickAdd);
+  }, []);
 
   return (
     <div className="finance-page-accent min-h-screen bg-background text-foreground">
@@ -210,7 +215,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
         </header>
 
-        <main className="mx-auto w-full max-w-[1240px] px-4 pb-32 pt-6 sm:px-6 lg:px-9 lg:pb-16 lg:pt-9">
+        <main className="mx-auto w-full max-w-[1300px] px-4 pb-36 pt-5 sm:px-6 lg:px-9 lg:pb-16 lg:pt-9">
           {children}
         </main>
       </div>
@@ -218,7 +223,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* FAB */}
       <button
         onClick={() => setQuickAddOpen(true)}
-        className="finance-floating-action fixed bottom-[calc(5.1rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
+        className="finance-floating-action fixed bottom-[calc(6.4rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-13 w-13 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
         aria-label="Novo lançamento rápido"
       >
         <Plus size={24} className="lg:size-8" />
@@ -228,7 +233,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {moreOpen && (
         <div className="fixed inset-0 z-50 bg-background/70 backdrop-blur-sm lg:hidden" role="presentation" onMouseDown={() => setMoreOpen(false)}>
-          <section role="dialog" aria-modal="true" aria-label="Mais opções do Prumo" className="absolute inset-x-3 bottom-[calc(5.45rem+env(safe-area-inset-bottom))] mx-auto max-w-xl overflow-hidden rounded-3xl border border-primary/25 bg-card p-4 shadow-2xl" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}>
+          <section role="dialog" aria-modal="true" aria-label="Mais opções do Prumo" className="absolute inset-x-3 bottom-[calc(5.9rem+env(safe-area-inset-bottom))] mx-auto max-w-xl overflow-hidden rounded-3xl border border-primary/25 bg-card p-4 shadow-2xl" onMouseDown={(e) => e.stopPropagation()} onKeyDown={(e) => { if (e.key === "Escape") setMoreOpen(false); }}>
             <div className="flex items-center justify-between gap-2 border-b border-border pb-3">
               <div><p className="finance-kicker">NAVEGAÇÃO</p><h2 className="mt-1 font-display text-lg font-extrabold">Mais do Prumo</h2></div>
               <button aria-label="Fechar menu" onClick={() => setMoreOpen(false)} className="grid h-9 w-9 place-items-center rounded-xl border border-border text-muted-foreground hover:bg-secondary"><X size={17}/></button>
@@ -250,14 +255,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <nav aria-label="Navegação rápida" className="finance-bottom-nav fixed inset-x-0 bottom-0 z-30 border-t border-border backdrop-blur-xl lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom)" }}>
+      <nav aria-label="Navegação rápida" className="finance-bottom-nav fixed bottom-[calc(0.7rem+env(safe-area-inset-bottom))] left-3 right-3 z-30 rounded-[1.6rem] border border-border p-1.5 backdrop-blur-xl lg:hidden">
         <div className="mx-auto grid max-w-2xl grid-cols-5">
           {MOBILE_ITEMS.map(({ to, short, icon: Icon }) => {
             const on = isActive(path, to);
             return (
-              <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 py-2 text-[10px] font-bold transition ${on ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+              <Link key={to} to={to} aria-current={on ? "page" : undefined} className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 py-1.5 text-[10px] font-bold transition ${on ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
                 {on && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
-                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary/12" : ""}`}>
+                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : ""}`}>
                   <Icon size={20} strokeWidth={on ? 2.5 : 2} />
                   {to === "/pix" && pixWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}
                   {to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}
@@ -266,9 +271,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               </Link>
             );
           })}
-          <button onClick={() => setMoreOpen((current) => !current)} aria-label="Mais opções" aria-expanded={moreOpen} className={`relative flex min-h-16 flex-col items-center justify-center gap-1 py-2 text-[10px] font-bold transition ${moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to)) ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+          <button onClick={() => setMoreOpen((current) => !current)} aria-label="Mais opções" aria-expanded={moreOpen} className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 py-1.5 text-[10px] font-bold transition ${moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to)) ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
             {(moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to))) && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
-            <span className="relative grid h-8 w-11 place-items-center rounded-xl"><MoreHorizontal size={23}/>{overdue > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
+            <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${moreOpen ? "bg-primary text-primary-foreground" : ""}`}><MoreHorizontal size={23}/>{overdue > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
             <span>Mais</span>
           </button>
         </div>

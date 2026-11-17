@@ -420,3 +420,62 @@ html[data-theme="light"][data-accent="violet"] {
   --sidebar-primary: oklch(0.45 0.15 303);
   --sidebar-primary-foreground: oklch(1 0 0);
 }
+
+
+/* Prumo · painel inspirado no ritmo de uso de um app bancário moderno.
+   Os números permanecem projeções dos lançamentos cadastrados, não Open Banking. */
+.prumo-balance-card {
+  background: linear-gradient(137deg, #0c6274 0%, #085468 54%, #064251 100%);
+  border: 1px solid #0d7982;
+  box-shadow: 0 20px 55px rgba(0, 45, 59, .23), inset 0 1px rgba(255,255,255,.17);
+}
+.prumo-balance-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 100% 0%, rgba(94,249,208,.18), transparent 45%),
+    radial-gradient(circle at 0% 110%, rgba(31,206,255,.10), transparent 40%);
+  pointer-events: none;
+  z-index: -1;
+}
+.prumo-balance-tabs { background: rgba(255,255,255,.16); }
+.prumo-balance-tab:focus-visible { outline: 3px solid #d5fff4; outline-offset: 2px; }
+.prumo-quick-action {
+  min-height: 132px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: 0 8px 25px rgba(0,0,0,.055);
+}
+.prumo-quick-action-main {
+  background: #d9f5f6;
+  color: #095268;
+  border-color: #bce8ec;
+}
+.prumo-quick-info { background: color-mix(in oklch, var(--info), var(--card) 88%); }
+.prumo-quick-success { background: color-mix(in oklch, var(--success), var(--card) 91%); }
+.prumo-quick-accent { background: color-mix(in oklch, var(--accent), var(--card) 91%); }
+html:not([data-theme="light"]) .prumo-quick-action-main {
+  background: #173f4c;
+  border-color: #236675;
+  color: #b5f3ec;
+}
+.prumo-bills-panel {
+  box-shadow: 0 14px 35px rgba(0,0,0,.065);
+}
+.finance-bottom-nav {
+  background: color-mix(in oklch, var(--card), transparent 4%);
+  box-shadow: 0 15px 55px rgba(0,0,0,.25), 0 0 0 1px color-mix(in oklch, var(--foreground), transparent 97%);
+}
+html[data-theme="light"] .finance-bottom-nav {
+  box-shadow: 0 12px 45px rgba(25,54,68,.17);
+}
+@media (max-width: 390px) {
+  .prumo-quick-action { min-height: 120px; padding: 12px 8px; }
+  .prumo-quick-action > span:first-child { width: 34px; height: 34px; }
+  .prumo-quick-action strong { font-size: 10.5px; }
+  .prumo-balance-card { border-radius: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .prumo-quick-action:hover { transform: none; }
+}

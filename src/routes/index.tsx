@@ -7,8 +7,6 @@ import {
   ArrowUpRight,
   CalendarClock,
   CalendarDays,
-  QrCode,
-  Target,
   PartyPopper,
   PiggyBank,
   Sparkles,
@@ -35,7 +33,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useProfile } from "@/lib/use-profile";
 import { FinancialBriefing } from "@/components/FinancialBriefing";
 import { PendingReviewBanner, RecentActivity } from "@/components/DashboardActivity";
-import { FileImage } from "lucide-react";
+import { DashboardHome } from "@/components/DashboardHome";
 import {
   alerts,
   addMonths,
@@ -139,7 +137,6 @@ function Dashboard() {
     "var(--destructive)",
     "var(--muted-foreground)",
   ];
-  const paidPct = now.debts ? Math.round((now.paid / now.debts) * 100) : 0;
   const setPaid = (id: string, m: string, paid: boolean) => {
     setState((state) => ({
       ...state,
@@ -190,36 +187,7 @@ function Dashboard() {
         </Link>
       </div>
 
-      <section className="finance-hero mt-6 overflow-hidden rounded-3xl px-5 py-7 text-white sm:px-7 sm:py-8 md:px-9 md:py-10" aria-label="Resumo financeiro do mês">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-200/25 bg-white/8 px-3 py-1.5 text-[10px] font-extrabold uppercase tracking-[0.15em] text-emerald-200">
-              <Sparkles size={13}/> FINANÇAS EM FOCO · {monthLabel(cm, true)}
-            </span>
-            <p className="mt-5 text-sm font-semibold tracking-wide text-slate-200">Sua sobra prevista para o mês</p>
-            <h2 className={"mt-1 break-words font-display text-[clamp(2.25rem,5vw,3.8rem)] font-extrabold leading-tight tracking-tight tabular-nums " + (now.balance >= 0 ? "text-white" : "text-rose-200")}>{brl(now.balance)}</h2>
-            <p className="mt-3 max-w-lg text-xs leading-relaxed text-slate-200 sm:text-sm">
-              {now.income > 0
-                ? "Estimativa a partir da sua renda e dos compromissos cadastrados. Não representa o saldo da sua conta bancária."
-                : "Cadastre sua renda para ter uma previsão mais útil. Seus compromissos e movimentações continuam disponíveis abaixo."}
-            </p>
-          </div>
-          <div className="min-w-0 w-full rounded-2xl border border-white/15 bg-white/8 p-4 backdrop-blur-sm lg:w-[285px] lg:shrink-0">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-bold uppercase tracking-[0.11em] text-slate-200">Parcelas deste mês</span>
-              <span className="font-display text-lg font-extrabold text-emerald-200">{paidPct}%</span>
-            </div>
-            <div role="progressbar" aria-label="Percentual das contas do mês já pagas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={paidPct} className="mt-3 h-2 overflow-hidden rounded-full bg-white/15">
-              <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-lime-300" style={{ width: paidPct + "%" }}/>
-            </div>
-            <p className="mt-2 text-[11px] text-slate-200">{brl(now.paid)} pagos · {brl(now.pending)} pendentes</p>
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <Link to="/agenda" className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-300 px-2.5 py-2.5 text-xs font-extrabold text-slate-950 transition hover:bg-emerald-200">Ver agenda <ArrowRight size={14}/></Link>
-              <Link to="/lancamentos" className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-white/25 bg-white/10 px-2.5 py-2.5 text-xs font-bold text-white transition hover:bg-white/20">Movimentações</Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <DashboardHome state={s} month={cm} onPay={pay} />
 
       <PendingReviewBanner state={s} />
 
@@ -262,7 +230,7 @@ function Dashboard() {
               </p>
             </div>
           </div>
-          <Link to="/dividas" className="shrink-0 text-sm font-medium text-amber-600 hover:underline dark:text-amber-400">Ver contas</Link>
+          <Link to="/dividas" className="shrink-0 text-sm font-medium text-accent hover:underline">Ver contas</Link>
         </div>
       )}
 
@@ -274,30 +242,6 @@ function Dashboard() {
       </div>
 
       <FinancialBriefing state={s} />
-      <Link to="/extrato" className="finance-feature mt-5 flex items-center gap-4 rounded-2xl p-4 sm:p-5">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-info/15 text-info"><FileImage size={24}/></span>
-        <span className="min-w-0 flex-1"><strong className="block font-display text-sm font-extrabold sm:text-base">Tem prints do extrato bancário?</strong><span className="mt-1 block text-xs leading-relaxed text-muted-foreground">Envie suas capturas, confira data, pessoa, valor e tipo de movimentação antes de lançar.</span></span>
-        <ArrowRight size={19} className="shrink-0 text-primary"/>
-      </Link>
-
-      <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        <Link to="/agenda" className="finance-feature group flex items-center gap-4 rounded-2xl p-4">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-primary/15 text-primary"><CalendarDays size={22} /></span>
-          <span className="min-w-0 flex-1"><b className="block font-display text-base">Agenda de vencimentos</b><span className="mt-0.5 block text-xs text-muted-foreground">Veja cada dia e marque contas como pagas.</span></span>
-          <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
-        </Link>
-        <Link to="/pix" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-success/15 text-success"><QrCode size={22} /></span>
-          <span className="min-w-0 flex-1"><b className="block font-display text-base">Pix e repasses</b><span className="mt-0.5 block text-xs text-muted-foreground">Separe o valor recebido do dinheiro que é seu.</span></span>
-          <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
-        </Link>
-        <Link to="/planejamento" className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 transition hover:-translate-y-0.5 hover:border-primary/45 hover:shadow-lg">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-accent/15 text-accent"><Target size={22} /></span>
-          <span className="min-w-0 flex-1"><b className="block font-display text-base">Planejamento e metas</b><span className="mt-0.5 block text-xs text-muted-foreground">Limites de gastos, previsões e objetivos.</span></span>
-          <ArrowRight size={18} className="shrink-0 text-muted-foreground transition group-hover:translate-x-1 group-hover:text-primary" />
-        </Link>
-      </div>
-
       <RecentActivity state={s} />
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
