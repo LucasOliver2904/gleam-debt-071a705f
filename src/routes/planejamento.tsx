@@ -292,7 +292,7 @@ function Planejamento() {
                         </div>
                       </div>
                       <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-secondary">
-                        <div className={"h-full rounded-full " + (tooHigh ? "bg-destructive" : row.percentage >= 85 ? "bg-accent" : "bg-primary")} style={{ width: Math.min(100, row.percentage) + "%" }} />
+                        <div className={"h-full rounded-full " + (tooHigh ? "bg-destructive" : row.percentage >= 85 ? "bg-warning" : "bg-primary")} style={{ width: Math.min(100, row.percentage) + "%" }} />
                       </div>
                       <div className="mt-1.5 flex justify-between text-[11px] text-muted-foreground">
                         <span>{row.percentage}% usado</span><span className={tooHigh ? "text-destructive" : ""}>{tooHigh ? "Acima em " + brl(Math.abs(row.remaining)) : "Restam " + brl(row.remaining)}</span>

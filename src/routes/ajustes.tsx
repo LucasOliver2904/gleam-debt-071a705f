@@ -234,7 +234,7 @@ function Ajustes() {
             )}
             <input hidden ref={backupInput} type="file" accept="application/json,.json" onChange={(event) => { const file = event.target.files?.[0]; if (file) void restore(file); event.target.value = ""; }} />
           </div>
-          <p className="mt-4 rounded-xl border border-accent/25 bg-accent/7 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mr-2 inline text-accent"/> O arquivo de backup contém seus dados financeiros em texto legível. Guarde-o em local privado e protegido. As chaves de automação não são incluídas.</p>
+          <p className="mt-4 rounded-xl border border-warning/25 bg-warning/7 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mr-2 inline text-warning"/> O arquivo de backup contém seus dados financeiros em texto legível. Guarde-o em local privado e protegido. As chaves de automação não são incluídas.</p>
         </section>
 
         <AccentPicker />

@@ -111,8 +111,8 @@ export function PixAutomationPanel() {
       </div>
 
       {key && (
-        <div className="mt-4 rounded-2xl border border-accent/30 bg-accent/5 p-4">
-          <p className="flex items-center gap-2 text-xs font-semibold text-foreground"><LockKeyhole size={15} className="text-accent" /> Sua chave privada de conexão</p>
+        <div className="mt-4 rounded-2xl border border-warning/30 bg-warning/5 p-4">
+          <p className="flex items-center gap-2 text-xs font-semibold text-foreground"><LockKeyhole size={15} className="text-warning" /> Sua chave privada de conexão</p>
           <p className="mt-1 text-xs leading-relaxed text-muted-foreground">Ela só aparece enquanto esta tela estiver aberta. Não envie a ninguém nem coloque em mensagens ou links públicos.</p>
           <div className="mt-3 flex gap-2">
             <input className="min-w-0 flex-1 rounded-xl border border-border bg-background px-3 py-2 text-xs text-foreground" readOnly aria-label="Chave secreta de integração" value={key} onFocus={(event) => event.target.select()} />
@@ -140,7 +140,7 @@ export function PixAutomationPanel() {
               <li>Marque apenas seus bancos e a Carteira do Google. Conceda acesso a notificações e ative a captura.</li>
               <li>Confira um recebimento ou uma compra real no Prumo antes de desativar o MacroDroid.</li>
             </ol>
-            <p className="mt-3 rounded-xl border border-accent/30 bg-accent/10 p-3 text-xs leading-relaxed text-muted-foreground">O instalador é um APK privado de testes. A leitura de notificações depende das permissões Android e da mensagem do banco. Não deixe duas automações ativas sem necessidade.</p>
+            <p className="mt-3 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs leading-relaxed text-muted-foreground">O instalador é um APK privado de testes. A leitura de notificações depende das permissões Android e da mensagem do banco. Não deixe duas automações ativas sem necessidade.</p>
           </div>
 
           <details className="rounded-2xl border border-border bg-card p-4 sm:p-5">
