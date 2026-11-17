@@ -1,6 +1,8 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PrivacyToggle } from "@/components/PrivacyToggle";
+import { SyncStatus } from "@/components/SyncStatus";
+import { setSyncStatus } from "@/lib/sync-status";
 import {
   applyRemote,
   brl,
@@ -49,6 +51,24 @@ afterEach(() => {
 });
 
 describe("Privacidade dos valores", () => {
+  it("pede revelação explícita antes de permitir decidir entre valores em conflito", () => {
+    setMoneyHidden(true);
+    setSyncStatus("privacy-user", "conflict", "Confira as versões", [
+      { field: "Compra · Valor", local: "R$ 1.234,56", remote: "R$ 2.000,00" },
+    ]);
+    render(<SyncStatus />);
+    fireEvent.click(screen.getByRole("button", { name: "Conferir versões" }));
+    expect(screen.queryByText(/1\.234,56/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Manter meus valores deste aparelho" }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Mostrar valores para editar" }));
+    expect(screen.getByText(/1\.234,56/)).toBeInTheDocument();
+    expect(screen.getByText(/2\.000,00/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Manter meus valores deste aparelho" }),
+    ).toBeEnabled();
+  });
   it("atualiza todas as leituras imediatamente sem alterar valores financeiros ou exportações", () => {
     const before = JSON.stringify(getState());
     render(

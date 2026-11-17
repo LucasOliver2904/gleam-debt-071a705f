@@ -8,6 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getFinanceUser, type State } from "@/lib/finance";
+import { PrivateEditor } from "@/components/PrivateEditor";
 import { MASKED_MONEY, useMoneyPrivacy } from "@/lib/money-privacy";
 import { resolveSyncConflict, retrySync, useSyncStatus } from "@/lib/sync-status";
 
@@ -130,44 +131,50 @@ export function SyncStatus() {
               conflito.
             </DialogDescription>
           </DialogHeader>
-          {!!status.conflicts?.length && (
-            <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-border p-3">
-              {status.conflicts.map((entry) => (
-                <div key={entry.field} className="text-xs">
-                  <p className="break-all font-semibold">{entry.field}</p>
-                  <p className="mt-1 break-all">Neste aparelho: {hidden ? MASKED_MONEY : entry.local}</p>
-                  <p className="mt-1 break-all">Na nuvem: {hidden ? MASKED_MONEY : entry.remote}</p>
-                </div>
-              ))}
+          <PrivateEditor>
+            {!!status.conflicts?.length && (
+              <div className="max-h-64 space-y-3 overflow-y-auto rounded-xl border border-border p-3">
+                {status.conflicts.map((entry) => (
+                  <div key={entry.field} className="text-xs">
+                    <p className="break-all font-semibold">{entry.field}</p>
+                    <p className="mt-1 break-all">
+                      Neste aparelho: {hidden ? MASKED_MONEY : entry.local}
+                    </p>
+                    <p className="mt-1 break-all">
+                      Na nuvem: {hidden ? MASKED_MONEY : entry.remote}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground">
+              Antes de aplicar sua escolha, o Prumo guardará as duas cópias neste aparelho. A versão
+              local anterior poderá ser baixada pelo botão “Cópia anterior”.
+            </p>
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => choose("local")}
+                className="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
+              >
+                Manter meus valores deste aparelho
+              </button>
+              <button
+                type="button"
+                onClick={() => choose("remote")}
+                className="rounded-xl border border-border px-4 py-3 text-sm font-semibold"
+              >
+                Usar os valores da nuvem nos conflitos
+              </button>
             </div>
-          )}
-          <p className="text-sm text-muted-foreground">
-            Antes de aplicar sua escolha, o Prumo guardará as duas cópias neste aparelho. A versão
-            local anterior poderá ser baixada pelo botão “Cópia anterior”.
-          </p>
-          <div className="flex flex-col gap-2">
-            <button
-              type="button"
-              onClick={() => choose("local")}
-              className="rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground"
-            >
-              Manter meus valores deste aparelho
-            </button>
-            <button
-              type="button"
-              onClick={() => choose("remote")}
-              className="rounded-xl border border-border px-4 py-3 text-sm font-semibold"
-            >
-              Usar os valores da nuvem nos conflitos
-            </button>
-            <button
-              type="button"
-              onClick={() => setReviewing(false)}
-              className="rounded-xl px-4 py-2 text-sm text-muted-foreground"
-            >
-              Decidir depois
-            </button>
-          </div>
+          </PrivateEditor>
+          <button
+            type="button"
+            onClick={() => setReviewing(false)}
+            className="rounded-xl px-4 py-2 text-sm text-muted-foreground"
+          >
+            Decidir depois
+          </button>
         </DialogContent>
       </Dialog>
     </div>
