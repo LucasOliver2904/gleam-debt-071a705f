@@ -101,11 +101,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" },
-      { rel: "manifest", href: "/manifest.webmanifest?v=4" },
-      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=4" },
-      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=4" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=4" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=4" },
+      { rel: "manifest", href: "/manifest.webmanifest?v=5" },
+      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=5" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=5" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=5" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=5" },
     ],
   }),
   shellComponent: RootShell,
@@ -139,7 +139,7 @@ function RootComponent() {
     document.documentElement.dataset["accent"] = savedAccent === "ocean" || savedAccent === "violet" ? savedAccent : "emerald";
     // Registro necessário para os avisos do navegador e instalação do app.
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=4', { updateViaCache: 'none' }).catch(console.error);
+      navigator.serviceWorker.register('/sw.js?v=5', { updateViaCache: 'none' }).catch(console.error);
     }
   }, []);
 

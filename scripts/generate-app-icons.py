@@ -25,13 +25,21 @@ for path, size in out.items():
     img.save(target, "PNG", optimize=True)
     print(f"Gerado: {target.relative_to(ROOT)} ({size}×{size})")
 
-# O Android aplica máscaras circulares: o símbolo precisa caber na área segura.
-# Fundo preenchido até a borda e arte centralizada em 75% do canvas.
-maskable = Image.new("RGBA", (512, 512), "#07131A")
-foreground_png = cairosvg.svg2png(bytestring=svg.encode(), output_width=384, output_height=384)
-foreground = Image.open(BytesIO(foreground_png)).convert("RGBA")
-maskable.alpha_composite(foreground, (64, 64))
+# Sem moldura/inset: fundo teal preenche toda a máscara do Android.
+maskable = Image.open(BytesIO(cairosvg.svg2png(
+    bytestring=svg.encode(), output_width=512, output_height=512
+))).convert("RGBA")
 maskable.save(ROOT / "public/icons/icon-maskable-512.png", "PNG", optimize=True)
+
+# Regressão de bordas: sem pixels pretos nem transparência nos cantos.
+for path in ("public/icons/icon-192.png", "public/icons/icon-512.png", "public/icons/icon-maskable-512.png"):
+    im = Image.open(ROOT / path).convert("RGBA")
+    w, h = im.size
+    for pos in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1),
+                (0, h // 2), (w - 1, h // 2), (w // 2, 0), (w // 2, h - 1)):
+        r, g, b, a = im.getpixel(pos)
+        if a != 255 or g < 55 or b < 55:
+            raise ValueError(f"{path}: borda escura ou transparente {pos}: {(r,g,b,a)}")
 Image.open(ROOT / "public/favicon.png").convert("RGBA").save(
     ROOT / "public/favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)]
 )
