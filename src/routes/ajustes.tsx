@@ -254,7 +254,7 @@ function Ajustes() {
 
         <section className="finance-surface rounded-2xl border border-border bg-card p-5">
           <div className="mb-4 flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent"><ShieldCheck size={20} /></span>
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-warning/10 text-warning"><ShieldCheck size={20} /></span>
             <div><h2 className="font-display text-lg font-bold">Seus dados e backups</h2><p className="text-xs text-muted-foreground">{s.debts.length} contas · {s.txs.length} lançamentos</p></div>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -283,7 +283,7 @@ function Ajustes() {
             }}><RotateCcw size={15} /> Recuperar cópia anterior</button>
           </div>}
           {recoveryError && <p role="alert" className="mt-3 text-xs text-destructive">{recoveryError}</p>}
-          <p className="mt-4 rounded-xl border border-accent/25 bg-accent/7 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mr-2 inline text-accent"/> O arquivo de backup contém seus dados financeiros em texto legível. Guarde-o em local privado e protegido. As chaves de automação não são incluídas.</p>
+          <p className="mt-4 rounded-xl border border-warning/25 bg-warning/7 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground"><Info size={15} className="mr-2 inline text-warning"/> O arquivo de backup contém seus dados financeiros em texto legível. Guarde-o em local privado e protegido. As chaves de automação não são incluídas.</p>
         </section>
 
         <AccentPicker />

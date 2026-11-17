@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 type Accent = "emerald" | "ocean" | "violet";
 const choices: { id: Accent; name: string; description: string; color: string; glow: string }[] = [
-  { id: "emerald", name: "Esmeralda", description: "Moderno e financeiro", color: "#31dfaa", glow: "#16675f" },
+  { id: "emerald", name: "Prumo · Teal", description: "Combina com o novo ícone", color: "#13B5A7", glow: "#0D5C63" },
   { id: "ocean", name: "Azul executivo", description: "Clássico e tecnológico", color: "#4da6ff", glow: "#225a98" },
   { id: "violet", name: "Violeta", description: "Marcante e elegante", color: "#c4a0ff", glow: "#6e4dac" },
 ];
@@ -28,7 +28,7 @@ export function AccentPicker() {
     <section className="finance-surface rounded-2xl border border-border bg-card p-5">
       <header className="flex items-center gap-3">
         <span className="grid h-10 w-10 place-items-center rounded-xl bg-primary/12 text-primary"><Palette size={20}/></span>
-        <div><h2 className="font-display text-lg font-extrabold">Sua identidade visual</h2><p className="mt-1 text-xs text-muted-foreground">Escolha a cor de destaque. O modo claro e escuro continuam disponíveis.</p></div>
+        <div><h2 className="font-display text-lg font-extrabold">Sua identidade visual</h2><p className="mt-1 text-xs text-muted-foreground">O visual Prumo · Teal combina com o ícone. Os modos claro e escuro continuam disponíveis.</p></div>
       </header>
       <div className="mt-4 grid gap-3 sm:grid-cols-3" role="group" aria-label="Paleta de cores">
         {choices.map((choice) => (

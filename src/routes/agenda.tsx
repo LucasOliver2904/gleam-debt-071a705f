@@ -24,7 +24,7 @@ const weekdays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 function dueStatus(bill: MonthBill) {
   if (bill.payment.paid) return { text: "Pago", className: "bg-success/15 text-success", icon: Check };
   if (bill.daysUntil < 0) return { text: "Atrasada", className: "bg-destructive/15 text-destructive", icon: AlertCircle };
-  if (bill.daysUntil === 0) return { text: "Vence hoje", className: "bg-accent/15 text-accent", icon: Clock3 };
+  if (bill.daysUntil === 0) return { text: "Vence hoje", className: "bg-warning/15 text-warning", icon: Clock3 };
   return { text: bill.daysUntil === 1 ? "Amanhã" : "Dia " + bill.day, className: "bg-secondary text-muted-foreground", icon: Clock3 };
 }
 
@@ -139,7 +139,7 @@ function AgendaPage() {
                   {cell.day}
                   {events.length > 0 && cell.inMonth &&
                     <span className={"absolute bottom-1.5 h-1.5 w-1.5 rounded-full " +
-                      (selected ? "bg-primary-foreground" : hasOverdue ? "bg-destructive" : hasOpen ? "bg-accent" : "bg-success")} />
+                      (selected ? "bg-primary-foreground" : hasOverdue ? "bg-destructive" : hasOpen ? "bg-warning" : "bg-success")} />
                   }
                 </button>
               );
@@ -148,7 +148,7 @@ function AgendaPage() {
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
             <div className="flex flex-wrap gap-3 text-[11px] text-muted-foreground">
               <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-destructive" /> Em atraso</span>
-              <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-accent" /> A pagar</span>
+              <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-warning" /> A pagar</span>
               <span className="inline-flex items-center gap-1.5"><i className="h-2 w-2 rounded-full bg-success" /> Pago</span>
             </div>
             {day && <button className="text-xs font-semibold text-primary hover:underline" onClick={() => setDay(null)}>Ver o mês inteiro</button>}

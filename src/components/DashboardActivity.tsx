@@ -25,9 +25,9 @@ export function PendingReviewBanner({ state }: { state: State }) {
   return (
     <section
       aria-label="Pendências para conferir"
-      className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-accent/30 bg-accent/7 px-3 py-2.5"
+      className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-warning/30 bg-warning/7 px-3 py-2.5"
     >
-      <Inbox size={17} className="shrink-0 text-accent" />
+      <Inbox size={17} className="shrink-0 text-warning" />
       <span className="mr-auto text-xs font-bold">
         {total} {total === 1 ? "movimentação para conferir" : "movimentações para conferir"}
       </span>
@@ -42,7 +42,7 @@ export function PendingReviewBanner({ state }: { state: State }) {
       {expenses > 0 && (
         <Link
           to="/lancamentos"
-          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-extrabold text-accent hover:bg-accent/10"
+          className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-extrabold text-warning hover:bg-warning/10"
         >
           Gastos · {expenses} <ArrowRight size={13} />
         </Link>
@@ -226,7 +226,7 @@ export function RecentActivity({ state }: { state: State }) {
           </ul>
           <div className="mt-2 flex items-center justify-between gap-3 rounded-xl bg-secondary/35 px-3 py-2.5 text-xs">
             <span className="flex items-center gap-1.5 text-muted-foreground">
-              <Sparkles size={14} className="text-accent" /> {monthLabel(thisMonth, true)}
+              <Sparkles size={14} className="text-warning" /> {monthLabel(thisMonth, true)}
             </span>
             <span className="font-bold">
               {countInMonth} {countInMonth === 1 ? "lançamento" : "lançamentos"}
