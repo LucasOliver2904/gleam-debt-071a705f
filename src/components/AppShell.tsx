@@ -1,9 +1,7 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  ArrowDownLeft,
   ArrowLeftRight,
-  ArrowUpRight,
   CalendarDays,
   QrCode,
   Target,
@@ -24,10 +22,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { ReactNode } from "react";
-import { CATEGORIES, alerts, localToday, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
+import { alerts, useFinance } from "@/lib/finance";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/use-profile";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { QuickAdd } from "@/components/QuickAdd";
+import { SyncStatus } from "@/components/SyncStatus";
 
 const NAV = [
   { to: "/", label: "Painel", short: "Início", icon: LayoutDashboard },
@@ -62,73 +61,6 @@ function Avatar({ initial }: { initial: string }) {
     <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-primary/30 to-info/20 text-sm font-extrabold text-primary ring-1 ring-primary/25" aria-hidden="true">
       {initial}
     </span>
-  );
-}
-
-const input = "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
-
-function QuickAdd({ onClose }: { onClose: () => void }) {
-  const formId = useId();
-  const [kind, setKind] = useState<Tx["kind"]>("saida");
-  const [desc, setDesc] = useState("");
-  const [amount, setAmount] = useState("");
-  const [category, setCategory] = useState("Outros");
-  const [date, setDate] = useState(() => localToday());
-  const [err, setErr] = useState("");
-
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    const value = parseMoney(amount);
-    if (!desc.trim() || desc.trim().length > 100) return setErr("Informe uma descrição de até 100 caracteres.");
-    if (!(value > 0) || value > 1_000_000_000) return setErr("Informe um valor válido.");
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(date + "T12:00:00"))) {
-      return setErr("Informe uma data válida.");
-    }
-    setState((state) => ({
-      ...state,
-      txs: [{ id: uid(), date, description: desc.trim(), amount: value, kind, category }, ...state.txs],
-    }));
-    toast.success(kind === "entrada" ? "Entrada registrada" : "Saída registrada");
-    onClose();
-  };
-
-  return (
-    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-h-[92dvh] w-[calc(100%-1.5rem)] max-w-md overflow-y-auto rounded-3xl border-border bg-card p-5 sm:p-6">
-        <DialogHeader>
-          <DialogTitle className="font-display text-xl font-extrabold">Novo lançamento</DialogTitle>
-          <DialogDescription>Registre uma entrada ou saída em poucos segundos.</DialogDescription>
-        </DialogHeader>
-        <form className="mt-3 space-y-4" onSubmit={submit}>
-          <div role="group" aria-label="Tipo de lançamento" className="flex gap-2">
-            <button type="button" aria-pressed={kind === "entrada"} onClick={() => setKind("entrada")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition ${kind === "entrada" ? "border-success bg-success/15 text-success" : "border-border text-muted-foreground hover:bg-secondary"}`}>
-              <ArrowDownLeft size={16} /> Entrada
-            </button>
-            <button type="button" aria-pressed={kind === "saida"} onClick={() => setKind("saida")} className={`flex flex-1 items-center justify-center gap-1.5 rounded-xl border py-2.5 text-sm font-semibold transition ${kind === "saida" ? "border-destructive bg-destructive/15 text-destructive" : "border-border text-muted-foreground hover:bg-secondary"}`}>
-              <ArrowUpRight size={16} /> Saída
-            </button>
-          </div>
-          <label htmlFor={formId + "-valor"} className="block text-sm font-semibold text-muted-foreground">Valor (R$)
-            <input id={formId + "-valor"} autoFocus required className={input + " mt-1.5 text-lg font-bold"} inputMode="decimal" value={amount} onChange={(event) => setAmount(event.target.value)} placeholder="0,00" aria-invalid={err.includes("valor")} />
-          </label>
-          <label htmlFor={formId + "-descricao"} className="block text-sm font-semibold text-muted-foreground">Descrição
-            <input id={formId + "-descricao"} required maxLength={100} className={input + " mt-1.5"} value={desc} onChange={(event) => setDesc(event.target.value)} placeholder="Ex.: Mercado, transporte..." />
-          </label>
-          <label htmlFor={formId + "-data"} className="block text-sm font-semibold text-muted-foreground">Data
-            <input id={formId + "-data"} required type="date" className={input + " mt-1.5"} value={date} onChange={(event) => setDate(event.target.value)} />
-          </label>
-          <label htmlFor={formId + "-categoria"} className="block text-sm font-semibold text-muted-foreground">Categoria
-            <select id={formId + "-categoria"} className={input + " mt-1.5"} value={category} onChange={(event) => setCategory(event.target.value)}>
-              {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
-            </select>
-          </label>
-          {err && <p role="alert" className="text-xs font-semibold text-destructive">{err}</p>}
-          <button type="submit" className={`w-full rounded-xl py-3.5 font-bold text-primary-foreground transition hover:opacity-90 ${kind === "entrada" ? "bg-success" : "bg-primary"}`}>
-            Lançar {kind === "entrada" ? "entrada" : "saída"}
-          </button>
-        </form>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -216,6 +148,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="mx-auto w-full max-w-[1300px] px-4 pb-36 pt-5 sm:px-6 lg:px-9 lg:pb-16 lg:pt-9">
+          <div className="mb-4"><SyncStatus /></div>
           {children}
         </main>
       </div>
