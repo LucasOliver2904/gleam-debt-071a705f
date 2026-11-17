@@ -479,3 +479,7 @@ html[data-theme="light"] .finance-bottom-nav {
 @media (prefers-reduced-motion: reduce) {
   .prumo-quick-action:hover { transform: none; }
 }
+
+/* Home essencial: atalhos compactos no celular e apenas três vencimentos. */
+.prumo-quick-action--compact { min-height: 72px; box-shadow: 0 5px 18px rgba(0,0,0,.045); }
+@media (max-width: 390px) { .prumo-quick-action--compact { min-height: 68px; padding-inline: 9px; gap: 7px; } }

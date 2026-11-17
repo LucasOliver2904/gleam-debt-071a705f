@@ -220,14 +220,14 @@ export function AppShell({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* FAB */}
-      <button
+      {/* Evita duplicar o botão Lançar na tela inicial. */}
+      {path !== "/" && <button
         onClick={() => setQuickAddOpen(true)}
         className="finance-floating-action fixed bottom-[calc(6.4rem+env(safe-area-inset-bottom))] right-4 z-40 grid h-13 w-13 place-items-center rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground transition hover:scale-105 active:scale-95 lg:bottom-8 lg:right-8 lg:h-16 lg:w-16"
         aria-label="Novo lançamento rápido"
       >
         <Plus size={24} className="lg:size-8" />
-      </button>
+      </button>}
 
       {quickAddOpen && <QuickAdd onClose={() => setQuickAddOpen(false)} />}
 

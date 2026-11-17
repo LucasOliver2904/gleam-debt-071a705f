@@ -39,6 +39,16 @@ describe("Painel com vencimentos reais", () => {
     expect(bills).toHaveLength(5);
     expect(bills.some((bill) => bill.debt.id === "future")).toBe(true);
   });
+  it("mostra no máximo três vencimentos no painel inicial", () => {
+    const many: State = { ...sample, debts: [
+      ...sample.debts,
+      { id:"fourth", name:"Outra conta", type:"fixa", due:27,
+        payments: { "2026-11":{ amount:80, paid:false } } },
+    ] };
+    const bills = dashboardBills(many, new Date(2026,10,17));
+    expect(bills).toHaveLength(3);
+    expect(bills.map((bill) => bill.debt.id)).toEqual(["recent","old","future"]);
+  });
   it("explica atrasos, hoje e amanhã claramente", () => {
     expect(dueDescription(-1)).toBe("Atrasada há 1 dia");
     expect(dueDescription(-3)).toBe("Atrasada há 3 dias");

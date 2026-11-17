@@ -1,474 +1,76 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  AlertTriangle,
-  ArrowDownLeft,
-  ArrowLeftRight,
-  ArrowRight,
-  ArrowUpRight,
-  CalendarClock,
-  CalendarDays,
-  PartyPopper,
-  PiggyBank,
-  Sparkles,
-  TrendingDown,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { AppShell, Stat } from "@/components/AppShell";
+import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProfile } from "@/lib/use-profile";
-import { FinancialBriefing } from "@/components/FinancialBriefing";
-import { PendingReviewBanner, RecentActivity } from "@/components/DashboardActivity";
+import { AppShell } from "@/components/AppShell";
 import { DashboardHome } from "@/components/DashboardHome";
-import {
-  alerts,
-  addMonths,
-  brl,
-  currentMonth,
-  debtFreeMonth,
-  debtRemaining,
-  outstandingDebtBalance,
-  monthLabel,
-  monthSummary,
-  setState,
-  TYPE_INFO,
-  useFinance,
-} from "@/lib/finance";
+import { PendingReviewBanner } from "@/components/DashboardActivity";
+import { useProfile } from "@/lib/use-profile";
+import { currentMonth, monthLabel, setState, useFinance } from "@/lib/finance";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Painel — Prumo" },
-      { name: "description", content: "Veja quanto falta pagar das suas dívidas, mês a mês." },
-      { property: "og:title", content: "Painel — Prumo" },
-      { property: "og:description", content: "Controle de dívidas, parcelas, entradas e saídas." },
+      { title: "Início — Prumo" },
+      { name: "description", content: "Sua visão rápida: saldo previsto, contas e lançamentos." },
+      { property: "og:title", content: "Início — Prumo" },
     ],
   }),
   component: Dashboard,
 });
 
-function SectionTitle({
-  icon,
-  children,
-  right,
-}: {
-  icon: React.ReactNode;
-  children: React.ReactNode;
-  right?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <h2 className="flex items-center gap-2.5 font-display text-lg font-semibold">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary/15 text-primary">
-          {icon}
-        </span>
-        {children}
-      </h2>
-      {right}
-    </div>
-  );
-}
-
 function DashboardSkeleton() {
   return (
-    <div role="status" aria-live="polite" aria-label="Carregando painel financeiro" className="space-y-5">
-      <div className="space-y-2">
-        <Skeleton className="h-3 w-32" />
-        <Skeleton className="h-8 w-56" />
-        <Skeleton className="h-4 w-72 max-w-full" />
+    <div role="status" aria-live="polite" aria-label="Carregando seu resumo financeiro" className="space-y-4">
+      <Skeleton className="h-7 w-52" />
+      <Skeleton className="h-4 w-40" />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Skeleton className="h-72 rounded-3xl" />
+        <Skeleton className="h-64 rounded-3xl" />
       </div>
-      <Skeleton className="h-56 w-full rounded-3xl" />
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />)}
-      </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Skeleton className="h-72 rounded-2xl" />
-        <Skeleton className="h-72 rounded-2xl" />
+      <div className="grid grid-cols-3 gap-3">
+        {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}
       </div>
     </div>
   );
 }
 
 function Dashboard() {
-  const s = useFinance();
+  const state = useFinance();
   const profile = useProfile();
-  if (!s.ready) return <AppShell><DashboardSkeleton /></AppShell>;
-  const cm = currentMonth();
-  const now = monthSummary(s, cm);
-  const totalRemaining = outstandingDebtBalance(s);
-  const future = Array.from({ length: 6 }, (_, index) => addMonths(cm, index));
-  const chart = Array.from({ length: 9 }, (_, index) => addMonths(cm, index - 3)).map((m) => {
-    const x = monthSummary(s, m);
-    return { mes: monthLabel(m), Entradas: +x.income.toFixed(2), Saídas: +x.out.toFixed(2) };
-  });
-  const al = alerts(s);
-  const free = debtFreeMonth(s);
-  const cats = new Map<string, number>();
-  s.debts.forEach((d) => {
-    const p = d.payments[cm];
-    if (p) cats.set(d.category ?? "Outros", (cats.get(d.category ?? "Outros") ?? 0) + p.amount);
-  });
-  s.txs.filter((tx) => tx.kind === "saida" && !tx.excludedFromTotals && tx.date.startsWith(cm)).forEach((tx) => {
-    const cat = tx.category || "Outros";
-    cats.set(cat, (cats.get(cat) ?? 0) + tx.amount);
-  });
-  const pie = [...cats].map(([name, value]) => ({ name, value })).sort((a, b) => b.value - a.value);
-  const COLORS = [
-    "var(--chart-1)",
-    "var(--chart-2)",
-    "var(--chart-3)",
-    "var(--chart-4)",
-    "var(--chart-5)",
-    "var(--primary)",
-    "var(--destructive)",
-    "var(--muted-foreground)",
-  ];
-  const setPaid = (id: string, m: string, paid: boolean) => {
-    setState((state) => ({
-      ...state,
-      debts: state.debts.map((debt) => {
-        const payment = debt.payments[m];
-        if (debt.id !== id || !payment) return debt;
-        return { ...debt, payments: { ...debt.payments, [m]: { ...payment, paid } } };
+  if (!state.ready) return <AppShell><DashboardSkeleton /></AppShell>;
+
+  const month = currentMonth();
+  function markPaid(id: string, paymentMonth: string, paid: boolean) {
+    setState((current) => ({
+      ...current,
+      debts: current.debts.map((debt) => {
+        const installment = debt.payments[paymentMonth];
+        if (debt.id !== id || !installment) return debt;
+        return { ...debt, payments: { ...debt.payments, [paymentMonth]: { ...installment, paid } } };
       }),
     }));
-  };
-  const pay = (id: string, m: string) => {
-    setPaid(id, m, true);
+  }
+  function pay(id: string, paymentMonth: string) {
+    markPaid(id, paymentMonth, true);
     toast.success("Conta marcada como paga", {
-      action: { label: "Desfazer", onClick: () => setPaid(id, m, false) },
+      action: { label: "Desfazer", onClick: () => markPaid(id, paymentMonth, false) },
     });
-  };
-  
-  const top = s.debts
-    .filter((d) => d.type === "parcelada")
-    .map((d) => ({ d, r: debtRemaining(d) }))
-    .filter((x) => x.r.remaining > 0)
-    .sort((a, b) => b.r.remaining - a.r.remaining)
-    .slice(0, 6);
-
-  const endingDebts = s.debts.filter(d => d.type === "parcelada" && debtRemaining(d).left === 1 && debtRemaining(d).remaining > 0);
-
-  const hoje = new Date().toLocaleDateString("pt-BR", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
+  }
 
   return (
     <AppShell>
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="finance-kicker">PRUMO / VISÃO GERAL</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">{profile.name ? `Olá, ${profile.name} 👋` : "Olá 👋"}</h1>
-          <p className="mt-1 text-sm capitalize text-muted-foreground">
-            {hoje} · Resumo de {monthLabel(cm, true)}
-          </p>
-        </div>
-        <Link
-          to="/dividas"
-          className="hidden items-center gap-1.5 rounded-xl border border-border px-3.5 py-2 text-sm font-medium transition hover:bg-secondary md:inline-flex"
-        >
-          Ver dívidas <ArrowRight size={14} />
-        </Link>
-      </div>
+      <header className="mb-1">
+        <p className="finance-kicker">PRUMO / INÍCIO</p>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+          {profile.name ? "Olá, " + profile.name + " 👋" : "Olá 👋"}
+        </h1>
+        <p className="mt-1 text-xs capitalize text-muted-foreground sm:text-sm">
+          Seu resumo de {monthLabel(month, true)}
+        </p>
+      </header>
 
-      <DashboardHome state={s} month={cm} onPay={pay} />
-
-      <PendingReviewBanner state={s} />
-
-      <div className="mt-5 grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4">
-        <Stat
-          label="Dívidas a quitar"
-          value={brl(totalRemaining)}
-          tone={totalRemaining > 0 ? "neg" : "pos"}
-          icon={TrendingDown}
-          hint="Sem contar fixas futuras"
-        />
-        <Stat
-          label="A pagar neste mês"
-          value={brl(now.pending)}
-          icon={CalendarDays}
-        />
-        <Stat
-          label="Entradas minhas"
-          value={brl(now.income)}
-          tone="pos"
-          icon={ArrowDownLeft}
-        />
-        <Stat
-          label="Despesas do mês"
-          value={brl(now.out)}
-          tone="neg"
-          icon={PiggyBank}
-          hint="Contas previstas + saídas"
-        />
-      </div>
-
-      {endingDebts.length > 0 && (
-        <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-accent/30 bg-accent/6 p-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent/20 text-accent"><PartyPopper size={20} /></span>
-            <div>
-              <p className="font-semibold text-accent">Você está quase lá!</p>
-              <p className="text-sm text-muted-foreground">
-                {endingDebts.length === 1 ? "1 conta" : `${endingDebts.length} contas`} na última parcela: {endingDebts.map(d => d.name).join(", ")}
-              </p>
-            </div>
-          </div>
-          <Link to="/dividas" className="shrink-0 text-sm font-medium text-accent hover:underline">Ver contas</Link>
-        </div>
-      )}
-
-      <div className="mt-4 flex items-center gap-2.5 rounded-2xl border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
-        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-success/15 text-success">
-          <Sparkles size={16} />
-        </span>
-        <span>{free ? `Suas dívidas parceladas terminam em ${monthLabel(free, true)}.` : "Você está livre de dívidas parceladas 🎉"}</span>
-      </div>
-
-      <FinancialBriefing state={s} />
-      <RecentActivity state={s} />
-
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<CalendarClock size={16} />}>Atenção</SectionTitle>
-          {al.length === 0 ? (
-            <div className="mt-4 flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-success/40 bg-success/5 py-8 text-center">
-              <PartyPopper className="text-success" size={26} />
-              <p className="text-sm font-semibold text-success">Tudo em dia!</p>
-              <p className="text-xs text-muted-foreground">
-                Nada atrasado nem vencendo nos próximos 7 dias.
-              </p>
-            </div>
-          ) : (
-            <ul className="mt-3 divide-y divide-border">
-              {al.slice(0, 8).map((a) => (
-                <li key={a.d.id + a.m} className="flex items-center gap-3 py-2.5">
-                  <span
-                    className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg text-xs font-bold ${
-                      a.status === "atrasada"
-                        ? "bg-destructive text-destructive-foreground"
-                        : a.status === "hoje"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-secondary"
-                    }`}
-                  >
-                    {a.status === "atrasada" ? <AlertTriangle size={15} /> : a.d.due ?? "—"}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{a.d.name}</p>
-                    <p
-                      className={`text-xs ${
-                        a.status === "atrasada" ? "text-destructive" : "text-muted-foreground"
-                      }`}
-                    >
-                      {a.status === "atrasada"
-                        ? `Atrasada · ${monthLabel(a.m)}`
-                        : a.status === "hoje"
-                        ? "Vence hoje"
-                        : `Vence dia ${a.d.due}`}{" "}
-                      · {TYPE_INFO[a.d.type].short}
-                    </p>
-                  </div>
-                  <span className="text-sm font-semibold tabular-nums">{brl(a.amount)}</span>
-                  <button
-                    onClick={() => pay(a.d.id, a.m)}
-                    className="rounded-lg bg-success/20 px-2.5 py-1.5 text-xs font-semibold text-success transition hover:bg-success/30"
-                  >
-                    Pagar
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-          {al.length > 8 && (
-            <Link
-              to="/dividas"
-              className="mt-3 inline-flex items-center gap-1 text-sm text-primary hover:underline"
-            >
-              + {al.length - 8} contas <ArrowRight size={12} />
-            </Link>
-          )}
-        </section>
-
-        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<TrendingUp size={16} />}>Compromissos por categoria</SectionTitle>
-          {pie.length === 0 ? (
-            <div className="mt-4 flex flex-col items-center justify-center gap-1 rounded-xl border border-dashed border-border py-10 text-center">
-              <p className="text-sm text-muted-foreground">Sem contas neste mês.</p>
-            </div>
-          ) : (
-            <div className="mt-4 flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-              <div className="h-44 w-44 shrink-0">
-                <ResponsiveContainer>
-                  <PieChart>
-                    <Pie
-                      data={pie}
-                      dataKey="value"
-                      nameKey="name"
-                      innerRadius="60%"
-                      outerRadius="100%"
-                      stroke="var(--card)"
-                      strokeWidth={2}
-                    >
-                      {pie.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(v: number) => brl(v)}
-                      contentStyle={{
-                        background: "var(--card)",
-                        border: "1px solid var(--border)",
-                        borderRadius: 12,
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <ul className="w-full min-w-0 flex-1 space-y-2 text-sm">
-                {pie.slice(0, 6).map((c, i) => (
-                  <li key={c.name} className="flex items-center gap-2">
-                    <i
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
-                      style={{ background: COLORS[i % COLORS.length] }}
-                    />
-                    <span className="flex-1 truncate">{c.name}</span>
-                    <span className="tabular-nums text-muted-foreground">{brl(c.value)}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      </div>
-
-      <section className="finance-surface mt-6 rounded-2xl border border-border bg-card p-4 md:p-5">
-        <SectionTitle icon={<ArrowLeftRight size={16} />}>Entradas x despesas previstas</SectionTitle>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Comparativo dos últimos 3 meses e dos próximos 5, incluindo compromissos cadastrados.</p>
-        <div className="mt-4 h-56 md:h-72">
-          <ResponsiveContainer>
-            <BarChart data={chart}>
-              <CartesianGrid stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="mes" stroke="var(--muted-foreground)" fontSize={12} />
-              <YAxis width={45} stroke="var(--muted-foreground)" fontSize={12} />
-              <Tooltip
-                formatter={(v: number) => brl(v)}
-                contentStyle={{
-                  background: "var(--card)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 12,
-                }}
-              />
-              <Legend />
-              <Bar dataKey="Entradas" fill="var(--success)" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="Saídas" fill="var(--destructive)" radius={[6, 6, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      </section>
-
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle icon={<CalendarClock size={16} />}>Próximos meses</SectionTitle>
-          <p className="mt-1 text-xs text-muted-foreground">Previsão baseada nas contas e na renda informadas.</p>
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wider text-muted-foreground">
-                <tr>
-                  <th className="pb-2">Mês</th>
-                  <th className="pb-2 text-right">Entra</th>
-                  <th className="pb-2 text-right">Sai</th>
-                  <th className="pb-2 text-right">Sobra</th>
-                </tr>
-              </thead>
-              <tbody>
-                {future.map((m) => {
-                  const x = monthSummary(s, m);
-                  return (
-                    <tr key={m} className="border-t border-border">
-                      <td className="py-2 font-medium">{monthLabel(m, true)}</td>
-                      <td className="py-2 text-right tabular-nums text-success">{brl(x.income)}</td>
-                      <td className="py-2 text-right tabular-nums">{brl(x.out)}</td>
-                      <td
-                        className={`py-2 text-right font-semibold tabular-nums ${
-                          x.balance >= 0 ? "text-success" : "text-destructive"
-                        }`}
-                      >
-                        {brl(x.balance)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
-        <section className="finance-surface rounded-2xl border border-border bg-card p-4 md:p-5">
-          <SectionTitle
-            icon={<Wallet size={16} />}
-            right={
-              <Link to="/dividas" className="text-sm text-primary hover:underline">
-                Ver todas
-              </Link>
-            }
-          >
-            Maiores dívidas restantes
-          </SectionTitle>
-          {top.length === 0 ? (
-            <div className="mt-4 rounded-xl border border-dashed border-border p-6 text-center"><p className="text-sm font-bold text-success">Nenhuma parcela em aberto</p><p className="mt-1 text-xs text-muted-foreground">Se você cadastrar uma dívida parcelada, a evolução dela aparecerá aqui.</p></div>
-          ) : <ul className="mt-4 space-y-4">
-            {top.map(({ d, r }) => {
-              const pct = Math.round(((r.count - r.left) / Math.max(r.count, 1)) * 100);
-              const isLast = r.left === 1;
-              return (
-                <li key={d.id}>
-                  <div className="flex justify-between text-sm">
-                    <span className="flex items-center gap-1.5 font-medium">
-                      {d.name}
-                      {isLast && <span className="rounded bg-accent/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400">Última</span>}
-                      {d.due ? (
-                        <span className="text-xs text-muted-foreground"> · dia {d.due}</span>
-                      ) : null}
-                    </span>
-                    <span className="tabular-nums">
-                      {brl(r.remaining)}{" "}
-                      <span className="text-muted-foreground">· {r.left}x</span>
-                    </span>
-                  </div>
-                  <div className="mt-1.5 flex items-center gap-2">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${isLast ? "bg-amber-500" : "bg-gradient-to-r from-primary/70 to-primary"}`}
-                        style={{ width: `${pct}%` }}
-                      />
-                    </div>
-                    <span className="w-9 text-right text-[11px] tabular-nums text-muted-foreground">
-                      {pct}%
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>}
-        </section>
-      </div>
+      <PendingReviewBanner state={state} />
+      <DashboardHome state={state} month={month} onPay={pay} />
     </AppShell>
   );
 }
