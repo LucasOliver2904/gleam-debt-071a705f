@@ -1,38 +1,66 @@
-# Gleam Debt
+# Prumo
 
-QUERO QUE VOCÊ CRIE UM APLICATIVO, PRA EU PODER COLOCAR MINHAS DIVIDAS, COM BASE NO QUE VOU TE MANDAR, PRA EU LANÇAR TUDO QUE ENTRAR E TUDO QUE SAIR, PRA EU DIGITAR UMA NOVA DIVIDA, QUANTIDADE DE PARCELAS, O QUANTO AINDA DEVO, COM UM DASHBOARD INICIAL PRA EU VER O QUE FALTA EU PAGAR, OS MESES TUDO DETALHADO, TIPO UM APP PROFISSIONAL MESMO DE FINANÇAS, PARA EU LANÇAR TUDO.
-CONSEGUE?
+Aplicativo de **finanças pessoais e controle de dívidas**: registre o que entra e o que
+sai, acompanhe parcelas, vencimentos e quanto ainda falta pagar, mês a mês.
 
-This project was built with [Lovable](https://lovable.dev).
+> Antes chamado *Gleam Debt / Meu Caixa*. App publicado: https://gleam-debt.lovable.app
+> (o endereço continua o mesmo até você trocar o domínio nas configurações do Lovable).
 
-**Live app**: https://gleam-debt.lovable.app
+## Funcionalidades
 
-## Build with Lovable
+- **Painel**: sobra prevista do mês, contas pagas e pendentes, dívidas a quitar,
+  gastos por categoria e comparativo de entradas x saídas (3 meses atrás, 5 à frente).
+- **Dívidas**: parceladas, fixas (recorrentes) e únicas, com saldo restante e parcelas.
+- **Agenda**: vencimentos por dia, com marcação de contas como pagas (e desfazer).
+- **Lançamentos**: entradas e saídas, categorias e conferência de gastos pendentes.
+- **Pix e repasses**: separa o valor recebido do que é seu; avisos automáticos pelo
+  app Android ficam como rascunho até você conferir.
+- **Importar extrato**: leitura de prints (OCR no próprio aparelho) com conferência
+  e proteção contra duplicidade antes de lançar.
+- **Planejamento**: orçamentos por categoria, metas de economia e previsões.
+- **Lembretes** de vencimento, tema claro/escuro e instalação como PWA.
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/7c958dbd-12a5-4ed5-9504-ad0c515c6db1).
+## Tecnologias
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+TanStack Start + React 19, Tailwind CSS 4, shadcn/ui, Lovable Cloud (Supabase) com RLS,
+Recharts, Vitest e Drizzle (migrações). Gerenciador de pacotes: **Bun**.
 
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Como rodar
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+bun install
+bun run dev         # desenvolvimento
+bun run test        # testes
+bunx tsc --noEmit   # tipos
+bun run lint        # lint (no CI é informativo, não bloqueia)
+bun run build       # build de produção
 ```
 
-## Melhorias de segurança e experiência (novembro/2026)
+As variáveis `VITE_SUPABASE_*` do `.env` são chaves **publicáveis** (seguras no
+navegador). Chaves de serviço existem só no servidor e nunca devem ir para o
+repositório, para o navegador ou para o APK.
 
-- Nome e inicial no painel refletem a conta autenticada, sem nomes pessoais fixos no código.
-- Novo lançamento rápido utiliza janela acessível, campos identificados e validação de dados.
-- A marcação de pagamento pelo painel oferece ação **Desfazer**.
-- O carregamento do painel utiliza indicadores visuais em vez de área vazia.
-- Registros de demonstração para contas novas são explicitamente fictícios e relativos ao mês atual. **As dívidas de contas existentes no Supabase não são redefinidas por essa atualização.**
-- IDs de novos lançamentos preferem `crypto.randomUUID`, com fallback para navegadores antigos. IDs já salvos não mudam.
-- O GitHub Actions verifica build, tipos e testes, e relata o lint como diagnóstico não bloqueante.
-- Foram aproveitadas melhorias de um script externo sugerido para a marca "Prumo". O aplicativo continua se chamando **Meu Caixa**: renomeá-lo exige uma decisão de marca separada para preservar links, PWA e integração Android.
+## Estrutura
+
+| Caminho | Conteúdo |
+| --- | --- |
+| `src/routes/` | Páginas e a API `api/pix-notificacao` |
+| `src/lib/finance.ts` | Modelo de dados, cálculos e cache local por usuário |
+| `src/lib/sync.ts` | Sincronização com o banco (gravação condicional por versão) |
+| `src/components/` | Telas e componentes; `ui/` é o shadcn/ui |
+| `drizzle/` | Esquema e migrações do banco |
+| `android-companion/` | App Android que repassa notificações bancárias (uso privado) |
+| `scripts/` | Teste de fumaça HTTP do servidor real e geração de ícones |
+| `docs/` | Segurança, privacidade e guia do Pix no Android |
+
+## Segurança
+
+Leia `docs/SECURITY-PRIVATE.md` antes de abrir o app para outras pessoas. O ponto
+principal: manter desligado o cadastro público de usuários no Auth e conferir as
+políticas RLS no banco real.
+
+## Convenções
+
+- Interface e mensagens em português do Brasil.
+- Todo push passa pelo CI: build, tipos, testes e teste de fumaça.
+- O repositório sincroniza com o Lovable: não reescreva o histórico publicado.

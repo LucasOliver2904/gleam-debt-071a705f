@@ -89,6 +89,8 @@ export const monthLabel = (m: string, long = false) => {
   return `${(long ? MESES_L : MESES)[mo - 1]}/${String(y).slice(long ? 0 : 2)}`;
 };
 export const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+/** Arredonda para centavos e evita "-0" (que o formatador mostraria como "-R$ 0,00"). */
+export const round2 = (v: number) => Math.round(v * 100) / 100 + 0;
 export function parseMoney(raw: string): number {
   const clean = raw.replace(/R\$/gi, "").replace(/\s/g, "");
   const value = clean.includes(",") ? clean.replace(/\./g, "").replace(",", ".") : clean;
@@ -305,7 +307,14 @@ export function monthSummary(s: State, m: string) {
   const txOut = s.txs.filter((t) => t.date.startsWith(m) && t.kind === "saida" && !t.excludedFromTotals).reduce((a, t) => a + t.amount, 0);
   const income = (s.income[m] ?? 0) + txIn;
   const out = debts + txOut;
-  return { debts, paid, pending: debts - paid, income, out, balance: income - out };
+  return {
+    debts: round2(debts),
+    paid: round2(paid),
+    pending: round2(debts - paid),
+    income: round2(income),
+    out: round2(out),
+    balance: round2(income - out),
+  };
 }
 
 /** Dívida a quitar: exclui contas fixas recorrentes, que são compromissos futuros
@@ -313,11 +322,16 @@ export function monthSummary(s: State, m: string) {
 export function outstandingDebtBalance(state: State) {
   return state.debts
     .filter((debt) => debt.type !== "fixa")
-    .reduce((sum, debt) => sum + debtRemaining(debt).remaining, 0);
+    .reduce((sum, debt) => round2(sum + debtRemaining(debt).remaining), 0);
 }
 
 export function debtRemaining(d: Debt) {
   const ps = Object.entries(d.payments).filter(([m]) => d.type !== "fixa" || m <= currentMonth()).map(([, p]) => p);
   const open = ps.filter((p) => !p.paid);
-  return { total: ps.reduce((a, p) => a + p.amount, 0), remaining: open.reduce((a, p) => a + p.amount, 0), left: open.length, count: ps.length };
+  return {
+    total: round2(ps.reduce((a, p) => a + p.amount, 0)),
+    remaining: round2(open.reduce((a, p) => a + p.amount, 0)),
+    left: open.length,
+    count: ps.length,
+  };
 }
