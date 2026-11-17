@@ -12,29 +12,19 @@ import { brl, monthLabel, currentMonth, type State } from "@/lib/finance";
 export function PendingReviewBanner({ state }: { state: State }) {
   const pix = state.pixInbox?.length ?? 0;
   const expenses = state.expenseInbox?.length ?? 0;
-  if (pix + expenses === 0) return null;
+  const total = pix + expenses;
+  if (!total) return null;
 
   return (
-    <section aria-label="Notificações para conferir" className="mt-5 overflow-hidden rounded-2xl border border-accent/35 bg-accent/7 p-4 sm:p-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-accent/18 text-accent">
-          <Inbox size={22}/>
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="finance-kicker !text-accent">PENDÊNCIAS PARA REVISAR</p>
-          <h2 className="mt-1 font-display text-base font-extrabold sm:text-lg">
-            {pix + expenses} {pix + expenses === 1 ? "movimentação esperando você" : "movimentações esperando você"}
-          </h2>
-          <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-            Os avisos do Android não entram nos seus totais até você confirmar.
-            Confira o extrato para evitar duplicidade.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2 sm:justify-end">
-          {pix > 0 && <Link to="/pix" className="inline-flex items-center gap-2 rounded-xl border border-primary/40 bg-primary/12 px-3.5 py-2.5 text-xs font-bold text-primary transition hover:bg-primary/20"><QrCode size={15}/> Pix · {pix} <ArrowRight size={14}/></Link>}
-          {expenses > 0 && <Link to="/lancamentos" className="inline-flex items-center gap-2 rounded-xl border border-accent/40 bg-accent/12 px-3.5 py-2.5 text-xs font-bold text-accent transition hover:bg-accent/20"><ReceiptText size={15}/> Gastos · {expenses} <ArrowRight size={14}/></Link>}
-        </div>
-      </div>
+    <section aria-label="Pendências para conferir" className="mt-4 flex flex-wrap items-center gap-2 rounded-xl border border-accent/30 bg-accent/7 px-3 py-2.5">
+      <Inbox size={17} className="shrink-0 text-accent" />
+      <span className="mr-auto text-xs font-bold">{total} {total === 1 ? "movimentação para conferir" : "movimentações para conferir"}</span>
+      {pix > 0 && <Link to="/pix" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-extrabold text-primary hover:bg-primary/10">
+        Pix · {pix} <ArrowRight size={13}/>
+      </Link>}
+      {expenses > 0 && <Link to="/lancamentos" className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-extrabold text-accent hover:bg-accent/10">
+        Gastos · {expenses} <ArrowRight size={13}/>
+      </Link>}
     </section>
   );
 }
