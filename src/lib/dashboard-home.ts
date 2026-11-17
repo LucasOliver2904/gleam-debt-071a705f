@@ -11,7 +11,14 @@ export function dashboardBills(state: State, today = new Date(), limit = 5): Upc
     .sort((a, b) => b.daysUntil - a.daysUntil || a.debt.name.localeCompare(b.debt.name, "pt-BR"));
   const upcoming = bills.filter((bill) => bill.daysUntil >= 0)
     .sort((a, b) => a.daysUntil - b.daysUntil || a.debt.name.localeCompare(b.debt.name, "pt-BR"));
-  return [...overdue, ...upcoming].slice(0, Math.max(0, limit));
+  const count = Math.max(0, limit);
+  if (count === 0) return [];
+  // Se houver muitos atrasos, reserva espaço para os próximos vencimentos:
+  // nenhuma conta importante deve desaparecer só porque há antigos pendentes.
+  const recentLate = overdue.slice(0, upcoming.length ? Math.min(2, count) : count);
+  const nextBills = upcoming.slice(0, count - recentLate.length);
+  const remaining = overdue.slice(recentLate.length, count - nextBills.length);
+  return [...recentLate, ...nextBills, ...remaining].slice(0, count);
 }
 
 export function dueDescription(daysUntil: number): string {

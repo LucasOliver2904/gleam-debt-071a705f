@@ -24,6 +24,21 @@ describe("Painel com vencimentos reais", () => {
     expect(dashboardBills(sample, new Date(2026,10,17), 2).map((b)=>b.debt.id)).toEqual(["recent","old"]);
     expect(sample.debts[0]?.payments["2026-10"]?.paid).toBe(false);
   });
+  it("não esconde todos os próximos vencimentos quando há muitos atrasos", () => {
+    const many: State = { ...sample, debts: [
+      ...Array.from({ length: 8 }, (_, i) => ({
+        id: "late" + i,
+        name: "Atraso " + i,
+        type: "parcelada" as const,
+        due: 1,
+        payments: { "2026-11": { amount: 100 + i, paid: false } },
+      })),
+      sample.debts[2]!,
+    ] };
+    const bills = dashboardBills(many, new Date(2026,10,17), 5);
+    expect(bills).toHaveLength(5);
+    expect(bills.some((bill) => bill.debt.id === "future")).toBe(true);
+  });
   it("explica atrasos, hoje e amanhã claramente", () => {
     expect(dueDescription(-1)).toBe("Atrasada há 1 dia");
     expect(dueDescription(-3)).toBe("Atrasada há 3 dias");
