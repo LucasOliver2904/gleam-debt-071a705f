@@ -276,7 +276,7 @@ function StatementImportPage() {
             <p aria-live="polite" className="text-xs font-semibold text-muted-foreground">{phase}</p>
             {scanning && <div className="mt-2 h-2 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}><div className="h-full rounded-full bg-primary transition-all" style={{width: progress + "%"}}/></div>}
           </div>}
-          <p className="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground"><Info size={15} className="mt-0.5 shrink-0 text-accent"/> Para melhores resultados, capture o extrato inteiro, com data, descrição e valor legíveis. Evite imagens borradas ou cortadas.</p>
+          <p className="mt-3 flex items-start gap-2 text-[11px] leading-relaxed text-muted-foreground"><Info size={15} className="mt-0.5 shrink-0 text-warning"/> Para melhores resultados, capture o extrato inteiro, com data, descrição e valor legíveis. Evite imagens borradas ou cortadas.</p>
         </section>
 
         <section className="finance-surface rounded-3xl border border-border bg-card p-4 sm:p-6">
@@ -302,7 +302,7 @@ function StatementImportPage() {
       </div>
 
       {error && <p role="alert" className="mt-5 rounded-2xl border border-destructive/35 bg-destructive/10 px-4 py-3 text-sm font-semibold leading-relaxed text-destructive"><AlertTriangle size={18} className="mr-2 inline"/>{error}</p>}
-      {notes.length > 0 && <div className="mt-5 rounded-xl border border-accent/25 bg-accent/7 p-3 text-xs text-muted-foreground">{notes.slice(-3).map((note, i) => <p key={i}>{note}</p>)}</div>}
+      {notes.length > 0 && <div className="mt-5 rounded-xl border border-warning/25 bg-warning/7 p-3 text-xs text-muted-foreground">{notes.slice(-3).map((note, i) => <p key={i}>{note}</p>)}</div>}
 
       <section className="finance-surface mt-6 rounded-3xl border border-border bg-card p-4 sm:p-6" aria-labelledby="statement-review-title">
         <header className="finance-section-head">
@@ -329,26 +329,26 @@ function StatementImportPage() {
               <div className="rounded-2xl border border-border bg-secondary/20 p-3"><p className="finance-insight-label">Selecionados</p><p className="mt-2 font-display text-2xl font-extrabold tabular-nums">{selectedCount}</p></div>
               <div className="rounded-2xl border border-border bg-success/7 p-3"><p className="finance-insight-label">Entradas minhas</p><p className="mt-2 break-words font-display text-lg font-extrabold tabular-nums text-success">{brl(selectedIncome)}</p></div>
               <div className="rounded-2xl border border-border bg-destructive/7 p-3"><p className="finance-insight-label">Saídas contabilizadas</p><p className="mt-2 break-words font-display text-lg font-extrabold tabular-nums text-destructive">{brl(selectedOut)}</p></div>
-              <div className="rounded-2xl border border-border bg-accent/7 p-3"><p className="finance-insight-label">Para revisar</p><p className="mt-2 font-display text-2xl font-extrabold tabular-nums text-accent">{suspiciousCount}</p></div>
+              <div className="rounded-2xl border border-border bg-accent/7 p-3"><p className="finance-insight-label">Para revisar</p><p className="mt-2 font-display text-2xl font-extrabold tabular-nums text-warning">{suspiciousCount}</p></div>
             </div>
             <ul className="mt-5 space-y-3">
               {rows.map((row) => {
                 const amountsValid = confirmedAmounts(row);
                 return (
-                  <li key={row.id} className={"rounded-2xl border p-3.5 sm:p-4 " + (row.warning || row.needsReview ? "border-accent/35 bg-accent/5" : "border-border bg-secondary/15")}>
+                  <li key={row.id} className={"rounded-2xl border p-3.5 sm:p-4 " + (row.warning || row.needsReview ? "border-warning/35 bg-warning/5" : "border-border bg-secondary/15")}>
                     <div className="flex flex-wrap items-start gap-3">
                       <label className="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-extrabold">
                         <input type="checkbox" checked={row.included} onChange={(event) => updateRow(row.id, { included: event.target.checked })} className="h-4 w-4 accent-[var(--primary)]"/>
                         Importar
                       </label>
-                      <span className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold " + (row.kind === "entrada" ? "bg-success/12 text-success" : row.kind === "saida" ? "bg-destructive/12 text-destructive" : "bg-accent/15 text-accent")}>
+                      <span className={"inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-extrabold " + (row.kind === "entrada" ? "bg-success/12 text-success" : row.kind === "saida" ? "bg-destructive/12 text-destructive" : "bg-warning/15 text-warning")}>
                         {row.kind === "entrada" ? <ArrowDownLeft size={13}/> : row.kind === "saida" ? <ArrowUpRight size={13}/> : <AlertTriangle size={13}/>}
                         {row.kind === "entrada" ? "Entrada" : row.kind === "saida" ? "Saída" : "Tipo não reconhecido"}
                       </span>
                       <span className="text-[11px] text-muted-foreground">{row.source}</span>
                       <button onClick={() => { setRows((old) => old.filter((r) => r.id !== row.id)); }} aria-label="Remover esta linha" className="ml-auto rounded-lg p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X size={16}/></button>
                     </div>
-                    {row.warning && <p className="mt-3 flex items-start gap-2 rounded-xl border border-accent/25 bg-accent/10 p-2.5 text-xs font-semibold leading-relaxed text-accent"><AlertTriangle size={16} className="mt-0.5 shrink-0"/> {row.warning} Você decide se deve importar.</p>}
+                    {row.warning && <p className="mt-3 flex items-start gap-2 rounded-xl border border-warning/25 bg-warning/10 p-2.5 text-xs font-semibold leading-relaxed text-warning"><AlertTriangle size={16} className="mt-0.5 shrink-0"/> {row.warning} Você decide se deve importar.</p>}
                     <div className="mt-4 grid gap-3 sm:grid-cols-[130px_minmax(0,2fr)_120px_130px]">
                       <label className="text-[11px] font-bold text-muted-foreground">Data
                         <input type="date" value={row.date} onChange={(event) => updateRow(row.id, { date: event.target.value, needsReview: false })} className={field + " mt-1"}/>

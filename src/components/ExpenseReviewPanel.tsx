@@ -165,7 +165,7 @@ export function ExpenseReviewPanel() {
           </p>
         </div>
         <span className={"rounded-full px-3 py-1.5 text-xs font-bold " +
-          (inbox.length ? "bg-accent/15 text-accent" : "bg-success/15 text-success")}>
+          (inbox.length ? "bg-warning/15 text-warning" : "bg-success/15 text-success")}>
           {inbox.length} a conferir
         </span>
       </div>
@@ -197,8 +197,8 @@ export function ExpenseReviewPanel() {
                   <p className="font-display text-lg font-extrabold tabular-nums text-destructive">−{brl(item.amount)}</p>
                 </div>
                 {related && (
-                  <div className="mt-3 flex gap-2 rounded-xl border border-accent/30 bg-accent/10 p-3 text-xs leading-relaxed text-foreground">
-                    <ShieldAlert size={17} className="mt-0.5 shrink-0 text-accent"/>
+                  <div className="mt-3 flex gap-2 rounded-xl border border-warning/30 bg-warning/10 p-3 text-xs leading-relaxed text-foreground">
+                    <ShieldAlert size={17} className="mt-0.5 shrink-0 text-warning"/>
                     <span><b>Possível duplicidade:</b> outro aplicativo notificou uma saída do mesmo valor em até 5 minutos. Compare o extrato antes de registrar. Você pode ignorar esta notificação.</span>
                   </div>
                 )}
@@ -249,7 +249,7 @@ export function ExpenseReviewPanel() {
             </span>
           </label>
           <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-            <AlertCircle size={15} className="mt-0.5 shrink-0 text-accent" />
+            <AlertCircle size={15} className="mt-0.5 shrink-0 text-warning" />
             A notificação não é comprovante de pagamento. Confira o extrato ou a fatura antes de salvar.
           </p>
           <button onClick={save} className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-bold text-primary-foreground">

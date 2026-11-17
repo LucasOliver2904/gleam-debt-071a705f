@@ -242,7 +242,7 @@ function PixPage() {
             <h2 className="mt-1 font-display text-xl font-extrabold">Pix recebidos automaticamente</h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">Estes avisos chegaram do Android, mas ainda não foram conferidos no banco nem classificados. Eles não alteram sua renda até você informar a parte que fica com você.</p>
           </div>
-          <span className={"rounded-full px-3 py-1.5 text-xs font-bold " + (inbox.length ? "bg-accent/15 text-accent" : "bg-success/15 text-success")}>{inbox.length} a conferir</span>
+          <span className={"rounded-full px-3 py-1.5 text-xs font-bold " + (inbox.length ? "bg-warning/15 text-warning" : "bg-success/15 text-success")}>{inbox.length} a conferir</span>
         </div>
         {inbox.length === 0 ? (
           <div className="mt-4 flex flex-col items-center rounded-2xl border border-dashed border-border px-5 py-8 text-center">
@@ -254,11 +254,11 @@ function PixPage() {
           <ul className="mt-4 space-y-2">
             {inbox.map((item) => (
               <li key={item.id} className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-secondary/25 p-3 sm:p-4">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent"><QrCode size={20} /></span>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-warning/15 text-warning"><QrCode size={20} /></span>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold">{item.sender ? "Pix de " + item.sender : "Pix recebido"}</p>
                   <p className="mt-1 text-xs text-muted-foreground">{new Date(item.receivedAt).toLocaleString("pt-BR")}{item.bank ? " · " + item.bank : ""}</p>
-                  <p className="mt-1 text-[11px] font-semibold text-accent">Aguardando sua conferência</p>
+                  <p className="mt-1 text-[11px] font-semibold text-warning">Aguardando sua conferência</p>
                 </div>
                 <p className="shrink-0 font-display text-lg font-extrabold tabular-nums">{brl(item.gross)}</p>
                 <div className="flex w-full gap-2 sm:w-auto">
@@ -301,11 +301,11 @@ function PixPage() {
                 <div className="grid grid-cols-3 gap-2">
                   <div><p className="text-[10px] font-extrabold text-muted-foreground">RECEBIDO</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums sm:text-base">{split ? brl(split.gross) : "—"}</p></div>
                   <div><p className="text-[10px] font-extrabold text-muted-foreground">FICA COMIGO</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums text-success sm:text-base">{split ? brl(split.kept) : "—"}</p></div>
-                  <div><p className="text-[10px] font-extrabold text-muted-foreground">A REPASSAR</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums text-accent sm:text-base">{split ? brl(split.toPassOn) : "—"}</p></div>
+                  <div><p className="text-[10px] font-extrabold text-muted-foreground">A REPASSAR</p><p className="mt-1 break-words font-display text-sm font-extrabold tabular-nums text-warning sm:text-base">{split ? brl(split.toPassOn) : "—"}</p></div>
                 </div>
                 {split && split.gross > 0 && (
                   <>
-                    <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-accent/50" role="progressbar" aria-label="Proporção do Pix que fica com você" aria-valuenow={Math.round(split.kept / split.gross * 100)} aria-valuemin={0} aria-valuemax={100}>
+                    <div className="mt-3 flex h-2.5 overflow-hidden rounded-full bg-warning/50" role="progressbar" aria-label="Proporção do Pix que fica com você" aria-valuenow={Math.round(split.kept / split.gross * 100)} aria-valuemin={0} aria-valuemax={100}>
                       <div className="h-full rounded-full bg-success transition-all duration-300" style={{ width: Math.round(split.kept / split.gross * 100) + "%" }}/>
                     </div>
                     <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{Math.round(split.kept / split.gross * 100)}% do recebimento fica com você. O restante é apenas controle de repasse.</p>
@@ -358,7 +358,7 @@ function PixPage() {
             <ArrowDownLeft size={17} /> Identificar valor
           </button>
           <div className="mt-5 space-y-2 rounded-2xl border border-border bg-secondary/40 p-4 text-xs leading-relaxed text-muted-foreground">
-            <p className="flex items-center gap-2 font-semibold text-foreground"><Info size={16} className="text-accent" /> Importante sobre a automação</p>
+            <p className="flex items-center gap-2 font-semibold text-foreground"><Info size={16} className="text-warning" /> Importante sobre a automação</p>
             <p>O site não lê diretamente as notificações de outros apps; a integração Android usa o MacroDroid para enviá-las com sua autorização. Pix e compras recebidos assim aguardam sua conferência.</p>
             <p>A mensagem colada é apenas texto informado por você: não comprova que o Pix realmente chegou. Confira o recebimento no banco antes de salvar.</p>
           </div>
@@ -401,7 +401,7 @@ function PixPage() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold">{tx.description}</p>
                       <p className="mt-0.5 truncate text-xs text-muted-foreground">{tx.date.split("-").reverse().join("/")}{pix.bank ? " · " + pix.bank : ""}{pix.sender ? " · " + pix.sender : ""}</p>
-                      <span className={"mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold " + (pix.status === "pendente" && toPassOn > 0 ? "bg-accent/15 text-accent" : "bg-success/10 text-success")}>
+                      <span className={"mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold " + (pix.status === "pendente" && toPassOn > 0 ? "bg-warning/15 text-warning" : "bg-success/10 text-success")}>
                         {toPassOn === 0 ? "Sem repasse" : pix.status === "pendente" ? "Repasse pendente" : "Repassado"}
                       </span>
                     </div>
@@ -409,7 +409,7 @@ function PixPage() {
                   <div className="flex flex-wrap gap-x-6 gap-y-2 text-xs lg:justify-end">
 <div><p className="text-muted-foreground">Recebido</p><p className="mt-0.5 font-display font-extrabold tabular-nums">{brl(pix.gross)}</p></div>
 <div><p className="text-muted-foreground">Seu ganho</p><p className="mt-0.5 font-display font-extrabold tabular-nums text-success">{brl(pix.kept)}</p></div>
-<div><p className="text-muted-foreground">Repasse</p><p className="mt-0.5 font-display font-extrabold tabular-nums text-accent">{brl(toPassOn)}</p></div>
+<div><p className="text-muted-foreground">Repasse</p><p className="mt-0.5 font-display font-extrabold tabular-nums text-warning">{brl(toPassOn)}</p></div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5 lg:ml-2">
                     {toPassOn > 0 && (

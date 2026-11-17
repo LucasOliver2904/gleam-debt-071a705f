@@ -174,8 +174,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Icon size={18} className="shrink-0" />
                 <span>{label}</span>
                 {to === "/agenda" && overdue > 0 && <span aria-label={overdue + " contas atrasadas"} className="ml-auto rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-extrabold text-destructive">{overdue > 99 ? "99+" : overdue}</span>}
-                {to === "/lancamentos" && expensesWaiting > 0 && <span aria-label={expensesWaiting + " gastos aguardando conferência"} className="ml-auto rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-extrabold text-accent">{expensesWaiting > 99 ? "99+" : expensesWaiting}</span>}
-                {to === "/pix" && pixWaiting > 0 && <span aria-label={pixWaiting + " Pix aguardando conferência"} className="ml-auto rounded-full bg-accent/15 px-1.5 py-0.5 text-[10px] font-extrabold text-accent">{pixWaiting > 99 ? "99+" : pixWaiting}</span>}
+                {to === "/lancamentos" && expensesWaiting > 0 && <span aria-label={expensesWaiting + " gastos aguardando conferência"} className="ml-auto rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-extrabold text-warning">{expensesWaiting > 99 ? "99+" : expensesWaiting}</span>}
+                {to === "/pix" && pixWaiting > 0 && <span aria-label={pixWaiting + " Pix aguardando conferência"} className="ml-auto rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-extrabold text-warning">{pixWaiting > 99 ? "99+" : pixWaiting}</span>}
                 {on && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
               </Link>
             );
@@ -264,8 +264,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {on && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
                 <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : ""}`}>
                   <Icon size={20} strokeWidth={on ? 2.5 : 2} />
-                  {to === "/pix" && pixWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}
-                  {to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-accent" />}
+                  {to === "/pix" && pixWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-warning" />}
+                  {to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-warning" />}
                 </span>
                 <span>{short}</span>
               </Link>
