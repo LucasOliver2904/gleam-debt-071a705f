@@ -10,7 +10,7 @@ export const TYPE_INFO: Record<DebtType, { label: string; short: string; desc: s
   fixa: { label: "Fixa (todo mês)", short: "Fixa", desc: "Conta recorrente, repete todos os meses" },
   unica: { label: "Só este mês", short: "Única", desc: "Paga uma única vez, em um mês" },
 };
-export const CATEGORIES = ["Cartão", "Empréstimo", "Compras", "Alimentação", "Mercado", "Pix", "Moradia", "Contas da casa", "Assinaturas", "Transporte", "Saúde", "Educação", "Lazer", "Pessoas", "Outros"] as const;
+export const CATEGORIES = ["Cartão", "Empréstimo", "Compras", "Shopee", "Alimentação", "Mercado", "Pix", "Moradia", "Contas da casa", "Assinaturas", "Transporte", "Saúde", "Educação", "Lazer", "Pessoas", "Outros"] as const;
 export type Recurring = { amount: number; start: string; end?: string | undefined };
 export type Payment = { amount: number; paid: boolean };
 export type Debt = { id: string; name: string; type: DebtType; due?: number | undefined; category?: string | undefined; note?: string | undefined; recurring?: Recurring | undefined; skipped?: string[] | undefined; payments: Record<string, Payment> };
@@ -52,7 +52,7 @@ export type ExpenseAuto = {
 };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData; expenseAuto?: ExpenseAuto; excludedFromTotals?: boolean; statement?: { source: string; importedAt: string } };
 export type SavingsGoal = { id: string; name: string; target: number; saved: number; deadline?: string; createdAt: string };
-export type State = { debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
+export type State = { customCategories?: Record<string, true> | undefined; debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
 
 export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
 // Chaves locais separadas por UID. Nunca expor os dados de outra conta ao trocar login.
@@ -182,7 +182,8 @@ function guessCategory(d: Debt) {
   const n = d.name.toLowerCase();
   if (/spotify|netflix|prime|disney|hbo|youtube/.test(n)) return "Assinaturas";
   if (/tim|vivo|claro|oi |luz|água|agua|internet|energia/.test(n)) return "Contas da casa";
-  if (/shopee|mercado|amazon|magalu/.test(n)) return "Compras";
+  if (/shopee/.test(n)) return "Shopee";
+  if (/mercado|amazon|magalu/.test(n)) return "Compras";
   if (/card|cartão|cartao|nubank|itaú|itau|nacional/.test(n)) return "Cartão";
   if (/sicredi|empr|banco/.test(n)) return "Empréstimo";
   if (/aula|curso|escola/.test(n)) return "Educação";
@@ -396,6 +397,20 @@ export function useFinance(): State & { ready: boolean } {
     () => EMPTY,
   );
   return { ...s, ready: s !== EMPTY };
+}
+
+export function categoryOptions(s: State): string[] {
+  const additional = [
+    ...Object.keys(s.customCategories ?? {}),
+    ...s.debts.map((d) => d.category),
+    ...s.txs.map((t) => t.category),
+    ...Object.values(s.budgets ?? {}).flatMap((b) => Object.keys(b)),
+  ].filter((v): v is string => typeof v === "string" && v.trim().length > 0);
+  return [...new Set<string>([...CATEGORIES, ...additional])];
+}
+
+export function useCategories() {
+  return categoryOptions(useFinance());
 }
 
 export function allMonths(s: State) {

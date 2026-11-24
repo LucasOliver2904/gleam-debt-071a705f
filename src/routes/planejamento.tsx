@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
 import {
-  CATEGORIES, addMonths, brl, currentMonth, monthLabel, monthSummary,
+  useCategories, addMonths, brl, currentMonth, monthLabel, monthSummary,
   parseMoney, setState, uid, useFinance, type SavingsGoal,
 } from "@/lib/finance";
 import { budgetRows, financeCsv, projection } from "@/lib/planning";
@@ -118,6 +118,7 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
 }
 
 function Planejamento() {
+  const categories = useCategories();
   const valuesHidden = useMoneyPrivacy();
   const s = useFinance();
   const [month, setMonth] = useState(currentMonth());
@@ -271,7 +272,7 @@ function Planejamento() {
           <p className="mt-2 text-sm text-muted-foreground">Defina quanto pretende gastar em cada categoria neste mês.</p>
           <div className="mt-5 grid gap-2 sm:grid-cols-[1fr_130px_auto]">
             <select aria-label="Categoria do limite" className={input} value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
+              {categories.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
             <input aria-label="Valor limite da categoria" className={input} value={limit} inputMode="decimal" placeholder="R$ 0,00" onChange={(e) => setLimit(e.target.value)} />
             <button onClick={setBudget} className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2.5 text-xs font-bold text-primary-foreground"><Plus size={16} /> Salvar</button>

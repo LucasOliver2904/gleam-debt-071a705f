@@ -6,7 +6,7 @@ import {
   Pencil, ShieldAlert, ShoppingBag, Trash2, Wallet, X,
 } from "lucide-react";
 import { toast } from "sonner";
-import { brl, CATEGORIES, parseMoney, setState, uid, useFinance, type ExpenseInboxItem, type Tx } from "@/lib/finance";
+import { brl, useCategories, parseMoney, setState, uid, useFinance, type ExpenseInboxItem, type Tx } from "@/lib/finance";
 import { findRelatedNotification } from "@/lib/notification-events";
 
 const control = "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/15";
@@ -35,6 +35,7 @@ type Draft = {
 };
 
 export function ExpenseReviewPanel() {
+  const categories = useCategories();
   const state = useFinance();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [showAll, setShowAll] = useState(false);
@@ -238,7 +239,7 @@ export function ExpenseReviewPanel() {
             </label>
             <label className="text-xs font-semibold text-muted-foreground">Categoria
               <select className={control + " mt-1.5"} value={draft.category} onChange={(e) => setDraft((s) => s && { ...s, category: e.target.value })}>
-                {CATEGORIES.map((category) => <option value={category} key={category}>{category}</option>)}
+                {categories.map((category) => <option value={category} key={category}>{category}</option>)}
               </select>
             </label>
           </div>

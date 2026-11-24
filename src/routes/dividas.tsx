@@ -1,5 +1,6 @@
 import { setMoneyHidden, useMoneyPrivacy } from "@/lib/money-privacy";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { CategoryReport } from "@/components/CategoryReport";
 import { PrivateEditor } from "@/components/PrivateEditor";
 import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute } from "@tanstack/react-router";
@@ -7,7 +8,7 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
-import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, CATEGORIES, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
+import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, useCategories, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
 
 export const Route = createFileRoute("/dividas")({
   head: () => ({
@@ -33,6 +34,7 @@ function Dividas() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Debt | null>(null);
   const [q, setQ] = useState("");
+  const [showReport, setShowReport] = useState(false);
   if (!s.ready) return <AppShell><div /></AppShell>;
   const months = allMonths(s);
   const cm = currentMonth();
@@ -56,8 +58,9 @@ function Dividas() {
           <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Contas e parcelas</h1>
           <p className="mt-1 hidden md:block text-sm text-muted-foreground">Clique numa parcela para marcar como paga / pendente. Clique na renda base prevista para editar.</p>
         </div>
-        <button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova conta</button>
+        <div className="flex flex-wrap gap-2"><button type="button" aria-expanded={showReport} onClick={() => setShowReport((v) => !v)} className="rounded-xl border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">{showReport ? "Fechar relatório" : "Relatório por categoria"}</button><button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova conta</button></div>
       </div>
+      {showReport && <CategoryReport state={s} />}
       <div className="mt-6 hidden grid-cols-2 gap-3 md:grid lg:grid-cols-4">
         <Stat label="Parcelas em aberto" value={brl(totalRemaining)} tone={totalRemaining > 0 ? "neg" : "pos"} icon={Wallet} hint="Não inclui contas fixas futuras"/>
         <Stat label="A pagar neste mês" value={brl(summary.pending)} tone={summary.pending > 0 ? "neg" : "pos"} icon={CalendarClock}/>
@@ -254,10 +257,11 @@ function TypePicker({ value, onChange }: { value: DebtType; onChange: (t: DebtTy
 }
 
 function CategorySelect({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const categories = useCategories();
   return (
     <label className="block text-sm">Categoria
       <select className={input + " mt-1"} value={value} onChange={(e) => onChange(e.target.value)}>
-        {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        {categories.map((c) => <option key={c} value={c}>{c}</option>)}
       </select>
     </label>
   );

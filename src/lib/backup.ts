@@ -78,6 +78,7 @@ const stateSchema = z
       })
       .optional(),
     budgets: z.record(month, z.record(z.string().max(1000), money)).optional(),
+    customCategories: z.record(z.string().min(1).max(80), z.literal(true)).optional(),
     savingsGoals: z
       .array(
         z.object({

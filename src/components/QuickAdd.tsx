@@ -2,7 +2,7 @@ import { useId, useState } from "react";
 import { ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { toast } from "sonner";
 import {
-  CATEGORIES,
+  useCategories,
   getFinanceUser,
   getState,
   localToday,
@@ -25,6 +25,7 @@ const input =
   "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 export function QuickAdd({ onClose }: { onClose: () => void }) {
+  const categories = useCategories();
   const formId = useId();
   const finances = useFinance();
   const [ownerId] = useState(getFinanceUser);
@@ -215,7 +216,7 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
               value={category}
               onChange={(event) => setCategory(event.target.value)}
             >
-              {CATEGORIES.map((item) => (
+              {categories.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>

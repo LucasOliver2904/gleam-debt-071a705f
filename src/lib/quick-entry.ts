@@ -1,4 +1,4 @@
-import { CATEGORIES, type Tx } from "./finance";
+import { type Tx } from "./finance";
 
 export type QuickEntryShortcut = Pick<Tx, "description" | "category" | "kind">;
 
@@ -23,7 +23,7 @@ export function quickEntryShortcuts(txs: Tx[]): QuickEntryShortcut[] {
     const shortcut: QuickEntryShortcut = {
       description,
       kind: tx.kind,
-      category: CATEGORIES.find((category) => category === tx.category) ?? "Outros",
+      category: tx.category?.trim() || "Outros",
     };
     const key = shortcutKey(shortcut);
     const previous = grouped.get(key);

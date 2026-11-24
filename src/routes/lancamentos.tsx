@@ -7,7 +7,7 @@ import { AppShell, Stat } from "@/components/AppShell";
 import { ExpenseReviewPanel } from "@/components/ExpenseReviewPanel";
 import { TransactionEditor } from "@/components/TransactionEditor";
 import { filterTransactions, transactionTotals, transactionsCsv, type TransactionFilter } from "@/lib/transaction-tools";
-import { brl, CATEGORIES, currentMonth, localToday, monthLabel, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
+import { brl, useCategories, currentMonth, localToday, monthLabel, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
 
 export const Route = createFileRoute("/lancamentos")({
   head: () => ({
@@ -24,6 +24,7 @@ export const Route = createFileRoute("/lancamentos")({
 const input = "w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
 
 function Lancamentos() {
+  const categories = useCategories();
   const s = useFinance();
   const [kind, setKind] = useState<Tx["kind"]>("saida");
   const [desc, setDesc] = useState("");
@@ -136,7 +137,7 @@ function Lancamentos() {
           <input className={input} placeholder="Descrição (ex: Mercado, Freela...)" value={desc} onChange={(e) => setDesc(e.target.value)} />
           <input className={input} placeholder="Valor R$" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} />
           <input className={input} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-          <select aria-label="Categoria" className={input} value={category} onChange={(e) => setCategory(e.target.value)}>{CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}</select>
+          <select aria-label="Categoria" className={input} value={category} onChange={(e) => setCategory(e.target.value)}>{categories.map((item) => <option key={item} value={item}>{item}</option>)}</select>
           <button
             onClick={add}
             className={`rounded-xl px-5 py-2.5 text-sm font-semibold text-primary-foreground transition hover:opacity-90 ${kind === "entrada" ? "bg-success" : "bg-primary"}`}
@@ -188,7 +189,7 @@ function Lancamentos() {
           <label className="min-w-0"><span className="finance-field-label">Categoria</span>
             <select aria-label="Filtrar categoria" className={input} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
               <option value="todas">Todas as categorias</option>
-              {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+              {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
             </select>
           </label>
           <label className="min-w-0"><span className="finance-field-label">Ordem</span>

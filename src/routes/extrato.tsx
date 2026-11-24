@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
-import { brl, CATEGORIES, getState, localToday, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
+import { brl, useCategories, getState, localToday, parseMoney, setState, uid, useFinance, type Tx } from "@/lib/finance";
 import { parseStatementText, statementCategory, statementDuplicate, type StatementRow, type StatementKind } from "@/lib/statement-import";
 
 export const Route = createFileRoute("/extrato")({
@@ -33,6 +33,7 @@ function firstName(description: string): string | undefined {
 }
 
 function StatementImportPage() {
+  const categories = useCategories();
   const s = useFinance();
   const [files, setFiles] = useState<File[]>([]);
   const [source, setSource] = useState("Meu banco");
@@ -372,7 +373,7 @@ function StatementImportPage() {
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
                       <label className="text-[11px] font-bold text-muted-foreground">Categoria
                         <select className={field + " mt-1"} value={row.category} onChange={(event) => updateRow(row.id, { category: event.target.value })}>
-                          {CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+                          {categories.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
                         </select>
                       </label>
                       {row.kind === "entrada" ? (

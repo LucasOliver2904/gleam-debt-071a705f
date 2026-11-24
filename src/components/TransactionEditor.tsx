@@ -3,7 +3,7 @@ import { PrivateEditor } from "@/components/PrivateEditor";
 import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Check, Pencil } from "lucide-react";
 import { toast } from "sonner";
-import { CATEGORIES, getFinanceUser, getState, parseMoney, setState, type Tx } from "@/lib/finance";
+import { useCategories, getFinanceUser, getState, parseMoney, setState, type Tx } from "@/lib/finance";
 
 const field = "mt-1.5 w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary";
 
@@ -11,6 +11,7 @@ export function TransactionEditor({ transaction, onClose }: {
   transaction: Tx;
   onClose: () => void;
 }) {
+  const categories = useCategories();
   const [description, setDescription] = useState(transaction.description);
   const [amount, setAmount] = useState(String(transaction.amount).replace(".", ","));
   const [date, setDate] = useState(transaction.date);
@@ -76,7 +77,7 @@ export function TransactionEditor({ transaction, onClose }: {
           </div>
           <label className="block text-sm font-semibold">Categoria
             <select className={field} value={category} onChange={(event) => setCategory(event.target.value)}>
-              {CATEGORIES.map((item) => <option key={item} value={item}>{item}</option>)}
+              {categories.map((item) => <option key={item} value={item}>{item}</option>)}
             </select>
           </label>
           {error && <p role="alert" className="rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-2 text-xs font-semibold text-destructive">{error}</p>}
