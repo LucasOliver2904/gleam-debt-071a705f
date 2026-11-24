@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Camera, Check, CircleCheck, PenLine, QrCode } from "lucide-react";
+import { ArrowRight, Camera, Check, CircleCheck, PenLine, QrCode, Scale } from "lucide-react";
 import { brl, monthLabel, monthSummary, outstandingDebtBalance, round2, type State } from "@/lib/finance";
 import { dashboardBills, dueDescription } from "@/lib/dashboard-home";
 
@@ -170,12 +170,16 @@ export function DashboardHome({
 
       <section className="mt-5" aria-labelledby="home-quick-title">
         <h2 id="home-quick-title" className="mb-3 font-display text-base font-extrabold sm:text-lg">Acesso rápido</h2>
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
           <button type="button" onClick={() => window.dispatchEvent(new Event("prumo:quick-add"))}
             className="prumo-quick-action prumo-quick-action-main prumo-quick-action--compact flex min-w-0 items-center gap-2 rounded-2xl px-3 py-3 text-left transition hover:-translate-y-0.5" aria-label="Abrir novo lançamento">
             <PenLine size={20} className="shrink-0" />
             <strong className="text-[11px] font-extrabold leading-tight sm:text-sm">Lançar</strong>
           </button>
+          <Link to="/planejamento" hash="comparar-compra" className="prumo-quick-action prumo-quick-info prumo-quick-action--compact flex min-w-0 items-center gap-2 rounded-2xl px-3 py-3 text-left">
+            <Scale size={20} className="shrink-0 text-primary" />
+            <strong className="text-xs font-extrabold leading-tight sm:text-sm">Comparar compra</strong>
+          </Link>
           <Link to="/pix" className="prumo-quick-action prumo-quick-success prumo-quick-action--compact flex min-w-0 items-center gap-2 rounded-2xl px-3 py-3 text-left transition hover:-translate-y-0.5">
             <QrCode size={20} className="shrink-0 text-success" />
             <strong className="text-[11px] font-extrabold leading-tight sm:text-sm">Pix</strong>

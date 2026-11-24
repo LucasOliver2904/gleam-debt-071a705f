@@ -1,3 +1,4 @@
+import { PurchaseComparison } from "@/components/PurchaseComparison";
 import { useMoneyPrivacy } from "@/lib/money-privacy";
 import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
@@ -223,6 +224,8 @@ function Planejamento() {
         </div>
         <button onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition hover:border-primary/40"><Download size={16} /> Exportar CSV</button>
       </div>
+
+      <PurchaseComparison state={s} />
 
       <section className="finance-surface mt-6 overflow-hidden rounded-3xl border border-primary/30 bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
