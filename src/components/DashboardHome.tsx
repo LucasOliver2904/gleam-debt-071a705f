@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Camera, Check, CircleCheck, PenLine, QrCode, Scale } from "lucide-react";
+import { ArrowRight, Calculator, Camera, Check, CircleCheck, PenLine, QrCode, Scale } from "lucide-react";
 import { brl, monthLabel, monthSummary, outstandingDebtBalance, round2, type State } from "@/lib/finance";
 import { dashboardBills, dueDescription } from "@/lib/dashboard-home";
 

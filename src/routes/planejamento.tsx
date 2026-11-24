@@ -136,9 +136,10 @@ function Planejamento() {
   const [newDeadline, setNewDeadline] = useState("");
   const [showNewGoal, setShowNewGoal] = useState(false);
   useEffect(() => {
-    if (hash.replace(/^#/, "") !== "cabe-no-meu-mes" || !s.ready) return;
+    const target = hash.replace(/^#/, "");
+    if ((target !== "cabe-no-meu-mes" && target !== "comparar-compra") || !s.ready) return;
     const frame = window.requestAnimationFrame(() => {
-      const simulator = document.getElementById("cabe-no-meu-mes");
+      const simulator = document.getElementById(target);
       if (!simulator) return;
       simulator.focus({ preventScroll: true });
       simulator.scrollIntoView({
@@ -244,6 +245,7 @@ function Planejamento() {
         <button onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition hover:border-primary/40"><Download size={16} /> Exportar CSV</button>
       </div>
 
+      <PurchaseSimulator state={s} />
       <PurchaseComparison state={s} />
 
       <section className="finance-surface mt-6 overflow-hidden rounded-3xl border border-primary/30 bg-card p-5 sm:p-6">

@@ -5,3 +5,4 @@
 - [x] Cobrir virada de ano, arredondamento, saldo negativo, privacidade e ausência de mutação com testes.
 - [x] Validar testes, tipos, build e fluxo de navegação no celular e nos temas claro/escuro.
 - [x] Revisar o diff e registrar a alteração sem reescrever o histórico.
+- [x] Integrar o comparador à vista/parcelado recebido do repositório, mantendo os dois simuladores e atalhos.
