@@ -189,6 +189,11 @@ export function DashboardHome({
             <strong className="text-[11px] font-extrabold leading-tight sm:text-sm">Extrato</strong>
           </Link>
         </div>
+        <Link to="/planejamento" hash="cabe-no-meu-mes" className="prumo-quick-action prumo-quick-accent prumo-quick-action--compact mt-3 flex min-w-0 items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:-translate-y-0.5">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Calculator size={21} /></span>
+          <span className="min-w-0 flex-1"><strong className="block font-display text-sm font-extrabold">Cabe no meu mês?</strong><span className="mt-0.5 block text-xs text-muted-foreground">Simule uma compra parcelada sem alterar suas contas</span></span>
+          <ArrowRight size={18} className="shrink-0 text-primary" />
+        </Link>
       </section>
     </>
   );

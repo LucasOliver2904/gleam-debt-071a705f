@@ -1,8 +1,8 @@
 import { PurchaseComparison } from "@/components/PurchaseComparison";
 import { useMoneyPrivacy } from "@/lib/money-privacy";
 import { confirmAction } from "@/lib/confirm-action";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import {
   ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronLeft, ChevronRight,
   Download, Flag, Minus, PiggyBank, Plus, Sparkles, Target, Trash2, Wallet,
@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
+import { PurchaseSimulator } from "@/components/PurchaseSimulator";
 import {
   useCategories, addMonths, brl, currentMonth, monthLabel, monthSummary,
   parseMoney, setState, uid, useFinance, type SavingsGoal,
@@ -21,8 +22,12 @@ import { budgetRows, financeCsv, projection } from "@/lib/planning";
 export const Route = createFileRoute("/planejamento")({
   head: () => ({
     meta: [
-      { title: "Planejamento, limites e metas — Prumo" },
-      { name: "description", content: "Projete os próximos meses, configure limites de gastos e acompanhe suas metas de economia." },
+      { title: "Planejamento e simulador de compras — Prumo" },
+      { name: "description", content: "Simule compras parceladas, projete os próximos meses, configure limites de gastos e acompanhe suas metas." },
+      { property: "og:title", content: "Planejamento e simulador de compras — Prumo" },
+      { property: "og:description", content: "Descubra se uma compra parcelada cabe no seu mês e planeje seus próximos meses." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Planejamento,
@@ -119,6 +124,7 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
 }
 
 function Planejamento() {
+  const hash = useRouterState({ select: (router) => router.location.hash });
   const categories = useCategories();
   const valuesHidden = useMoneyPrivacy();
   const s = useFinance();
@@ -129,6 +135,19 @@ function Planejamento() {
   const [newTarget, setNewTarget] = useState("");
   const [newDeadline, setNewDeadline] = useState("");
   const [showNewGoal, setShowNewGoal] = useState(false);
+  useEffect(() => {
+    if (hash.replace(/^#/, "") !== "cabe-no-meu-mes" || !s.ready) return;
+    const frame = window.requestAnimationFrame(() => {
+      const simulator = document.getElementById("cabe-no-meu-mes");
+      if (!simulator) return;
+      simulator.focus({ preventScroll: true });
+      simulator.scrollIntoView({
+        block: "start",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [hash, s.ready]);
   if (!s.ready) return <AppShell><div /></AppShell>;
 
   const summary = monthSummary(s, month);

@@ -24,8 +24,11 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Início — Prumo" },
-      { name: "description", content: "Sua visão rápida: saldo previsto, contas e lançamentos." },
+      { name: "description", content: "Sua visão rápida: saldo previsto, contas, lançamentos e simulador de compras parceladas." },
       { property: "og:title", content: "Início — Prumo" },
+      { property: "og:description", content: "Acompanhe seu mês e simule se uma nova compra cabe no seu orçamento." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Dashboard,

@@ -109,6 +109,76 @@ export function projection(s: State, start: string, count = 6) {
   });
 }
 
+export type PurchaseSimulationInput = {
+  total: number;
+  installments: number;
+  firstMonth: string;
+};
+
+export type PurchaseSimulationRow = {
+  month: string;
+  installment: number;
+  incomeKnown: boolean;
+  current: ReturnType<typeof monthSummary>;
+  withPurchase: ReturnType<typeof monthSummary>;
+};
+
+export function splitInstallments(total: number, installments: number) {
+  if (!Number.isFinite(total) || total <= 0 || total > 1e10) {
+    throw new Error("Informe um valor total maior que zero e dentro do limite permitido.");
+  }
+  if (!Number.isInteger(installments) || installments < 1 || installments > 36) {
+    throw new Error("Escolha entre 1 e 36 parcelas.");
+  }
+  const totalCents = Math.round(total * 100);
+  if (totalCents < 1) throw new Error("Informe um valor total de pelo menos um centavo.");
+  const base = Math.floor(totalCents / installments);
+  const extraCents = totalCents % installments;
+  return Array.from({ length: installments }, (_, index) =>
+    (base + (index < extraCents ? 1 : 0)) / 100,
+  );
+}
+
+export function hasIncomeInformation(s: State, month: string) {
+  return Object.hasOwn(s.income, month) || s.txs.some(
+    (tx) => tx.kind === "entrada" && tx.date.startsWith(month),
+  );
+}
+
+/** Cria uma cópia somente em memória: nenhuma conta ou lançamento real é alterado. */
+export function simulatePurchase(s: State, input: PurchaseSimulationInput) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(input.firstMonth) || Number(input.firstMonth.slice(0, 4)) < 1000) {
+    throw new Error("Escolha um primeiro mês válido.");
+  }
+  const amounts = splitInstallments(input.total, input.installments);
+  const payments = Object.fromEntries(amounts.map((amount, index) => [
+    addMonths(input.firstMonth, index),
+    { amount, paid: false },
+  ]));
+  const temporaryDebt: Debt = {
+    id: "__simulacao_cabe_no_meu_mes__",
+    name: "Simulação temporária",
+    type: "parcelada",
+    payments,
+  };
+  const currentRows = projection(s, input.firstMonth, input.installments);
+  const purchaseRows = projection({ ...s, debts: [...s.debts, temporaryDebt] }, input.firstMonth, input.installments);
+  const rows: PurchaseSimulationRow[] = currentRows.map((current, index) => ({
+    month: current.month,
+    installment: amounts[index]!,
+    incomeKnown: hasIncomeInformation(s, current.month),
+    current,
+    withPurchase: purchaseRows[index]!,
+  }));
+  const tightest = rows.reduce(
+    (lowest, row) => row.withPurchase.balance < lowest.withPurchase.balance ? row : lowest,
+    rows[0]!,
+  );
+  const firstShortage = rows.find((row) => row.withPurchase.balance < 0) ?? null;
+  const missingIncomeMonths = rows.filter((row) => !row.incomeKnown).map((row) => row.month);
+  return { amounts, rows, tightest, firstShortage, missingIncomeMonths };
+}
+
 function csvCell(value: string | number) {
   const v = String(value);
   // Never interpret a user-supplied description as a formula in spreadsheet software.
