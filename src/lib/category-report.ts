@@ -1,7 +1,7 @@
 import { round2, type State } from "./finance";
 import { dueDate, localDayKey } from "./planning";
 
-export type ReportFilter = { category?: string; from?: string; to?: string };
+export type ReportFilter = { category?: string | undefined; from?: string | undefined; to?: string | undefined };
 export type ReportEntry = { id: string; date: string; category: string; name: string; amount: number; paid: boolean; source: "Conta" | "Lançamento" };
 
 export function categoryReport(state: State, filter: ReportFilter = {}) {
