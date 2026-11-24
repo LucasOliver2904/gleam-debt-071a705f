@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   ArrowLeftRight,
+  History,
   CalendarDays,
   QrCode,
   Target,
@@ -32,6 +33,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 const NAV = [
   { to: "/", label: "Painel", short: "Início", icon: LayoutDashboard },
   { to: "/dividas", label: "Contas", short: "Contas", icon: Wallet },
+  { to: "/historico", label: "Histórico de gastos", short: "Histórico", icon: History },
   { to: "/agenda", label: "Agenda", short: "Agenda", icon: CalendarDays },
   { to: "/pix", label: "Pix e repasses", short: "Pix", icon: QrCode },
   { to: "/lancamentos", label: "Lançamentos", short: "Lançamentos", icon: ArrowLeftRight },
@@ -41,7 +43,7 @@ const NAV = [
 ] as const;
 
 const MOBILE_ITEMS = NAV.filter((item) => ["/", "/dividas", "/pix", "/lancamentos"].includes(item.to));
-const MORE_ITEMS = NAV.filter((item) => ["/agenda", "/extrato", "/planejamento", "/ajustes"].includes(item.to));
+const MORE_ITEMS = NAV.filter((item) => ["/historico", "/agenda", "/extrato", "/planejamento", "/ajustes"].includes(item.to));
 
 const isActive = (path: string, to: string) =>
   to === "/" ? path === "/" : path.startsWith(to);
@@ -106,7 +108,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="finance-page-accent min-h-screen bg-background text-foreground">
       <aside className="finance-nav fixed inset-y-0 left-0 z-40 hidden w-[266px] flex-col border-r border-sidebar-border backdrop-blur-xl lg:flex">
         <Brand />
-        <nav aria-label="Menu principal" className="flex-1 space-y-1 px-3 pt-7"><p className="mb-4 px-3 text-[10px] font-extrabold tracking-[0.19em] text-muted-foreground">MEU ESPAÇO</p>
+        <nav aria-label="Menu principal" className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pt-7"><p className="mb-4 px-3 text-[10px] font-extrabold tracking-[0.19em] text-muted-foreground">MEU ESPAÇO</p>
           {NAV.map(({ to, label, icon: Icon }) => {
             const on = isActive(path, to);
             return (
@@ -148,6 +150,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Prumo</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
           </Link>
           <div className="flex items-center gap-1.5">
+            <Link to="/historico" aria-label="Abrir histórico de gastos" className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary"><History size={19}/></Link>
             <PrivacyToggle compact />
             <Link to="/agenda" aria-label={overdue > 0 ? `${overdue} contas atrasadas. Ver agenda` : "Abrir agenda"} className="relative grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary">
               <BellRing size={18} />
@@ -176,8 +179,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {moreOpen && (
         <Dialog open onOpenChange={setMoreOpen}>
-          <DialogContent className="bottom-[calc(5.9rem+env(safe-area-inset-bottom))] left-3 right-3 top-auto max-h-[calc(100dvh-8rem)] w-auto max-w-none translate-x-0 translate-y-0 rounded-2xl border-border bg-card p-4 lg:hidden">
-            <DialogHeader><p className="finance-kicker">NAVEGAÇÃO</p><DialogTitle className="font-display text-lg font-bold">Mais do Prumo</DialogTitle><DialogDescription className="sr-only">Acesse agenda, extrato, planejamento e ajustes.</DialogDescription></DialogHeader>
+          <DialogContent className="bottom-[calc(5.9rem+env(safe-area-inset-bottom))] left-3 right-3 top-auto max-h-[calc(100dvh-8rem)] overflow-y-auto w-auto max-w-none translate-x-0 translate-y-0 rounded-2xl border-border bg-card p-4 lg:hidden">
+            <DialogHeader><p className="finance-kicker">NAVEGAÇÃO</p><DialogTitle className="font-display text-lg font-bold">Mais do Prumo</DialogTitle><DialogDescription className="sr-only">Acesse histórico de gastos, agenda, extrato, planejamento e ajustes.</DialogDescription></DialogHeader>
             <div className="mt-3 grid gap-2">
               {MORE_ITEMS.map(({ to, label, icon: Icon }) => (
                 <Link key={to} to={to} onClick={() => setMoreOpen(false)} className="flex items-center gap-3 rounded-2xl border border-border bg-secondary/30 px-3 py-3 text-sm font-semibold transition hover:border-primary/40 hover:bg-primary/5">

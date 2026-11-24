@@ -14,6 +14,7 @@ import { Route as AgendaRouteImport } from './routes/agenda'
 import { Route as AjustesRouteImport } from './routes/ajustes'
 import { Route as DividasRouteImport } from './routes/dividas'
 import { Route as ExtratoRouteImport } from './routes/extrato'
+import { Route as HistoricoRouteImport } from './routes/historico'
 import { Route as LancamentosRouteImport } from './routes/lancamentos'
 import { Route as PixRouteImport } from './routes/pix'
 import { Route as PlanejamentoRouteImport } from './routes/planejamento'
@@ -43,6 +44,11 @@ const DividasRoute = DividasRouteImport.update({
 const ExtratoRoute = ExtratoRouteImport.update({
   id: '/extrato',
   path: '/extrato',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoricoRoute = HistoricoRouteImport.update({
+  id: '/historico',
+  path: '/historico',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LancamentosRoute = LancamentosRouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
   '/extrato': typeof ExtratoRoute
+  '/historico': typeof HistoricoRoute
   '/lancamentos': typeof LancamentosRoute
   '/pix': typeof PixRoute
   '/planejamento': typeof PlanejamentoRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
   '/extrato': typeof ExtratoRoute
+  '/historico': typeof HistoricoRoute
   '/lancamentos': typeof LancamentosRoute
   '/pix': typeof PixRoute
   '/planejamento': typeof PlanejamentoRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/ajustes': typeof AjustesRoute
   '/dividas': typeof DividasRoute
   '/extrato': typeof ExtratoRoute
+  '/historico': typeof HistoricoRoute
   '/lancamentos': typeof LancamentosRoute
   '/pix': typeof PixRoute
   '/planejamento': typeof PlanejamentoRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/ajustes'
     | '/dividas'
     | '/extrato'
+    | '/historico'
     | '/lancamentos'
     | '/pix'
     | '/planejamento'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/ajustes'
     | '/dividas'
     | '/extrato'
+    | '/historico'
     | '/lancamentos'
     | '/pix'
     | '/planejamento'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/ajustes'
     | '/dividas'
     | '/extrato'
+    | '/historico'
     | '/lancamentos'
     | '/pix'
     | '/planejamento'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   AjustesRoute: typeof AjustesRoute
   DividasRoute: typeof DividasRoute
   ExtratoRoute: typeof ExtratoRoute
+  HistoricoRoute: typeof HistoricoRoute
   LancamentosRoute: typeof LancamentosRoute
   PixRoute: typeof PixRoute
   PlanejamentoRoute: typeof PlanejamentoRoute
@@ -195,6 +208,13 @@ declare module '@tanstack/react-router' {
       path: '/extrato'
       fullPath: '/extrato'
       preLoaderRoute: typeof ExtratoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historico': {
+      id: '/historico'
+      path: '/historico'
+      fullPath: '/historico'
+      preLoaderRoute: typeof HistoricoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/lancamentos': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   AjustesRoute: AjustesRoute,
   DividasRoute: DividasRoute,
   ExtratoRoute: ExtratoRoute,
+  HistoricoRoute: HistoricoRoute,
   LancamentosRoute: LancamentosRoute,
   PixRoute: PixRoute,
   PlanejamentoRoute: PlanejamentoRoute,

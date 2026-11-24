@@ -1,4 +1,5 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { History, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AppShell } from "@/components/AppShell";
@@ -113,6 +114,7 @@ function Dashboard() {
       <PendingReviewBanner state={state} />
       <FirstSteps key={getFinanceUser()} state={state} />
       <DashboardHome state={state} month={month} onPay={pay} />
+      <Link to="/historico" className="finance-surface mt-4 flex items-center gap-3 rounded-2xl border border-primary/30 bg-card p-4 hover:border-primary"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><History size={22}/></span><span className="min-w-0 flex-1"><span className="block font-display font-bold">Histórico de gastos</span><span className="block text-xs text-muted-foreground">Consulte seus pagamentos por categoria e período</span></span><ArrowRight size={18} className="shrink-0 text-primary"/></Link>
       <WeeklyOverview state={state} />
       <RecentActivity state={state} />
     </AppShell>
