@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
-bun x wrangler@4 dev --config dist/server/wrangler.json --local --port 4173 --ip 127.0.0.1 > /tmp/meu-caixa-preview.log 2>&1 &
+config=.output/server/wrangler.json
+if [[ ! -f "$config" ]]; then config=dist/server/wrangler.json; fi
+bun x wrangler@4 dev --config "$config" --local --port 4173 --ip 127.0.0.1 > /tmp/meu-caixa-preview.log 2>&1 &
 PREVIEW_PID=$!
 trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
 ok=0

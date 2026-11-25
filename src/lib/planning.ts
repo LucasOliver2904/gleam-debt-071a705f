@@ -132,6 +132,7 @@ export function splitInstallments(total: number, installments: number) {
   }
   const totalCents = Math.round(total * 100);
   if (totalCents < 1) throw new Error("Informe um valor total de pelo menos um centavo.");
+  if (totalCents < installments) throw new Error("Cada parcela precisa valer pelo menos um centavo.");
   const base = Math.floor(totalCents / installments);
   const extraCents = totalCents % installments;
   return Array.from({ length: installments }, (_, index) =>
@@ -170,11 +171,12 @@ export function simulatePurchase(s: State, input: PurchaseSimulationInput) {
     current,
     withPurchase: purchaseRows[index]!,
   }));
-  const tightest = rows.reduce(
-    (lowest, row) => row.withPurchase.balance < lowest.withPurchase.balance ? row : lowest,
-    rows[0]!,
+  const knownRows = rows.filter(row => row.incomeKnown);
+  const tightest = knownRows.reduce<PurchaseSimulationRow | null>(
+    (lowest, row) => !lowest || row.withPurchase.balance < lowest.withPurchase.balance ? row : lowest,
+    null,
   );
-  const firstShortage = rows.find((row) => row.withPurchase.balance < 0) ?? null;
+  const firstShortage = knownRows.find(row => row.withPurchase.balance < 0) ?? null;
   const missingIncomeMonths = rows.filter((row) => !row.incomeKnown).map((row) => row.month);
   return { amounts, rows, tightest, firstShortage, missingIncomeMonths };
 }

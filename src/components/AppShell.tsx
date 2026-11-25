@@ -36,7 +36,7 @@ const NAV = [
   { to: "/historico", label: "Histórico de gastos", short: "Histórico", icon: History },
   { to: "/agenda", label: "Agenda", short: "Agenda", icon: CalendarDays },
   { to: "/pix", label: "Pix e repasses", short: "Pix", icon: QrCode },
-  { to: "/lancamentos", label: "Lançamentos", short: "Lançamentos", icon: ArrowLeftRight },
+  { to: "/lancamentos", label: "Lançamentos", short: "Movimentos", icon: ArrowLeftRight },
   { to: "/extrato", label: "Importar extrato", short: "Extrato", icon: FileImage },
   { to: "/planejamento", label: "Planejamento", short: "Planos", icon: Target },
   { to: "/ajustes", label: "Ajustes", short: "Ajustes", icon: Settings },

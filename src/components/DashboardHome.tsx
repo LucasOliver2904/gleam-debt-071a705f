@@ -1,6 +1,6 @@
 import { useId, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Calculator, Camera, Check, CircleCheck, PenLine, QrCode, Scale } from "lucide-react";
+import { ArrowRight, BadgePercent, Calculator, Camera, Check, ChevronRight, CircleCheck, PenLine, QrCode, Scale } from "lucide-react";
 import { brl, monthLabel, monthSummary, outstandingDebtBalance, round2, type State } from "@/lib/finance";
 import { dashboardBills, dueDescription } from "@/lib/dashboard-home";
 
@@ -170,16 +170,12 @@ export function DashboardHome({
 
       <section className="mt-5" aria-labelledby="home-quick-title">
         <h2 id="home-quick-title" className="mb-3 font-display text-base font-extrabold sm:text-lg">Acesso rápido</h2>
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
+        <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
           <button type="button" onClick={() => window.dispatchEvent(new Event("prumo:quick-add"))}
             className="prumo-quick-action prumo-quick-action-main prumo-quick-action--compact flex min-w-0 items-center gap-2 rounded-2xl px-3 py-3 text-left transition hover:-translate-y-0.5" aria-label="Abrir novo lançamento">
             <PenLine size={20} className="shrink-0" />
             <strong className="text-[11px] font-extrabold leading-tight sm:text-sm">Lançar</strong>
           </button>
-          <Link to="/planejamento" hash="comparar-compra" className="prumo-quick-action prumo-quick-info prumo-quick-action--compact flex min-w-0 items-center gap-2 rounded-2xl px-3 py-3 text-left">
-            <Scale size={20} className="shrink-0 text-primary" />
-            <strong className="text-xs font-extrabold leading-tight sm:text-sm">Comparar compra</strong>
-          </Link>
           <Link to="/pix" className="prumo-quick-action prumo-quick-success prumo-quick-action--compact flex min-w-0 items-center gap-2 rounded-2xl px-3 py-3 text-left transition hover:-translate-y-0.5">
             <QrCode size={20} className="shrink-0 text-success" />
             <strong className="text-[11px] font-extrabold leading-tight sm:text-sm">Pix</strong>
@@ -189,11 +185,21 @@ export function DashboardHome({
             <strong className="text-[11px] font-extrabold leading-tight sm:text-sm">Extrato</strong>
           </Link>
         </div>
-        <Link to="/planejamento" hash="cabe-no-meu-mes" className="prumo-quick-action prumo-quick-accent prumo-quick-action--compact mt-3 flex min-w-0 items-center gap-3 rounded-2xl px-4 py-3 text-left transition hover:-translate-y-0.5">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary"><Calculator size={21} /></span>
-          <span className="min-w-0 flex-1"><strong className="block font-display text-sm font-extrabold">Cabe no meu mês?</strong><span className="mt-0.5 block text-xs text-muted-foreground">Simule uma compra parcelada sem alterar suas contas</span></span>
-          <ArrowRight size={18} className="shrink-0 text-primary" />
-        </Link>
+        <h2 id="home-simulators-title" className="mb-2 mt-5 font-display text-base font-extrabold sm:text-lg">Simuladores</h2>
+        <nav aria-labelledby="home-simulators-title" className="grid overflow-hidden rounded-2xl border border-border bg-card sm:grid-cols-3">
+          {([
+            ["cabe-no-meu-mes", "Cabe no meu mês?", Calculator],
+            ["comparar-compra", "À vista ou parcelado?", Scale],
+            ["antecipar-parcelas", "Vale antecipar?", BadgePercent],
+          ] as const).map(([hash, label, Icon]) => (
+            <Link key={hash} to="/planejamento" hash={hash}
+              className="flex min-h-12 min-w-0 items-center gap-2.5 border-b border-border px-3 py-2.5 text-sm font-semibold last:border-0 hover:bg-secondary/45 focus-visible:outline-primary sm:border-b-0 sm:border-r">
+              <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon size={17} aria-hidden="true" /></span>
+              <span className="min-w-0 flex-1">{label}</span>
+              <ChevronRight size={15} aria-hidden="true" className="shrink-0 text-muted-foreground" />
+            </Link>
+          ))}
+        </nav>
       </section>
     </>
   );

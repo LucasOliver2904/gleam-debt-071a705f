@@ -48,7 +48,7 @@ describe("Simulador Cabe no meu mês?", () => {
     expect(result.firstShortage?.month).toBe("2026-11");
     expect(result.firstShortage?.current.balance).toBe(100);
     expect(result.firstShortage?.withPurchase.balance).toBe(-100);
-    expect(result.tightest.withPurchase.balance).toBe(-100);
+    expect(result.tightest?.withPurchase.balance).toBe(-100);
   });
 
   it("não trata renda ausente como confirmação de que a compra cabe", () => {
@@ -58,7 +58,16 @@ describe("Simulador Cabe no meu mês?", () => {
     expect(result.missingIncomeMonths).toEqual(["2027-01"]);
     expect(result.rows[2]?.incomeKnown).toBe(false);
     expect(result.rows[2]?.current.balance).toBe(-900);
-    expect(result.firstShortage?.month).toBe("2027-01");
+    expect(result.firstShortage).toBeNull();
+    expect(result.tightest?.month).toBe("2026-11");
+  });
+
+  it("deixa a previsão inconclusiva quando todos os meses estão sem renda", () => {
+    const state = { ...fixture(), income: {} };
+    const result = simulatePurchase(state, { total: 30, installments: 3, firstMonth: "2026-11" });
+    expect(result.tightest).toBeNull();
+    expect(result.firstShortage).toBeNull();
+    expect(result.missingIncomeMonths).toHaveLength(3);
   });
 
   it("aceita renda zero informada e entradas avulsas como informação de renda", () => {
@@ -73,6 +82,7 @@ describe("Simulador Cabe no meu mês?", () => {
   it("rejeita quantidades fora de 1 a 36 e meses inválidos", () => {
     expect(() => splitInstallments(100, 0)).toThrow("entre 1 e 36");
     expect(() => splitInstallments(100, 37)).toThrow("entre 1 e 36");
+    expect(() => splitInstallments(0.01, 2)).toThrow("um centavo");
     expect(() => simulatePurchase(fixture(), { total: 100, installments: 2, firstMonth: "2026-13" })).toThrow("mês válido");
   });
 });

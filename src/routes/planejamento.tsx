@@ -1,8 +1,8 @@
-import { PurchaseComparison } from "@/components/PurchaseComparison";
+import { PlanningSimulators } from "@/components/PlanningSimulators";
 import { useMoneyPrivacy } from "@/lib/money-privacy";
 import { confirmAction } from "@/lib/confirm-action";
-import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useState } from "react";
 import {
   ArrowRight, ArrowUpRight, CalendarDays, Check, ChevronLeft, ChevronRight,
   Download, Flag, Minus, PiggyBank, Plus, Sparkles, Target, Trash2, Wallet,
@@ -12,7 +12,6 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
-import { PurchaseSimulator } from "@/components/PurchaseSimulator";
 import {
   useCategories, addMonths, brl, currentMonth, monthLabel, monthSummary,
   parseMoney, setState, uid, useFinance, type SavingsGoal,
@@ -22,10 +21,10 @@ import { budgetRows, financeCsv, projection } from "@/lib/planning";
 export const Route = createFileRoute("/planejamento")({
   head: () => ({
     meta: [
-      { title: "Planejamento e simulador de compras — Prumo" },
-      { name: "description", content: "Simule compras parceladas, projete os próximos meses, configure limites de gastos e acompanhe suas metas." },
-      { property: "og:title", content: "Planejamento e simulador de compras — Prumo" },
-      { property: "og:description", content: "Descubra se uma compra parcelada cabe no seu mês e planeje seus próximos meses." },
+      { title: "Planejamento, compras e antecipação de parcelas — Prumo" },
+      { name: "description", content: "Compare compras e propostas de antecipação, projete os próximos meses e acompanhe limites e metas." },
+      { property: "og:title", content: "Planejamento, compras e antecipação de parcelas — Prumo" },
+      { property: "og:description", content: "Veja o impacto de uma compra ou da antecipação de parcelas no seu mês." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -124,7 +123,6 @@ function GoalCard({ goal }: { goal: SavingsGoal }) {
 }
 
 function Planejamento() {
-  const hash = useRouterState({ select: (router) => router.location.hash });
   const categories = useCategories();
   const valuesHidden = useMoneyPrivacy();
   const s = useFinance();
@@ -135,20 +133,6 @@ function Planejamento() {
   const [newTarget, setNewTarget] = useState("");
   const [newDeadline, setNewDeadline] = useState("");
   const [showNewGoal, setShowNewGoal] = useState(false);
-  useEffect(() => {
-    const target = hash.replace(/^#/, "");
-    if ((target !== "cabe-no-meu-mes" && target !== "comparar-compra") || !s.ready) return;
-    const frame = window.requestAnimationFrame(() => {
-      const simulator = document.getElementById(target);
-      if (!simulator) return;
-      simulator.focus({ preventScroll: true });
-      simulator.scrollIntoView({
-        block: "start",
-        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-      });
-    });
-    return () => window.cancelAnimationFrame(frame);
-  }, [hash, s.ready]);
   if (!s.ready) return <AppShell><div /></AppShell>;
 
   const summary = monthSummary(s, month);
@@ -238,15 +222,13 @@ function Planejamento() {
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="finance-kicker">CONTROLE / FUTURO</p>
           <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Seu planejamento</h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">Veja o dinheiro que entra, estabeleça limites e transforme objetivos em metas reais.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Compare cenários e acompanhe a sobra de cada mês.</p>
         </div>
         <button onClick={exportCsv} className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-semibold transition hover:border-primary/40"><Download size={16} /> Exportar CSV</button>
       </div>
 
-      <PurchaseSimulator state={s} />
-      <PurchaseComparison state={s} />
+      <PlanningSimulators state={s} />
 
       <section className="finance-surface mt-6 overflow-hidden rounded-3xl border border-primary/30 bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

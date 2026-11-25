@@ -4,9 +4,10 @@ import { PrivateEditor } from "@/components/PrivateEditor";
 import { confirmAction } from "@/lib/confirm-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { ArrowDownLeft, ArrowUpRight, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, BadgePercent, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
+import { openInstallments } from "@/lib/debt-payoff";
 import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, useCategories, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
 
 export const Route = createFileRoute("/dividas")({
@@ -149,6 +150,17 @@ function TxsSection({ months, q }: { months: string[]; q: string }) {
   );
 }
 
+function PayoffLink({ debt }: { debt: Debt }) {
+  if (!openInstallments(debt).length) return null;
+  return (
+    <Link to="/planejamento" hash="antecipar-parcelas" state={{ payoffDebtId: debt.id }}
+      aria-label={"Simular antecipação de " + debt.name}
+      className="flex min-h-11 w-fit items-center gap-1.5 rounded-lg px-2 text-xs font-semibold text-primary hover:bg-primary/10 focus-visible:outline-primary md:min-h-8 md:px-0">
+      <BadgePercent size={15} aria-hidden="true" /> Simular antecipação
+    </Link>
+  );
+}
+
 function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string; onEdit: () => void }) {
   const r = debtRemaining(d);
   const isLast = d.type === "parcelada" && r.left === 1 && r.remaining > 0;
@@ -167,6 +179,7 @@ function Row({ d, months, cm, onEdit }: { d: Debt; months: string[]; cm: string;
           <span className="ml-2 rounded bg-secondary px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground">Falta 2</span>
         )}
         <span className="text-xs text-muted-foreground"> {d.due ? `· dia ${d.due} ` : ""}{d.type === "parcelada" ? `(${r.count}x)` : ""}</span>
+        <PayoffLink debt={d} />
       </td>
       {months.map((m) => {
         const p = d.payments[m];
@@ -596,6 +609,7 @@ function MobileList({ onEdit }: { onEdit: (d: Debt) => void }) {
                 className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground">
                 <Pencil size={14} />
               </button>
+              <PayoffLink debt={d} />
             </li>
           );
         })}

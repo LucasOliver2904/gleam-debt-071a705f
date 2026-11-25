@@ -434,3 +434,12 @@ html[data-theme="light"] .finance-bottom-nav {
 .finance-insight-card:hover, .finance-feature:hover, .finance-stat-card:hover { transform: none; box-shadow: none; }
 summary { min-height: 44px; }
 summary:focus-visible { outline-offset: 4px; }
+
+@media (max-width: 1023px) {
+  html { scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom)); }
+  /* Keep the quote and its result in view while typing on a small screen. */
+  .finance-page-accent:has([data-planning-simulators] input:not([type="checkbox"]):focus)
+    :is(.finance-bottom-nav, .finance-floating-action) {
+    display: none;
+  }
+}

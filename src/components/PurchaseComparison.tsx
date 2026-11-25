@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Scale } from "lucide-react";
-import { brl, currentMonth, monthLabel, parseMoney, type State } from "@/lib/finance";
+import { brl, currentMonth, monthLabel, parseBrlCents, type State } from "@/lib/finance";
 import { comparePurchase } from "@/lib/purchase-comparison";
 import { useMoneyPrivacy } from "@/lib/money-privacy";
 
@@ -13,14 +13,16 @@ export function PurchaseComparison({ state }: { state: State }) {
   const [financed, setFinanced] = useState("");
   const [count, setCount] = useState("3");
   const [start, setStart] = useState(currentMonth());
-  const result = comparePurchase(state, start, parseMoney(cash), parseMoney(financed), Number(count));
-  return <section id="comparar-compra" className="finance-surface mt-6 scroll-mt-20 rounded-3xl border border-primary/30 bg-card p-4 sm:p-6">
-    <div className="flex items-center gap-3">
-      <span className="rounded-xl bg-primary/10 p-3 text-primary"><Scale aria-hidden="true" /></span>
-      <h2 className="font-display text-xl font-bold text-foreground">À vista ou parcelado?</h2>
+  const result = comparePurchase(state, start, (parseBrlCents(cash) ?? 0) / 100, (parseBrlCents(financed) ?? 0) / 100, Number(count));
+  return <section id="comparar-compra" tabIndex={-1} aria-labelledby="comparison-title" className="finance-surface mt-3 scroll-mt-24 rounded-3xl border border-border bg-card p-4 outline-none sm:p-6">
+    <div className="flex items-start gap-3">
+      <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary/12 text-primary"><Scale size={22} aria-hidden="true" /></span>
+      <div>
+        <h2 id="comparison-title" className="font-display text-xl font-extrabold sm:text-2xl">À vista ou parcelado?</h2>
+        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">Compare o custo total das duas ofertas e a sobra prevista em cada mês.</p>
+      </div>
     </div>
     {hidden ? <p className="mt-3 text-sm text-muted-foreground">Ative “Mostrar valores” para comparar uma compra.</p> : <>
-      <p className="mt-3 text-sm text-muted-foreground">Compare o preço e a sobra prevista em cada mês antes de comprar. A simulação não cria lançamentos.</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <label className="text-sm font-semibold">Preço à vista (R$)<input className={field} inputMode="decimal" placeholder="900,00" value={cash} onChange={e => setCash(e.target.value)} /></label>
         <label className="text-sm font-semibold">Total parcelado (R$)<input className={field} inputMode="decimal" placeholder="1.000,00" value={financed} onChange={e => setFinanced(e.target.value)} /></label>

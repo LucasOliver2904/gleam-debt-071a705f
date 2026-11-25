@@ -7,7 +7,6 @@ import {
   ChevronDown,
   EyeOff,
   PiggyBank,
-  ShieldCheck,
 } from "lucide-react";
 import {
   CartesianGrid,
@@ -19,7 +18,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { brl, currentMonth, monthLabel, parseMoney, type State } from "@/lib/finance";
+import { brl, currentMonth, monthLabel, parseBrlCents, type State } from "@/lib/finance";
 import { simulatePurchase, type PurchaseSimulationInput } from "@/lib/planning";
 import { useMoneyPrivacy } from "@/lib/money-privacy";
 
@@ -51,14 +50,14 @@ export function PurchaseSimulator({ state }: { state: State }) {
   const result = calculation.result;
   const chartData = result?.rows.map((row) => ({
     label: monthLabel(row.month),
-    currentBalance: row.current.balance,
-    purchaseBalance: row.withPurchase.balance,
+    currentBalance: row.incomeKnown ? row.current.balance : null,
+    purchaseBalance: row.incomeKnown ? row.withPurchase.balance : null,
   })) ?? [];
 
   function submit(event: FormEvent) {
     event.preventDefault();
     setSubmitted({
-      total: parseMoney(total),
+      total: (parseBrlCents(total) ?? 0) / 100,
       installments: Number(installments),
       firstMonth,
     });
@@ -77,7 +76,7 @@ export function PurchaseSimulator({ state }: { state: State }) {
       id="cabe-no-meu-mes"
       tabIndex={-1}
       aria-labelledby="purchase-simulator-title"
-      className="finance-surface mt-6 scroll-mt-24 rounded-3xl border border-primary/35 bg-card p-4 outline-none sm:p-6"
+      className="finance-surface mt-3 scroll-mt-24 rounded-3xl border border-border bg-card p-4 outline-none sm:p-6"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
@@ -85,21 +84,17 @@ export function PurchaseSimulator({ state }: { state: State }) {
             <Calculator size={22} aria-hidden="true" />
           </span>
           <div>
-            <p className="finance-kicker">SIMULAÇÃO SEM SALVAR</p>
-            <h2 id="purchase-simulator-title" className="mt-1 font-display text-xl font-extrabold sm:text-2xl">
+            <h2 id="purchase-simulator-title" className="font-display text-xl font-extrabold sm:text-2xl">
               Cabe no meu mês?
             </h2>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-              Compare sua sobra atual com o impacto de uma compra parcelada antes de decidir.
+              Veja quanto sobraria em cada mês antes de assumir uma nova parcela.
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/35 px-3 py-1.5 text-[11px] font-semibold text-muted-foreground">
-          <ShieldCheck size={14} className="text-primary" aria-hidden="true" /> Não altera suas contas
-        </span>
       </div>
 
-      <form onSubmit={submit} className="mt-5 grid items-end gap-3 md:grid-cols-[minmax(0,1fr)_150px_180px_auto]">
+      <form onSubmit={submit} onChange={() => setSubmitted(null)} className="mt-5 grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_150px_180px_auto]">
         <label className="block min-w-0">
           <span className="finance-field-label">Valor total da compra</span>
           <input
@@ -174,9 +169,9 @@ export function PurchaseSimulator({ state }: { state: State }) {
                 </h3>
                 <p className="mt-1 text-sm leading-relaxed text-foreground">
                   {result.firstShortage
-                    ? `A primeira falta acontece em ${monthLabel(result.firstShortage.month, true)}: a sobra passa de ${brl(result.firstShortage.current.balance)} para ${brl(result.firstShortage.withPurchase.balance)}.`
+                    ? `Entre os meses com renda informada, o primeiro déficit aparece em ${monthLabel(result.firstShortage.month, true)}. A sobra passa de ${brl(result.firstShortage.current.balance)} para ${brl(result.firstShortage.withPurchase.balance)}.`
                     : status === "unknown"
-                      ? "Os valores disponíveis não ficam negativos, mas ainda falta informar renda para concluir a análise."
+                      ? "Informe a renda dos meses pendentes para completar a projeção."
                       : `Todas as ${result.rows.length} parcelas mantêm a sobra positiva ou zerada, considerando apenas o que já está cadastrado.`}
                 </p>
               </div>
@@ -186,7 +181,7 @@ export function PurchaseSimulator({ state }: { state: State }) {
           {result.missingIncomeMonths.length > 0 && (
             <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm leading-relaxed text-foreground">
               <CalendarDays size={18} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
-              <p><strong className="text-warning">Renda não informada:</strong> {monthList(result.missingIncomeMonths)}. Sem esses valores, a sobra é apenas uma estimativa e não uma garantia.</p>
+              <p><strong className="text-warning">Renda pendente em {monthList(result.missingIncomeMonths)}.</strong> A projeção da sobra considera apenas os meses com renda informada.</p>
             </div>
           )}
 
@@ -204,22 +199,24 @@ export function PurchaseSimulator({ state }: { state: State }) {
             </article>
             <article className="rounded-2xl border border-border bg-secondary/25 p-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Mês mais apertado</p>
-              <p className="mt-2 font-display text-lg font-extrabold">{monthLabel(result.tightest.month, true)}</p>
-              <p className={`mt-1 break-words text-sm font-bold tabular-nums ${result.tightest.withPurchase.balance < 0 ? "text-destructive" : "text-foreground"}`}>
-                Sobra com a compra: {brl(result.tightest.withPurchase.balance)}
-              </p>
-              <p className="mt-1 break-words text-xs text-muted-foreground">Hoje: {brl(result.tightest.current.balance)}</p>
+              {result.tightest ? <>
+                <p className="mt-2 font-display text-lg font-extrabold">{monthLabel(result.tightest.month, true)}</p>
+                <p className={`mt-1 break-words text-sm font-bold tabular-nums ${result.tightest.withPurchase.balance < 0 ? "text-destructive" : "text-foreground"}`}>
+                  Com a compra: {brl(result.tightest.withPurchase.balance)}
+                </p>
+                <p className="mt-1 break-words text-xs text-muted-foreground">Sem a compra: {brl(result.tightest.current.balance)}</p>
+              </> : <p className="mt-2 text-sm text-muted-foreground">Aguardando renda</p>}
             </article>
             <article className="rounded-2xl border border-border bg-secondary/25 p-4">
               <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">Primeira falta</p>
-              <p className={`mt-2 font-display text-lg font-extrabold ${result.firstShortage ? "text-destructive" : "text-success"}`}>
-                {result.firstShortage ? monthLabel(result.firstShortage.month, true) : "Nenhuma nos valores atuais"}
+              <p className={`mt-2 font-display text-lg font-extrabold ${result.firstShortage ? "text-destructive" : "text-foreground"}`}>
+                {result.firstShortage ? monthLabel(result.firstShortage.month, true) : result.missingIncomeMonths.length ? "Projeção incompleta" : "Nenhuma prevista"}
               </p>
               {result.firstShortage && <p className="mt-1 break-words text-sm font-bold tabular-nums text-destructive">Faltam {brl(Math.abs(result.firstShortage.withPurchase.balance))}</p>}
             </article>
           </div>
 
-          <div className="mt-5 rounded-2xl border border-border bg-secondary/15 p-3 sm:p-4">
+          {result.tightest && <div className="mt-5 rounded-2xl border border-border bg-secondary/15 p-3 sm:p-4">
             <div className="flex items-center gap-2">
               <PiggyBank size={18} className="text-primary" aria-hidden="true" />
               <h3 className="font-display text-base font-extrabold">Sobra mês a mês</h3>
@@ -239,8 +236,8 @@ export function PurchaseSimulator({ state }: { state: State }) {
                     <YAxis tickLine={false} axisLine={false} width={66} tick={{ fill: "var(--muted-foreground)", fontSize: 10 }} tickFormatter={(value: number) => new Intl.NumberFormat("pt-BR", { notation: "compact", maximumFractionDigits: 1 }).format(value)} />
                     <Tooltip formatter={(value: number | string) => brl(Number(value))} contentStyle={{ background: "var(--card)", color: "var(--foreground)", border: "1px solid var(--border)", borderRadius: 12 }} />
                     <ReferenceLine y={0} stroke="var(--destructive)" strokeDasharray="4 4" />
-                    <Line name="Sobra atual" type="monotone" dataKey="currentBalance" stroke="var(--info)" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
-                    <Line name="Com a compra" type="monotone" dataKey="purchaseBalance" stroke="var(--primary)" strokeWidth={3} dot={false} activeDot={{ r: 5 }} />
+                    <Line name="Sobra atual" type="linear" dataKey="currentBalance" stroke="var(--info)" strokeWidth={2.5} dot={{ r: 2 }} activeDot={{ r: 5 }} />
+                    <Line name="Com a compra" type="linear" dataKey="purchaseBalance" stroke="var(--primary)" strokeWidth={3} dot={{ r: 2 }} activeDot={{ r: 5 }} />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -249,7 +246,7 @@ export function PurchaseSimulator({ state }: { state: State }) {
               <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-5 bg-info" /> Sobra atual</span>
               <span className="inline-flex items-center gap-1.5"><i className="h-0.5 w-5 bg-primary" /> Com a compra</span>
             </div>
-          </div>
+          </div>}
 
           <details className="group mt-4 rounded-2xl border border-border bg-card">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-bold [&::-webkit-details-marker]:hidden">
@@ -265,8 +262,8 @@ export function PurchaseSimulator({ state }: { state: State }) {
                   </div>
                   <dl className="mt-3 grid grid-cols-3 gap-2">
                     <div className="min-w-0"><dt className="text-[10px] font-semibold text-muted-foreground">Parcela</dt><dd className="mt-1 break-words text-xs font-bold tabular-nums sm:text-sm">{brl(row.installment)}</dd></div>
-                    <div className="min-w-0"><dt className="text-[10px] font-semibold text-muted-foreground">Sobra atual</dt><dd className={`mt-1 break-words text-xs font-bold tabular-nums sm:text-sm ${row.current.balance < 0 ? "text-destructive" : ""}`}>{brl(row.current.balance)}</dd></div>
-                    <div className="min-w-0"><dt className="text-[10px] font-semibold text-muted-foreground">Com a compra</dt><dd className={`mt-1 break-words text-xs font-bold tabular-nums sm:text-sm ${row.withPurchase.balance < 0 ? "text-destructive" : "text-success"}`}>{brl(row.withPurchase.balance)}</dd></div>
+                    <div className="min-w-0"><dt className="text-[10px] font-semibold text-muted-foreground">Sobra atual</dt><dd className="mt-1 break-words text-xs font-bold tabular-nums sm:text-sm">{row.incomeKnown ? brl(row.current.balance) : "—"}</dd></div>
+                    <div className="min-w-0"><dt className="text-[10px] font-semibold text-muted-foreground">Com a compra</dt><dd className={`mt-1 break-words text-xs font-bold tabular-nums sm:text-sm ${row.incomeKnown && row.withPurchase.balance < 0 ? "text-destructive" : ""}`}>{row.incomeKnown ? brl(row.withPurchase.balance) : "—"}</dd></div>
                   </dl>
                 </li>
               ))}

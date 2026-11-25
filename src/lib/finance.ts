@@ -102,6 +102,18 @@ export const monthLabel = (m: string, long = false) => {
 export const brl = displayMoney;
 /** Arredonda para centavos e evita "-0" (que o formatador mostraria como "-R$ 0,00"). */
 export const round2 = (v: number) => Math.round(v * 100) / 100 + 0;
+
+/** Exact cents for manually entered offers (Brazilian grouping, or decimal dot). */
+export function parseBrlCents(raw: string): number | null {
+  const value = raw.trim().replace(/^R\$\s*/i, "");
+  const brazilian = /^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{1,2})?$/.test(value);
+  if (!brazilian && !/^\d+\.\d{1,2}$/.test(value)) return null;
+  const normalized = brazilian ? value.replace(/\./g, "").replace(",", ".") : value;
+  const [whole, fraction = ""] = normalized.split(".");
+  const cents = Number(whole + fraction.padEnd(2, "0"));
+  return Number.isSafeInteger(cents) ? cents : null;
+}
+
 export function parseMoney(raw: string): number {
   const clean = raw.replace(/R\$/gi, "").replace(/\s/g, "");
   const value = clean.includes(",") ? clean.replace(/\./g, "").replace(",", ".") : clean;
