@@ -78,6 +78,7 @@ function direction(line: string, moneySign: string): StatementKind {
 
 export function statementCategory(description: string, kind: StatementKind): string {
   const s = clean(description);
+  if (/\bshopee\b/.test(s)) return "Shopee";
   if (/\bpix\b|transferencia|ted\b/.test(s)) return "Pix";
   if (/mercado|supermercado|mercearia|atacadao|atacad|hortifruti|a[cç]ougue|padaria/.test(s)) return "Mercado";
   if (/restaurante|lanchonete|pizzaria|ifood|lanche|cafe|a[cç]ai|almo[cç]o/.test(s)) return "Alimentação";

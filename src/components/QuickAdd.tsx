@@ -12,6 +12,7 @@ import {
   useFinance,
   type Tx,
 } from "@/lib/finance";
+import { parseQuickPhrase } from "@/lib/quick-parse";
 import { isUnchangedQuickEntry, quickEntryShortcuts } from "@/lib/quick-entry";
 import {
   Dialog,
@@ -36,6 +37,13 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
   const [category, setCategory] = useState("Outros");
   const [date, setDate] = useState(() => localToday());
   const [err, setErr] = useState("");
+  const [phrase,setPhrase]=useState("");
+  const [phraseHint,setPhraseHint]=useState("");
+  function fillPhrase() {
+    const parsed=parseQuickPhrase(phrase,categories);
+    if(!parsed){setPhraseHint("Use um valor seguido da descrição, por exemplo: 45 mercado ontem.");return;}
+    setKind(parsed.kind);setDesc(parsed.description);setAmount(parsed.amount);setCategory(parsed.category);setDate(parsed.date);setErr("");setPhraseHint("Confira todos os campos antes de salvar.");
+  }
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -110,6 +118,7 @@ export function QuickAdd({ onClose }: { onClose: () => void }) {
           <DialogDescription>Registre uma entrada ou saída em poucos segundos.</DialogDescription>
         </DialogHeader>
         <form className="mt-3 space-y-4" onSubmit={submit}>
+          <div className="rounded-2xl border border-primary/25 bg-primary/5 p-3"><label className="text-sm font-bold" htmlFor={formId+"-phrase"}>Lançar por frase</label><div className="mt-2 flex gap-2"><input id={formId+"-phrase"} className={input+" min-w-0 flex-1"} value={phrase} maxLength={180} onChange={e=>{setPhrase(e.target.value);setPhraseHint("");}} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();fillPhrase();}}} placeholder="45 mercado ontem"/><button type="button" onClick={fillPhrase} className="rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground">Preencher</button></div><p className="mt-2 text-xs text-muted-foreground" role="status">{phraseHint||"Preencha o formulário automaticamente. Nada é salvo sem sua confirmação."}</p></div>
           <fieldset>
             <legend className="text-xs font-semibold text-muted-foreground">
               Atalhos para preencher

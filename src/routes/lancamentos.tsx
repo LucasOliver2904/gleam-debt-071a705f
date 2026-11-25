@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, Download, FileImage, FilterX, Pencil, Receipt, Search, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
+import { RecurringRadar } from "@/components/RecurringRadar";
 import { ExpenseReviewPanel } from "@/components/ExpenseReviewPanel";
 import { TransactionEditor } from "@/components/TransactionEditor";
 import { filterTransactions, transactionTotals, transactionsCsv, type TransactionFilter } from "@/lib/transaction-tools";
@@ -106,6 +107,7 @@ function Lancamentos() {
         <Link to="/pix" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-3 text-xs font-bold text-muted-foreground transition hover:text-primary">Gerenciar Pix recebidos e repasses</Link>
       </div>
       <ExpenseReviewPanel />
+      <RecurringRadar state={s}/>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         <Stat label="Entradas" value={brl(tin)} tone="pos" />

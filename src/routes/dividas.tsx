@@ -7,6 +7,8 @@ import { useState } from "react";
 import { ArrowDownLeft, ArrowUpRight, BadgePercent, CalendarCheck, CalendarClock, Layers, Pencil, Plus, Repeat, RotateCcw, Search, Trash2, Wallet, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell, Stat } from "@/components/AppShell";
+import { DebtJourney } from "@/components/DebtJourney";
+import { Skeleton } from "@/components/ui/skeleton";
 import { openInstallments } from "@/lib/debt-payoff";
 import { addMonths, allMonths, brl, currentMonth, debtRemaining, monthLabel, monthSummary, setState, skipMonth, uid, useFinance, useCategories, TYPE_INFO, outstandingDebtBalance, type Debt, type DebtType } from "@/lib/finance";
 
@@ -34,7 +36,7 @@ function Dividas() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Debt | null>(null);
   const [q, setQ] = useState("");
-  if (!s.ready) return <AppShell><div /></AppShell>;
+  if (!s.ready) return <AppShell><div role="status" aria-label="Carregando suas contas" className="space-y-4"><Skeleton className="h-8 w-56"/><Skeleton className="h-40 rounded-2xl"/><Skeleton className="h-72 rounded-2xl"/></div></AppShell>;
   const months = allMonths(s);
   const cm = currentMonth();
   const summary = monthSummary(s, cm);
@@ -71,6 +73,7 @@ function Dividas() {
       </div>
 
       {s.debts.length === 0 && <div className="mt-5 flex flex-col items-center rounded-3xl border border-dashed border-primary/35 bg-primary/5 p-7 text-center sm:p-10"><span className="grid h-12 w-12 place-items-center rounded-xl bg-primary/15 text-primary"><Wallet size={22}/></span><p className="mt-3 font-display text-lg font-extrabold">Comece organizando suas contas</p><p className="mt-1 max-w-md text-sm text-muted-foreground">Cadastre uma parcela, assinatura ou compromisso recorrente. Seu painel e sua agenda passam a mostrar os próximos vencimentos.</p><button onClick={() => setOpen(true)} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground"><Plus size={16}/> Cadastrar primeira conta</button></div>}
+      <DebtJourney state={s}/>
       <MobileList onEdit={setEditing} />
       <div className="finance-surface mt-6 hidden md:block overflow-x-auto rounded-2xl border border-border bg-card">
         <table className="w-full min-w-max text-sm">
