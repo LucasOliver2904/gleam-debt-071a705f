@@ -6,7 +6,7 @@
       <stop offset="1" stop-color="#37aa98"/>
     </linearGradient>
   </defs>
-  <path fill="#103C3F" d="M0 0h128v128H0z"/>
+  <path id="tile-background" fill="#103C3F" d="M0 0h128v128H0z"/>
   <path fill="#edd29a" d="M31 45l43-16a8 8 0 0 1 10 5l5 15-56 15z"/>
   <path fill="#c9f4dc" d="M29 48l59-12a7 7 0 0 1 8 7l1 15-67 7z"/>
   <path fill="url(#leather)" d="M24 55a10 10 0 0 1 10-10h59a10 10 0 0 1 10 10v32a11 11 0 0 1-11 11H36a12 12 0 0 1-12-12z"/>

@@ -33,7 +33,7 @@ for route in / /dividas /lancamentos /pix /extrato /planejamento /ajustes; do
     exit 1
   fi
 done
-for asset in /favicon.png /favicon.ico /icons/icon.svg /icons/icon-192.png /icons/icon-512.png /icons/icon-maskable-512.png /apple-touch-icon.png /manifest.webmanifest; do
+for asset in /favicon.png /favicon.ico /icons/icon.svg /icons/icon-192.png /icons/icon-512.png /icons/icon-maskable-512.png /icons/prumo-marca-192.png /icons/prumo-marca-512.png /icons/prumo-adaptativo-512.png /apple-touch-icon.png /manifest.webmanifest; do
   code=$(curl --max-time 8 --silent --output /tmp/meu-caixa-asset.dat --write-out '%{http_code}' "http://127.0.0.1:4173$asset" || true)
   if [ "$code" != "200" ] || [ ! -s /tmp/meu-caixa-asset.dat ]; then
     echo "ERRO: o ícone/recurso $asset não está acessível (HTTP $code)"
@@ -42,8 +42,10 @@ for asset in /favicon.png /favicon.ico /icons/icon.svg /icons/icon-192.png /icon
 done
 curl --max-time 8 --fail --silent http://127.0.0.1:4173/manifest.webmanifest?v=5 > /tmp/prumo-manifest.json
 if ! grep -q '"short_name": "Prumo"' /tmp/prumo-manifest.json ||
-   ! grep -q 'icon-maskable-512.png?v=6' /tmp/prumo-manifest.json; then
+   ! grep -Fq '/icons/prumo-marca-192.png' /tmp/prumo-manifest.json ||
+   ! grep -Fq '/icons/prumo-marca-512.png' /tmp/prumo-manifest.json ||
+   ! grep -Fq '/icons/prumo-adaptativo-512.png' /tmp/prumo-manifest.json; then
   echo 'ERRO: o manifest do Prumo está com nome ou versão de ícone antigos'
   exit 1
 fi
-echo 'OK: painel, rotas, ícones e identidade PWA Prumo versão 6 verificados pelo servidor real'
+echo 'OK: painel, rotas, manifesto e ícones de abertura do Prumo verificados pelo servidor real'
