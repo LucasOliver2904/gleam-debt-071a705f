@@ -4,7 +4,7 @@ import { localDayKey } from "./planning";
 
 export function parseQuickPhrase(raw:string,categories:readonly string[],today=new Date()) {
   let text=raw.trim().replace(/\s+/g," ");
-  const kind=/^(recebi|ganhei|entrou|entrada)\b/i.test(text)?"entrada":"saida";
+  const kind: "entrada" | "saida" = /^(recebi|ganhei|entrou|entrada)\b/i.test(text)?"entrada":"saida";
   text=text.replace(/^(recebi|ganhei|entrou|entrada|gastei|paguei|comprei|saida|saída)\s+/i,"");
   const match=text.match(/^(?:R\$\s*)?(\d+(?:[.,]\d+)*)(?:\s+(mil)\b)?\s+(.+)$/i);
   if(!match)return null;
