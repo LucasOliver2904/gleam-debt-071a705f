@@ -5,6 +5,7 @@ import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
 import { EncryptedBackupPanel } from "@/components/EncryptedBackupPanel";
+import { DeviceLockSettings } from "@/components/DeviceLockGate";
 import { InstallAppCard } from "@/components/InstallAppCard";
 import { AccentPicker } from "@/components/AccentPicker";
 import { alerts, exportBackup, getBackupRecovery, getFinanceUser, getState, hasLegacyLocalBackup, importBackup, legacyLocalBackup, monthLabel, resetAll, setState, undoBackupRestore, useFinance } from "@/lib/finance";
@@ -189,6 +190,7 @@ function Ajustes() {
       </div>
 
       <div className="grid max-w-4xl gap-5">
+        <DeviceLockSettings />
         <InstallAppCard />
         <section className="finance-surface overflow-hidden rounded-2xl border border-border bg-card">
           <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border p-5">

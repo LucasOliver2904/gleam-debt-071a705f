@@ -9,6 +9,7 @@ import { hasFinanceCache, setFinanceUser } from "@/lib/finance";
 
 import { useSyncStatus } from "@/lib/sync-status";
 import { SyncStatus } from "@/components/SyncStatus";
+import { DeviceLockGate } from "@/components/DeviceLockGate";
 
 export function AuthGate({ children }: { children: ReactNode }) {
   const syncStatus = useSyncStatus();
@@ -55,7 +56,7 @@ export function AuthGate({ children }: { children: ReactNode }) {
       <SyncStatus />
     </div>
   );
-  return <>{children}</>;
+  return <DeviceLockGate key={session.user.id} userId={session.user.id} email={session.user.email}>{children}</DeviceLockGate>;
 }
 
 function Login() {
