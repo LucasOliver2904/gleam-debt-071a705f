@@ -17,6 +17,7 @@ const payment = z.object({ amount: money, paid: z.boolean() });
 const monthlyMoney = z.record(month, money);
 const debt = z.object({
   id,
+  cardId: id.optional(),
   name: z.string().min(1).max(500),
   type: z.enum(["parcelada", "fixa", "unica"]),
   due: z.number().int().min(1).max(31).optional(),
@@ -78,6 +79,7 @@ const stateSchema = z
       })
       .optional(),
     budgets: z.record(month, z.record(z.string().max(1000), money)).optional(),
+    cards: z.record(z.string().min(1).max(256), z.object({ id, name: z.string().min(1).max(80), limitCents: z.number().int().positive().max(100_000_000_000), closingDay: z.number().int().min(1).max(31), dueDay: z.number().int().min(1).max(31) })).optional(),
     cashSettings: z.object({ balanceCents: z.number().int().min(-100_000_000_000).max(100_000_000_000), balanceDate: date, incomeDay: z.number().int().min(1).max(31) }).optional(),
     customCategories: z.record(z.string().min(1).max(80), z.literal(true)).optional(),
     savingsGoals: z
