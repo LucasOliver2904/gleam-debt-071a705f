@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Bell, BellOff, Check, CheckCircle2, ChevronRight, Download, Eye, EyeOff, Info, MonitorSmartphone, RotateCcw, ShieldCheck, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/AppShell";
+import { EncryptedBackupPanel } from "@/components/EncryptedBackupPanel";
 import { InstallAppCard } from "@/components/InstallAppCard";
 import { AccentPicker } from "@/components/AccentPicker";
 import { alerts, exportBackup, getBackupRecovery, getFinanceUser, getState, hasLegacyLocalBackup, importBackup, legacyLocalBackup, monthLabel, resetAll, setState, undoBackupRestore, useFinance } from "@/lib/finance";
@@ -261,6 +262,7 @@ function Ajustes() {
           <div className="grid gap-2 sm:grid-cols-2">
             <ActionRow icon={Download} title="Baixar backup" description="Guarde uma cópia dos seus dados em JSON." action={download} />
             <ActionRow icon={Upload} title="Restaurar backup" description="Importe um backup salvo anteriormente." action={() => backupInput.current?.click()} />
+            <EncryptedBackupPanel onPreview={previewRestore}/>
             {hasLegacyLocalBackup() && (
               <ActionRow icon={RotateCcw} title="Recuperar dados locais antigos" description="Se você usava o Prumo antes, pode importar o cache antigo deste aparelho, após conferir que os dados são seus." action={() => {
                 const legacy = legacyLocalBackup();
