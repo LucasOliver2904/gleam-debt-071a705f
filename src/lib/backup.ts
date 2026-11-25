@@ -78,6 +78,7 @@ const stateSchema = z
       })
       .optional(),
     budgets: z.record(month, z.record(z.string().max(1000), money)).optional(),
+    cashSettings: z.object({ balanceCents: z.number().int().min(-100_000_000_000).max(100_000_000_000), balanceDate: date, incomeDay: z.number().int().min(1).max(31) }).optional(),
     customCategories: z.record(z.string().min(1).max(80), z.literal(true)).optional(),
     savingsGoals: z
       .array(

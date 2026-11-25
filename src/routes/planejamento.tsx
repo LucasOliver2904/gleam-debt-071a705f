@@ -1,3 +1,4 @@
+import { CashForecast } from "@/components/CashForecast";
 import { PlanningSimulators } from "@/components/PlanningSimulators";
 import { useMoneyPrivacy } from "@/lib/money-privacy";
 import { confirmAction } from "@/lib/confirm-action";
@@ -229,6 +230,7 @@ function Planejamento() {
       </div>
 
       <PlanningSimulators state={s} />
+      <CashForecast key={JSON.stringify(s.cashSettings??null)} state={s}/>
 
       <section className="finance-surface mt-6 overflow-hidden rounded-3xl border border-primary/30 bg-card p-5 sm:p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">

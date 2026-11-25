@@ -52,7 +52,8 @@ export type ExpenseAuto = {
 };
 export type Tx = { id: string; date: string; description: string; amount: number; kind: "entrada" | "saida"; category?: string; pix?: PixData; expenseAuto?: ExpenseAuto; excludedFromTotals?: boolean; statement?: { source: string; importedAt: string } };
 export type SavingsGoal = { id: string; name: string; target: number; saved: number; deadline?: string; createdAt: string };
-export type State = { customCategories?: Record<string, true> | undefined; debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
+export type CashSettings = { balanceCents: number; balanceDate: string; incomeDay: number };
+export type State = { cashSettings?: CashSettings | undefined; customCategories?: Record<string, true> | undefined; debts: Debt[]; income: Record<string, number>; txs: Tx[]; reminderConfig?: { enabled: boolean; daysBefore: number[]; showDetails: boolean }; budgets?: Record<string, Record<string, number>>; savingsGoals?: SavingsGoal[]; pixInbox?: PixInboxItem[] | undefined; expenseInbox?: ExpenseInboxItem[] | undefined; handledInboxIds?: string[] | undefined; pixAutomationHash?: string | undefined };
 
 export const dueLabel = (d: Debt) => (d.due ? `Vence dia ${String(d.due).padStart(2, "0")}` : "");
 // Chaves locais separadas por UID. Nunca expor os dados de outra conta ao trocar login.
