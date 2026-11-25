@@ -1,0 +1,214 @@
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url("./assets/fonts/manrope-latin.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./assets/fonts/inter-latin.woff2") format("woff2");
+}
+
+.prumo-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: .58rem;
+  width: max-content;
+  font: 800 1.55rem/1 var(--font-display);
+  letter-spacing: -.065em;
+}
+.prumo-brand img { width: 2.3rem; height: 2.3rem; border-radius: .72rem; }
+.prumo-sidebar-brand { display: flex; align-items: center; min-height: 5.4rem; margin: 0 1.15rem; padding: 0 .35rem; border-bottom: 1px solid var(--border); }
+.prumo-shell-sync:not(:empty) { margin-bottom: .75rem; }
+.prumo-mobile-header .prumo-brand { font-size: 1.3rem; }
+.prumo-mobile-header .prumo-brand img { width: 2rem; height: 2rem; }
+.prumo-mobile-header :is(button, a[aria-label]:not([href="/"])) { border-color: transparent; background: transparent; }
+.prumo-mobile-header :is(button, a):hover { color: var(--primary); }
+
+.prumo-opening, .prumo-login-cover {
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  background: #103c3f;
+  color: #f1f6eb;
+}
+.prumo-opening::before, .prumo-login-cover::before, .prumo-balance-card::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  inset: 0;
+  background: repeating-radial-gradient(ellipse at 110% 111%, transparent 0 12px, #a6e1c533 12.5px 13px, transparent 13.5px 20px);
+  mask-image: linear-gradient(120deg, transparent 30%, #000 98%);
+}
+.prumo-opening { min-height: 100vh; min-height: 100svh; display: grid; }
+.prumo-opening-layout {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: min(100%, 74rem);
+  margin: 0 auto;
+  padding: max(2rem, env(safe-area-inset-top)) clamp(1.6rem, 6vw, 5rem) max(9svh, env(safe-area-inset-bottom));
+}
+.prumo-opening .prumo-brand, .prumo-login-cover .prumo-brand { gap: .6rem; color: #f3f7ec; }
+.prumo-opening .prumo-brand img, .prumo-login-cover .prumo-brand img { outline: 1px solid #9cdec340; outline-offset: -1px; }
+.prumo-opening-status { position: relative; max-width: 29rem; }
+.prumo-opening-status h1, .prumo-login-cover > p { font: 600 clamp(2.5rem, 6vw, 4.8rem)/1.03 var(--font-display); letter-spacing: -.065em; }
+.prumo-opening-status > p { margin: .9rem 0 1.1rem; color: #c2ddd3; font-size: .94rem; }
+.prumo-opening-status > div:not(.prumo-progress) { width: fit-content; border-radius: .8rem; background: var(--card); color: var(--foreground); padding: .85rem 1rem; }
+.prumo-opening-status button { min-height: 2.75rem; }
+.prumo-progress { width: 9rem; height: 3px; border-radius: 3px; background: #82b6a845; overflow: hidden; }
+.prumo-progress i { display: block; width: 42%; height: 100%; background: #a2dfc3; border-radius: inherit; animation: prumo-loading 1.6s ease-in-out infinite alternate; }
+@keyframes prumo-loading { to { transform: translateX(138%); } }
+@media (prefers-reduced-motion: reduce) { .prumo-progress i { animation: none; } }
+
+/* Overlapping sheets repeat the fold and brass clasp from the installed icon. */
+.prumo-art {
+  position: absolute; z-index: -1; pointer-events: none;
+  width: clamp(13rem, 43vw, 34rem); aspect-ratio: 1.46;
+  top: 25%; right: 2%; transform: rotate(-9deg);
+}
+.prumo-art > span { position: absolute; display: block; border-radius: 7% / 11%; }
+.prumo-art-sheet { inset: 1% 10% 32% 9%; transform: rotate(-14deg); background: linear-gradient(135deg, #efdaab, #b99357); box-shadow: inset 0 1px #ffedc7; }
+.prumo-art-note { inset: 9% 6% 23% 4%; transform: rotate(-6deg); background: linear-gradient(135deg, #d1edce, #88c4a7); box-shadow: inset 0 1px #e7f6d9; }
+.prumo-art-pocket {
+  inset: 25% 0 0; overflow: hidden;
+  background: linear-gradient(140deg, #71b79f 0%, #368d7b 39%, #246b64 100%);
+  border: 1px solid #b5e8cd88; box-shadow: 0 1.4rem 2.4rem #082a2c50;
+}
+.prumo-art-pocket::before {
+  content: ""; position: absolute; inset: 0;
+  background: repeating-radial-gradient(ellipse at 0% 117%, transparent 0 6px, #d6f0ce4d 6.5px 7px, transparent 7.5px 11px);
+  mask-image: linear-gradient(45deg, black 0%, #000b 48%, transparent 93%);
+}
+.prumo-art-pocket i { position: absolute; right: -1px; top: 38%; width: 23%; height: 27%; border-radius: 2rem 0 0 2rem; background: #164d49; border: 1px solid #98d2b85c; }
+.prumo-art-pocket i::after { content: ""; position: absolute; left: 19%; top: 33%; height: 34%; aspect-ratio: 1; border-radius: 50%; background: #e9cb93; }
+
+.prumo-login { min-height: 100vh; min-height: 100svh; display: grid; align-items: center; padding: clamp(1.4rem, 6vw, 5rem); }
+.prumo-login-layout {
+  display: grid; grid-template-columns: 1fr 1fr; margin: auto; width: min(100%, 60rem);
+  overflow: hidden; background: var(--card); border: 1px solid var(--border); border-radius: 1.75rem;
+  box-shadow: 0 24px 80px #0e313b14;
+}
+.prumo-login-cover { display: flex; min-height: 34rem; flex-direction: column; align-items: flex-start; justify-content: space-between; padding: clamp(1.8rem, 4vw, 3rem); }
+.prumo-login-cover .prumo-art { width: 65%; top: 24%; right: 8%; }
+.prumo-login-cover > p { position: relative; max-width: 8ch; font-size: clamp(2.5rem, 4vw, 3.75rem); }
+.prumo-login-form { align-self: center; width: 100%; padding: clamp(2rem, 4.1vw, 3.15rem); }
+.prumo-login-form h1 { font: 800 clamp(1.65rem, 3vw, 2.15rem)/1.1 var(--font-display); letter-spacing: -.055em; }
+.prumo-login-form label { display: block; margin-bottom: .4rem; font-size: .825rem; font-weight: 700; }
+.prumo-login-form input { width: 100%; min-height: 3rem; padding: .68rem .9rem; border: 1px solid var(--input); border-radius: .8rem; color: var(--foreground); background: var(--background); font-size: 1rem; }
+.prumo-login-form input#login-password { padding-right: 3rem; }
+.prumo-login-google, .prumo-login-submit {
+  display: flex; width: 100%; min-height: 3rem; align-items: center; justify-content: center; gap: .7rem;
+  padding: .7rem 1rem; border-radius: .8rem; font-size: .9rem; font-weight: 750; cursor: pointer;
+}
+.prumo-login-google { border: 1px solid var(--border); }
+.prumo-login-google span { color: var(--info); font: 800 1.15rem/1 var(--font-display); }
+.prumo-login-google:hover { background: var(--secondary); }
+.prumo-login-divider { display: flex; align-items: center; gap: .9rem; margin: 1.25rem 0; color: var(--muted-foreground); font-size: .75rem; }
+.prumo-login-divider::before, .prumo-login-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.prumo-login-submit { margin-top: 1.4rem; color: var(--primary-foreground); background: var(--primary); }
+.prumo-login-submit:hover { filter: brightness(1.07); }
+.prumo-login-form button:disabled { opacity: .65; }
+@media (max-width: 719px) {
+  .prumo-login { display: block; padding: 0; background: var(--card); }
+  .prumo-login-layout { display: block; border: 0; border-radius: 0; box-shadow: none; }
+  .prumo-login-cover { min-height: 10.6rem; padding: max(1.25rem, env(safe-area-inset-top)) max(1.4rem, calc((100vw - 29rem) / 2)); }
+  .prumo-login-cover > p { font-size: 1.75rem; max-width: 8ch; }
+  .prumo-login-cover .prumo-art { width: min(39%, 10.5rem); top: 23%; right: max(5%, calc((100vw - 29rem) / 2)); }
+  .prumo-login-form { max-width: 31.8rem; margin: auto; padding: 1.9rem 1.4rem 2rem; }
+  .prumo-opening .prumo-art { right: 6%; top: 23%; width: min(58%, 17rem); }
+}
+@media (max-height: 480px) and (orientation: landscape) {
+  .prumo-opening .prumo-art { width: min(36%, 16rem); top: 17%; }
+}
+
+.prumo-page-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .55rem 1rem; }
+.prumo-page-heading h1 { min-width: 0; max-width: 100%; overflow-wrap: anywhere; font: 800 clamp(1.7rem, 3.8vw, 2.65rem)/1.13 var(--font-display); letter-spacing: -.058em; }
+.prumo-page-heading > span { display: inline-flex; align-items: center; gap: .45rem; color: var(--muted-foreground); font-size: .78rem; font-weight: 600; }
+.prumo-page-heading time::first-letter { text-transform: uppercase; }
+.prumo-home-grid { display: grid; min-width: 0; gap: 1rem; margin-top: 1rem; }
+.prumo-balance-card {
+  position: relative; isolation: isolate; overflow: hidden; min-width: 0;
+  padding: clamp(1.05rem, 3vw, 1.75rem); border-radius: 1.45rem;
+  border: 1px solid #3a766c; color: #f3f9ef;
+  background: linear-gradient(119deg, #133e41 4%, #18554d 68%, #256256 100%);
+}
+.prumo-balance-card::before { mask-image: linear-gradient(130deg, transparent 32%, #000a 100%); }
+.prumo-balance-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 25rem; gap: .2rem; padding: .23rem; background: #092f31b0; border: 1px solid #d4f0d633; border-radius: 1rem; }
+.prumo-balance-tab { min-height: 2.75rem; padding: .4rem; color: #d4e8df; border-radius: .75rem; font-size: .86rem; font-weight: 700; cursor: pointer; }
+.prumo-balance-tab[aria-selected="true"] { background: #c7ead4; color: #103d37; }
+.prumo-balance-tab[aria-selected="false"]:hover { background: #c7ead415; }
+.prumo-balance-card :focus-visible { outline-color: #f4dfb5; }
+.prumo-balance-total { margin: clamp(1.25rem, 2.6vw, 2rem) 0 1.25rem; }
+.prumo-balance-total h2 { font-size: .875rem; font-weight: 650; color: #d5ece0; }
+.prumo-total-value { margin: .22rem 0; overflow-wrap: anywhere; font: 800 clamp(1.95rem, 4.8vw, 3.6rem)/1.08 var(--font-display); letter-spacing: -.063em; font-variant-numeric: tabular-nums; }
+.prumo-total-caption { color: #c0dbce; font-size: .75rem; }
+.prumo-balance-breakdown { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); padding: .95rem 0; border-block: 1px solid #cae7d837; }
+.prumo-balance-breakdown > div { min-width: 0; }
+.prumo-balance-breakdown > div + div { border-left: 1px solid #cae7d837; padding-left: .95rem; }
+.prumo-balance-breakdown dt { color: #c8e0d5; font-size: .75rem; }
+.prumo-balance-breakdown dd { margin-top: .2rem; overflow-wrap: anywhere; font: 750 clamp(.97rem, 2vw, 1.25rem)/1.3 var(--font-display); font-variant-numeric: tabular-nums; }
+.prumo-balance-tools { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: start; gap: .2rem .5rem; padding-top: .75rem; }
+.prumo-balance-details { justify-self: end; }
+.prumo-balance-details[open] { grid-column: 1 / -1; justify-self: stretch; }
+.prumo-balance-details summary svg { flex-shrink: 0; }
+.prumo-balance-details summary, .prumo-balance-link { display: flex; align-items: center; gap: .5rem; width: fit-content; max-width: 100%; min-height: 2.75rem; font-size: .81rem; }
+.prumo-balance-details summary { list-style: none; cursor: pointer; color: #d3e9dd; }
+.prumo-balance-details summary::-webkit-details-marker { display: none; }
+.prumo-balance-details[open] summary svg { transform: rotate(180deg); }
+.prumo-balance-link { justify-content: space-between; padding: .5rem .75rem; border-radius: .8rem; background: #c7ead4; color: #123d37; font-weight: 750; }
+.prumo-balance-link:hover { background: #e0f3e5; }
+
+.prumo-home-quick h2 { margin-bottom: .7rem; font: 800 1.05rem/1.35 var(--font-display); }
+.prumo-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(.35rem, 1.3vw, .7rem); }
+.prumo-actions > * {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .42rem;
+  min-width: 0; min-height: 5rem; padding: .55rem .2rem; border: 1px solid var(--border); border-radius: 1rem;
+  background: var(--card); color: var(--foreground); font-size: .76rem; font-weight: 700; cursor: pointer;
+}
+.prumo-actions > :first-child { border-color: color-mix(in oklab, var(--primary) 44%, var(--border)); background: color-mix(in oklab, var(--primary) 9%, var(--card)); }
+.prumo-actions span { display: grid; place-items: center; width: 2.05rem; height: 2.05rem; border-radius: .7rem; background: color-mix(in oklab, var(--primary) 13%, var(--card)); color: var(--primary); }
+.prumo-actions > :nth-child(3) span { color: var(--info); background: color-mix(in oklab, var(--info) 13%, var(--card)); }
+.prumo-actions > :last-child span { color: var(--foreground); background: var(--secondary); }
+.prumo-actions > :hover { border-color: var(--primary); }
+.prumo-home-activity { display: grid; min-width: 0; align-items: start; gap: 1rem; margin-top: 1rem; }
+.prumo-home-activity > section { margin: 0; min-width: 0; }
+@media (min-width: 1160px) {
+  .prumo-home-grid { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); grid-template-areas: "balance quick" "balance bills" "sims sims"; grid-template-rows: auto 1fr auto; gap: 1.2rem; }
+  .prumo-balance-card { grid-area: balance; }
+  .prumo-home-quick { grid-area: quick; }
+  .prumo-bills-panel { grid-area: bills; }
+  .prumo-home-sims { grid-area: sims; }
+  .prumo-home-activity { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; }
+}
+@media (max-width: 360px) {
+  .prumo-mobile-header { padding-inline: .65rem; }
+  .prumo-mobile-header > div { gap: 0; }
+}
+
+.prumo-report-period { margin-top: 1.2rem; min-width: 0; }
+.prumo-report-period legend { margin-bottom: .35rem; font-size: .875rem; font-weight: 650; }
+.prumo-report-period > div { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); max-width: 30rem; padding: .2rem; gap: .12rem; border: 1px solid var(--border); border-radius: .9rem; background: var(--background); }
+.prumo-report-period label { position: relative; min-width: 0; cursor: pointer; }
+.prumo-report-period span { display: grid; min-height: 2.75rem; place-items: center; border-radius: .68rem; padding: .25rem .12rem; color: var(--muted-foreground); text-align: center; font-size: .8rem; font-weight: 650; }
+.prumo-report-period input:checked + span { color: var(--primary-foreground); background: var(--primary); }
+.prumo-report-period input:focus-visible + span { outline: 2px solid var(--primary); outline-offset: 2px; }
+.prumo-report-totals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 1.15rem; gap: .55rem; }
+.prumo-report-totals > div { min-width: 0; padding: .85rem; border-radius: .85rem; background: var(--secondary); }
+.prumo-report-totals > div:first-child { grid-column: 1 / -1; color: #f3f9ef; background: #174b47; }
+.prumo-report-totals dt { font-size: .76rem; font-weight: 600; }
+.prumo-report-totals dd { margin-top: .27rem; font: 780 clamp(1.06rem, 2vw, 1.45rem)/1.2 var(--font-display); letter-spacing: -.035em; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.prumo-report-help { color: var(--muted-foreground); font-size: .775rem; }
+.prumo-report-help summary { display: list-item; width: fit-content; align-content: center; padding-block: .75rem; cursor: pointer; }
+.prumo-report-help p { max-width: 80ch; padding-bottom: .5rem; }
+@media (min-width: 640px) {
+  .prumo-report-totals { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .prumo-report-totals > div:first-child { grid-column: auto; }
+}

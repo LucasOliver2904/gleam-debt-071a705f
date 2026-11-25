@@ -2,9 +2,10 @@
 """Gera ícones determinísticos do Prumo a partir de um único SVG.
 Não usa imagens externas nem chaves. Requer CairoSVG e Pillow apenas no build.
 """
+import json
 from io import BytesIO
 from pathlib import Path
-from PIL import Image
+from PIL import Image, ImageColor
 import cairosvg
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -31,15 +32,18 @@ maskable = Image.open(BytesIO(cairosvg.svg2png(
 ))).convert("RGBA")
 maskable.save(ROOT / "public/icons/icon-maskable-512.png", "PNG", optimize=True)
 
-# Regressão de bordas: sem pixels pretos nem transparência nos cantos.
-for path in ("public/icons/icon-192.png", "public/icons/icon-512.png", "public/icons/icon-maskable-512.png"):
-    im = Image.open(ROOT / path).convert("RGBA")
-    w, h = im.size
-    for pos in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1),
-                (0, h // 2), (w - 1, h // 2), (w // 2, 0), (w // 2, h - 1)):
-        r, g, b, a = im.getpixel(pos)
-        if a != 255 or g < 55 or b < 55:
-            raise ValueError(f"{path}: borda escura ou transparente {pos}: {(r,g,b,a)}")
+# A cor de cada borda deve coincidir com o fundo da abertura gerada pelo sistema.
+manifest = json.loads((ROOT / "public/manifest.webmanifest").read_text(encoding="utf-8"))
+background = ImageColor.getcolor(manifest["background_color"], "RGBA")
+for icon in manifest["icons"]:
+    path = ROOT / "public" / icon["src"].split("?")[0].lstrip("/")
+    with Image.open(path).convert("RGBA") as im:
+        w, h = im.size
+        edges = ((0, 0, w, 1), (0, h - 1, w, h), (0, 0, 1, h), (w - 1, 0, w, h))
+        for box in edges:
+            edge = im.crop(box)
+            if edge.getcolors(1) != [(edge.width * edge.height, background)]:
+                raise ValueError(f"{path.name}: a borda do ícone difere do fundo da abertura")
 Image.open(ROOT / "public/favicon.png").convert("RGBA").save(
     ROOT / "public/favicon.ico", format="ICO", sizes=[(16, 16), (32, 32), (48, 48)]
 )

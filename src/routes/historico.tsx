@@ -15,9 +15,8 @@ function Historico() {
   const state = useFinance();
   return (
     <AppShell>
-      <p className="finance-kicker">PRUMO / HISTÓRICO</p>
-      <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Histórico de gastos</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Veja seus pagamentos e compromissos diretamente aqui, sem precisar baixar arquivos.</p>
+      <header className="prumo-page-heading"><h1>Histórico de gastos</h1></header>
+      <p className="mt-2 text-sm text-muted-foreground">Consulte quanto você pagou e o que ficou pendente em cada categoria.</p>
       {state.ready ? <CategoryReport key={getFinanceUser()} state={state}/> : <p role="status" className="mt-5 text-sm text-muted-foreground">Carregando seu histórico...</p>}
     </AppShell>
   );

@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./prumo.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -75,29 +76,29 @@
 :root {
   color-scheme: dark;
   --radius: 1rem;
-  --background: oklch(0.18311 0.03089 263.38); /* #0B1220 */
-  --foreground: oklch(0.96826 0.00685 247.90); /* #F1F5F9 */
-  --card: oklch(0.22530 0.03697 258.85); /* #111C2D */
+  --background: oklch(0.187 0.018 203);
+  --foreground: oklch(0.964 0.012 169);
+  --card: oklch(0.231 0.021 202);
   --card-foreground: var(--foreground);
-  --popover: oklch(0.26291 0.04414 258.28); /* #17253A */
+  --popover: oklch(0.265 0.021 201);
   --popover-foreground: var(--foreground);
   --primary: oklch(0.78452 0.13253 181.91); /* #2DD4BF */
   --primary-foreground: oklch(0.27668 0.04425 185.37); /* #062F2B */
   --primary-hover: oklch(0.70375 0.12302 182.50); /* #14B8A6 */
-  --secondary: oklch(0.28562 0.04444 255.58); /* #1B2B40 */
+  --secondary: oklch(0.292 0.023 197);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.28562 0.04444 255.58); /* #1B2B40 */
-  --muted-foreground: oklch(0.71067 0.03511 256.79); /* #94A3B8 */
-  --subtle-foreground: oklch(0.71067 0.03511 256.79); /* #94A3B8 */
+  --muted: oklch(0.292 0.023 197);
+  --muted-foreground: oklch(0.744 0.024 194);
+  --subtle-foreground: oklch(0.744 0.024 194);
   --accent: oklch(0.85488 0.12508 181.07); /* #5EEAD4 */
   --accent-foreground: oklch(0.27668 0.04425 185.37); /* #062F2B */
   --warning: oklch(0.83686 0.16442 84.43); /* #FBBF24 */
-  --warning-foreground: oklch(0.18311 0.03089 263.38); /* #0B1220 */
+  --warning-foreground: oklch(0.187 0.018 203);
   --destructive: oklch(0.71063 0.16615 22.22); /* #F87171 */
-  --destructive-foreground: oklch(0.18311 0.03089 263.38); /* #0B1220 */
+  --destructive-foreground: oklch(0.187 0.018 203);
   --success: oklch(0.72275 0.19201 149.58); /* #22C55E */
   --info: oklch(0.75351 0.13899 232.66); /* #38BDF8 */
-  --border: oklch(0.34761 0.04678 254.92); /* #293B52 */
+  --border: oklch(0.337 0.023 201);
   --input: oklch(0.55439 0.04072 257.42); /* #64748B */
   --ring: var(--primary);
   --chart-1: var(--primary);
@@ -105,7 +106,7 @@
   --chart-3: var(--accent);
   --chart-4: var(--warning);
   --chart-5: var(--success);
-  --sidebar: oklch(0.19177 0.03537 261.30); /* #0B1424 */
+  --sidebar: oklch(0.204 0.022 202);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
@@ -116,8 +117,8 @@
 }
 html[data-theme="light"] {
   color-scheme: light;
-  --background: oklch(0.97771 0.00513 247.88); /* #F5F8FB */
-  --foreground: oklch(0.20768 0.03982 265.75); /* #0F172A */
+  --background: oklch(0.978 0.006 149);
+  --foreground: oklch(0.246 0.031 199);
   --card: oklch(1.00000 0.00000 89.88); /* #FFFFFF */
   --card-foreground: var(--foreground);
   --popover: oklch(1.00000 0.00000 89.88); /* #FFFFFF */
@@ -125,11 +126,11 @@ html[data-theme="light"] {
   --primary: oklch(0.51094 0.08606 186.39); /* #0F766E */
   --primary-foreground: oklch(1.00000 0.00000 89.88); /* #FFFFFF */
   --primary-hover: oklch(0.43697 0.07052 188.22); /* #115E59 */
-  --secondary: oklch(0.94857 0.01103 243.66); /* #E8EFF5 */
+  --secondary: oklch(0.947 0.012 170);
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.94857 0.01103 243.66); /* #E8EFF5 */
-  --muted-foreground: oklch(0.44553 0.03745 257.28); /* #475569 */
-  --subtle-foreground: oklch(0.44553 0.03745 257.28); /* #475569 */
+  --muted: oklch(0.947 0.012 170);
+  --muted-foreground: oklch(0.461 0.027 195);
+  --subtle-foreground: oklch(0.461 0.027 195);
   --accent: oklch(0.51094 0.08606 186.39); /* #0F766E */
   --accent-foreground: oklch(1.00000 0.00000 89.88); /* #FFFFFF */
   --warning: oklch(0.47319 0.12470 46.20); /* #92400E */
@@ -138,7 +139,7 @@ html[data-theme="light"] {
   --destructive-foreground: oklch(1.00000 0.00000 89.88); /* #FFFFFF */
   --success: oklch(0.52730 0.13710 150.07); /* #15803D */
   --info: oklch(0.49998 0.11929 242.75); /* #0369A1 */
-  --border: oklch(0.86898 0.01985 252.89); /* #CBD5E1 */
+  --border: oklch(0.877 0.014 186);
   --input: oklch(0.55439 0.04072 257.42); /* #64748B */
   --ring: var(--primary);
   --chart-1: var(--primary);
@@ -337,60 +338,6 @@ html[data-theme="light"][data-accent="violet"] {
 }
 
 
-/* Prumo · painel inspirado no ritmo de uso de um app bancário moderno.
-   Os números permanecem projeções dos lançamentos cadastrados, não Open Banking. */
-
-
-.prumo-balance-tabs { background: rgba(255,255,255,.16); }
-.prumo-balance-tab:focus-visible { outline: 3px solid #d5fff4; outline-offset: 2px; }
-.prumo-quick-action {
-  min-height: 132px;
-  border: 1px solid var(--border);
-  background: var(--card);
-  color: var(--foreground);
-  box-shadow: 0 8px 25px rgba(0,0,0,.055);
-}
-
-.prumo-quick-info { background: color-mix(in oklab, var(--info), var(--card) 88%); }
-.prumo-quick-success { background: color-mix(in oklab, var(--success), var(--card) 91%); }
-.prumo-quick-accent { background: color-mix(in oklab, var(--accent), var(--card) 91%); }
-
-.prumo-bills-panel {
-  box-shadow: 0 14px 35px rgba(0,0,0,.065);
-}
-
-html[data-theme="light"] .finance-bottom-nav {
-  box-shadow: 0 12px 45px rgba(25,54,68,.17);
-}
-@media (max-width: 390px) {
-  .prumo-quick-action { min-height: 120px; padding: 12px 8px; }
-  .prumo-quick-action > span:first-child { width: 34px; height: 34px; }
-  .prumo-quick-action strong { font-size: 10.5px; }
-  .prumo-balance-card { border-radius: 23px; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .prumo-quick-action:hover { transform: none; }
-}
-
-/* Home essencial: atalhos compactos no celular e apenas três vencimentos. */
-.prumo-quick-action--compact { min-height: 72px; box-shadow: 0 5px 18px rgba(0,0,0,.045); }
-@media (max-width: 390px) { .prumo-quick-action--compact { min-height: 68px; padding-inline: 9px; gap: 7px; } }
-
-/* Prumo icon palette — consistent backgrounds, accents and elevations. */
-
-
-
-
-
-
-
-
-.prumo-quick-info { background: color-mix(in oklab, var(--info), var(--card) 91%); }
-.prumo-quick-success { background: color-mix(in oklab, var(--primary), var(--card) 91%); }
-.prumo-quick-accent { background: color-mix(in oklab, var(--accent), var(--card) 91%); }
-
-
-
 .finance-hero { position: relative; isolation: isolate; background: linear-gradient(135deg, #123746, #0f574f); border: 1px solid color-mix(in oklab, var(--primary), transparent 70%); box-shadow: 0 12px 32px oklch(0 0 0 / .12); }
 
 .finance-hero::before { content: none; }
@@ -402,12 +349,6 @@ html[data-theme="light"] .finance-bottom-nav {
 .finance-nav-item[data-active="true"] { background: color-mix(in oklab, var(--primary), transparent 88%); box-shadow: inset 3px 0 var(--primary); }
 
 .finance-bottom-nav { background: var(--card); border-color: var(--border); box-shadow: 0 8px 24px oklch(0 0 0 / .16); }
-
-.prumo-balance-card { background: #0f4f4a; border: 1px solid #2c7b70; box-shadow: 0 10px 28px oklch(0 0 0 / .12); }
-
-.prumo-balance-card::before { content: none; }
-
-.prumo-quick-action-main { background: color-mix(in oklab, var(--primary), var(--card) 88%); color: var(--primary); border-color: color-mix(in oklab, var(--primary), var(--border) 65%); }
 
 .finance-insight-label { color: var(--muted-foreground); font-size: .75rem; font-weight: 600; line-height: 1.5; }
 

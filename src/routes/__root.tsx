@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import { Toaster } from "@/components/ui/sonner";
+import { AppOpening } from "@/components/AppOpening";
 import { AuthGate } from "@/components/AuthGate";
 import { ConfirmProvider } from "@/components/ConfirmProvider";
 import { ReminderAgent } from "@/components/ReminderAgent";
@@ -87,7 +88,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Prumo — Seu controle financeiro" },
       { name: "description", content: "Prumo: entradas, despesas, Pix, repasses, parcelas, vencimentos, orçamento e metas num só lugar." },
-      { name: "theme-color", content: "#07131A" },
+      { name: "theme-color", content: "#103C3F" },
       { name: "robots", content: "noindex, nofollow, noarchive" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -100,17 +101,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" },
+      // Keep the manifest URL stable for existing installations. Version the icon URLs inside it.
       { rel: "manifest", href: "/manifest.webmanifest?v=5" },
-      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=5" },
-      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=5" },
-      { rel: "shortcut icon", href: "/favicon.ico?v=5" },
-      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=5" },
+      { rel: "icon", type: "image/svg+xml", href: "/icons/icon.svg?v=6" },
+      { rel: "icon", type: "image/png", sizes: "64x64", href: "/favicon.png?v=6" },
+      { rel: "shortcut icon", href: "/favicon.ico?v=6" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png?v=6" },
     ],
   }),
   shellComponent: RootShell,
-  pendingComponent: () => <div role="status" className="flex min-h-screen items-center justify-center bg-background px-5 text-sm text-muted-foreground">Abrindo Prumo…</div>,
+  pendingComponent: () => <AppOpening />,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
@@ -140,7 +140,7 @@ function RootComponent() {
     document.documentElement.dataset["accent"] = savedAccent === "ocean" || savedAccent === "violet" ? savedAccent : "emerald";
     // Registro necessário para os avisos do navegador e instalação do app.
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=5', { updateViaCache: 'none' }).catch(console.error);
+      navigator.serviceWorker.register('/sw.js?v=6', { updateViaCache: 'none' }).catch(console.error);
     }
   }, []);
 

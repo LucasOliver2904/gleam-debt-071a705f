@@ -11,7 +11,6 @@ import {
   Plus,
   Moon,
   MoreHorizontal,
-  ShieldCheck,
   FileImage,
   BellRing,
   ArrowRight,
@@ -25,6 +24,7 @@ import type { ReactNode } from "react";
 import { alerts, useFinance } from "@/lib/finance";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "@/lib/use-profile";
+import { PrumoBrand } from "@/components/AppOpening";
 import { QuickAdd } from "@/components/QuickAdd";
 import { SyncStatus } from "@/components/SyncStatus";
 import { PrivacyToggle } from "@/components/PrivacyToggle";
@@ -47,17 +47,6 @@ const MORE_ITEMS = NAV.filter((item) => ["/historico", "/agenda", "/extrato", "/
 
 const isActive = (path: string, to: string) =>
   to === "/" ? path === "/" : path.startsWith(to);
-
-function Brand({ compact = false }: { compact?: boolean }) {
-  return (
-    <Link to="/" className={`flex items-center gap-2.5 ${compact ? "" : "px-5 py-5"}`}>
-      <img src="/icons/icon.svg?v=5" width={40} height={40} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-md shadow-primary/10" />
-      {!compact && (
-        <span><span className="block font-display text-lg font-extrabold tracking-tight">Prumo</span><span className="block text-[9px] font-semibold tracking-[0.16em] text-muted-foreground">FINANÇAS PESSOAIS</span></span>
-      )}
-    </Link>
-  );
-}
 
 function Avatar({ initial }: { initial: string }) {
   return (
@@ -106,9 +95,9 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="finance-page-accent min-h-screen bg-background text-foreground">
-      <aside className="finance-nav fixed inset-y-0 left-0 z-40 hidden w-[266px] flex-col border-r border-sidebar-border backdrop-blur-xl lg:flex">
-        <Brand />
-        <nav aria-label="Menu principal" className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pt-7"><p className="mb-4 px-3 text-[10px] font-extrabold tracking-[0.19em] text-muted-foreground">MEU ESPAÇO</p>
+      <aside className="finance-nav fixed inset-y-0 left-0 z-40 hidden w-[248px] flex-col border-r border-sidebar-border backdrop-blur-xl lg:flex">
+        <Link to="/" className="prumo-sidebar-brand" aria-label="Prumo, voltar ao painel"><PrumoBrand /></Link>
+        <nav aria-label="Menu principal" className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3 pt-5">
           {NAV.map(({ to, label, icon: Icon }) => {
             const on = isActive(path, to);
             return (
@@ -118,23 +107,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                 {to === "/agenda" && overdue > 0 && <span aria-label={overdue + " contas atrasadas"} className="ml-auto rounded-full bg-destructive/15 px-1.5 py-0.5 text-[10px] font-extrabold text-destructive">{overdue > 99 ? "99+" : overdue}</span>}
                 {to === "/lancamentos" && expensesWaiting > 0 && <span aria-label={expensesWaiting + " gastos aguardando conferência"} className="ml-auto rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-extrabold text-warning">{expensesWaiting > 99 ? "99+" : expensesWaiting}</span>}
                 {to === "/pix" && pixWaiting > 0 && <span aria-label={pixWaiting + " Pix aguardando conferência"} className="ml-auto rounded-full bg-warning/15 px-1.5 py-0.5 text-[10px] font-extrabold text-warning">{pixWaiting > 99 ? "99+" : pixWaiting}</span>}
-                {on && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
               </Link>
             );
           })}
         </nav>
         <div className="border-t border-border p-3">
-          <div className="mb-3 flex items-center gap-2 rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5">
-            <ShieldCheck size={17} className="shrink-0 text-primary" />
-            <span className="text-[11px] leading-relaxed text-muted-foreground"><b className="block text-foreground">Área pessoal</b>Finanças sob seu controle</span>
-          </div>
           <PrivacyToggle />
           <button onClick={toggleTheme} className="mb-2 flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground">{theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}{theme === "dark" ? "Modo claro" : "Modo escuro"}</button>
           <div className="flex items-center gap-3 rounded-xl px-2 py-2">
             <Avatar initial={profile.initial} />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{profile.name ?? "Minha conta"}</p>
-              <p className="truncate text-xs text-muted-foreground">Seu espaço financeiro</p>
             </div>
             <button aria-label="Sair da conta" onClick={() => void signOut()} className="grid h-11 w-11 place-items-center rounded-xl text-muted-foreground transition hover:bg-secondary hover:text-foreground">
               <LogOut size={15} />
@@ -143,11 +126,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <div className="min-w-0 lg:pl-[266px]">
-        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
+      <div className="min-w-0 lg:pl-[248px]">
+        <header className="prumo-mobile-header sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/90 px-4 backdrop-blur-xl lg:hidden">
           <Link to="/" className="flex items-center gap-2.5" aria-label="Prumo, voltar ao painel">
-            <img src="/icons/icon.svg?v=5" width={40} height={40} alt="" aria-hidden="true" className="h-10 w-10 shrink-0 rounded-xl object-cover shadow-lg shadow-primary/15" />
-            <span><span className="block font-display text-base font-extrabold leading-tight tracking-tight">Prumo</span><span className="block text-[9px] font-bold tracking-[0.16em] text-muted-foreground">CONTROLE PESSOAL</span></span>
+            <PrumoBrand />
           </Link>
           <div className="flex items-center gap-1.5">
             <Link to="/historico" aria-label="Abrir histórico de gastos" className="grid h-11 w-11 place-items-center rounded-xl border border-border bg-card text-muted-foreground hover:text-primary"><History size={19}/></Link>
@@ -161,7 +143,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </header>
 
         <main className="mx-auto w-full max-w-[1300px] px-4 pb-36 pt-5 sm:px-6 lg:px-9 lg:pb-16 lg:pt-9">
-          <div className="mb-4"><SyncStatus /></div>
+          <div className="prumo-shell-sync"><SyncStatus /></div>
           {children}
         </main>
       </div>
@@ -204,8 +186,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             const on = isActive(path, to);
             return (
               <Link key={to} to={to} aria-label={short} aria-current={on ? "page" : undefined} className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 py-1.5 text-[10px] font-bold transition ${on ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {on && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
-                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary text-primary-foreground shadow-md shadow-primary/25" : ""}`}>
+                <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${on ? "bg-primary/15 text-primary" : ""}`}>
                   <Icon size={20} strokeWidth={on ? 2.5 : 2} />
                   {to === "/pix" && pixWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-warning" />}
                   {to === "/lancamentos" && expensesWaiting > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-warning" />}
@@ -215,8 +196,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             );
           })}
           <button onClick={() => setMoreOpen((current) => !current)} aria-label="Mais opções" aria-expanded={moreOpen} className={`relative flex min-h-[60px] flex-col items-center justify-center gap-1 py-1.5 text-[10px] font-bold transition ${moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to)) ? "text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-            {(moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to))) && <span className="absolute top-0 h-[3px] w-9 rounded-b-full bg-primary" />}
-            <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${moreOpen ? "bg-primary text-primary-foreground" : ""}`}><MoreHorizontal size={23}/>{overdue > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
+            <span className={`relative grid h-8 w-11 place-items-center rounded-xl ${moreOpen || MORE_ITEMS.some((item) => isActive(path, item.to)) ? "bg-primary/15 text-primary" : ""}`}><MoreHorizontal size={23}/>{overdue > 0 && <i className="absolute right-1 top-0 h-2.5 w-2.5 rounded-full border border-card bg-destructive" />}</span>
             <span>Mais</span>
           </button>
         </div>

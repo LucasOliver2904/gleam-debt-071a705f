@@ -86,8 +86,8 @@ export async function maybeNotifyDue(state: State): Promise<boolean> {
     const worker = await navigator.serviceWorker.ready;
     await worker.showNotification(title, {
       body,
-      icon: "/icons/icon-192.png",
-      badge: "/favicon.png",
+      icon: "/icons/icon-192.png?v=6",
+      badge: "/favicon.png?v=6",
       tag: "meu-caixa-vencimentos",
       data: { url: "/" },
     });

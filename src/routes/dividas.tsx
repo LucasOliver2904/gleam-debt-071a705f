@@ -55,9 +55,8 @@ function Dividas() {
     <AppShell>
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="finance-kicker">SEUS COMPROMISSOS</p>
-          <h1 className="mt-1 font-display text-2xl font-extrabold tracking-tight md:text-3xl">Contas e parcelas</h1>
-          <p className="mt-1 hidden md:block text-sm text-muted-foreground">Clique numa parcela para marcar como paga / pendente. Clique na renda base prevista para editar.</p>
+          <header className="prumo-page-heading"><h1>Contas e parcelas</h1></header>
+          <p className="mt-1 hidden md:block text-sm text-muted-foreground">Selecione uma parcela para mudar a situação do pagamento ou a renda base para editar o valor.</p>
         </div>
         <div className="flex flex-wrap gap-2"><Link to="/historico" className="rounded-xl border border-primary/40 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">Histórico por categoria</Link><button onClick={() => setOpen(true)} className="flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:opacity-90"><Plus size={16} /> Nova conta</button></div>
       </div>

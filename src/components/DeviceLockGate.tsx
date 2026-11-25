@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { Fingerprint, LockKeyhole, LogOut, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { AccessLayout } from "@/components/AppOpening";
 import { supabase } from "@/integrations/supabase/client";
 import { BACKGROUND_LOCK_MS, enrollDevice, platformAvailable, readLock, shouldLockAfterBackground, storageKey, storeLock, unlockWithDevice } from "@/lib/device-lock";
 
@@ -116,12 +117,9 @@ export function DeviceLockGate({userId,email,children}:{userId:string;email?:str
     if(error)throw Error("Não foi possível sair. Tente novamente.");
   });
 
-  if(locked||record.status==="unavailable")return <main className="grid min-h-[100dvh] place-items-center bg-background p-5 text-foreground">
-    <section className="finance-surface w-full max-w-sm rounded-3xl border border-border bg-card p-6 text-center sm:p-8">
-      <div className="mx-auto grid size-20 place-items-center rounded-3xl border border-primary/20 bg-primary/10 text-primary"><Fingerprint aria-hidden="true" size={46}/></div>
-      <p className="finance-kicker mt-6">PRUMO / ÁREA PRIVADA</p>
-      <h1 className="mt-2 font-display text-2xl font-extrabold">Prumo bloqueado</h1>
-      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Use a segurança do seu dispositivo para acessar suas finanças.</p>
+  if(locked||record.status==="unavailable")return <AccessLayout labelledBy="prumo-lock-heading">
+      <h1 id="prumo-lock-heading">Prumo bloqueado</h1>
+      <p className="mt-3 text-sm leading-relaxed text-muted-foreground">Confirme sua identidade neste aparelho para abrir o painel.</p>
       {record.status==="enabled"&&<button type="button" className={primary+" mt-6 w-full"} disabled={busy} onClick={()=>void unlock()}><Fingerprint size={20}/>{busy?"Verificando...":"Desbloquear com biometria ou PIN"}</button>}
       {error&&<p role="alert" className="mt-4 rounded-xl border border-destructive/25 bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
       <button type="button" disabled={busy} className="mt-4 text-sm font-semibold text-primary" onClick={()=>{setRecovery(v=>!v);setPassword("");setError("");}}>{recovery?"Cancelar recuperação":"Não consigo desbloquear"}</button>
@@ -132,8 +130,7 @@ export function DeviceLockGate({userId,email,children}:{userId:string;email?:str
       </div>}
       <button type="button" disabled={busy} className={secondary+" mt-4 w-full"} onClick={()=>void signOut()}><LogOut size={16}/> Sair da conta</button>
       <p className="mt-5 text-xs text-muted-foreground">A proteção usa a verificação do dispositivo. Nenhuma impressão digital é armazenada pelo Prumo.</p>
-    </section>
-  </main>;
+  </AccessLayout>;
   return <DeviceLockContext.Provider value={{enabled:record.status==="enabled",supported,busy,enable,disable,lockNow}}>{children}</DeviceLockContext.Provider>;
 }
 

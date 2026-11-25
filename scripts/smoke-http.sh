@@ -40,10 +40,10 @@ for asset in /favicon.png /favicon.ico /icons/icon.svg /icons/icon-192.png /icon
     exit 1
   fi
 done
-curl --max-time 8 --fail --silent http://127.0.0.1:4173/manifest.webmanifest?v=4 > /tmp/prumo-manifest.json
+curl --max-time 8 --fail --silent http://127.0.0.1:4173/manifest.webmanifest?v=5 > /tmp/prumo-manifest.json
 if ! grep -q '"short_name": "Prumo"' /tmp/prumo-manifest.json ||
-   ! grep -q 'icon-maskable-512.png?v=5' /tmp/prumo-manifest.json; then
+   ! grep -q 'icon-maskable-512.png?v=6' /tmp/prumo-manifest.json; then
   echo 'ERRO: o manifest do Prumo está com nome ou versão de ícone antigos'
   exit 1
 fi
-echo 'OK: painel, rotas, ícones e identidade PWA Prumo versão 4 verificados pelo servidor real'
+echo 'OK: painel, rotas, ícones e identidade PWA Prumo versão 6 verificados pelo servidor real'

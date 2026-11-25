@@ -101,8 +101,8 @@ function Ajustes() {
       const registration = await navigator.serviceWorker.ready;
       await registration.showNotification("Prumo • Tudo pronto!", {
         body: "O teste de notificação funcionou. Seus vencimentos estão no painel.",
-        icon: "/icons/icon-192.png",
-        badge: "/favicon.png",
+        icon: "/icons/icon-192.png?v=6",
+        badge: "/favicon.png?v=6",
         tag: "meu-caixa-teste",
         data: { url: "/" },
       });
