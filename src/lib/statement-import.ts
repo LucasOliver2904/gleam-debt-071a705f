@@ -17,6 +17,7 @@ export type StatementRow = {
   warning?: string;
 };
 export type StatementResult = { rows: StatementRow[]; skipped: number; notes: string[] };
+export const monthlyDebtWarning = "Uma conta cadastrada já tem este valor no mês. Confira a parcela antes de importar.";
 
 const MONTHS: Record<string, number> = {
   jan: 1, janeiro: 1, fev: 2, fevereiro: 2, mar: 3, marco: 3, março: 3,
@@ -25,7 +26,7 @@ const MONTHS: Record<string, number> = {
   out: 10, outubro: 10, nov: 11, novembro: 11, dez: 12, dezembro: 12,
 };
 
-function clean(text: string): string {
+export function normalizeStatementText(text: string): string {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("pt-BR")
     .replace(/[\u2010-\u2015]/g, "-").replace(/\s+/g, " ").trim();
 }
@@ -36,11 +37,16 @@ function validDay(year: number, month: number, day: number): boolean {
   return d.getFullYear() === year && d.getMonth() === month - 1 && d.getDate() === day;
 }
 
+export function validStatementDay(date: string): boolean {
+  const [year, month, day] = date.split("-").map(Number);
+  return /^\d{4}-\d{2}-\d{2}$/.test(date) && validDay(year!, month!, day!);
+}
+
 /** Lê datas de extratos brasileiros, incluindo cabeçalhos sem ano e "hoje/ontem". */
 export function statementDate(raw: string, referenceDate: string): string | null {
   const ref = /^\d{4}-\d{2}-\d{2}$/.test(referenceDate) ? referenceDate : "2026-11-13";
   const [refYear, refMonth, refDay] = ref.split("-").map(Number);
-  const normalized = clean(raw);
+  const normalized = normalizeStatementText(raw);
   if (/\bhoje\b/.test(normalized)) return ref;
   if (/\bontem\b/.test(normalized)) {
     const d = new Date(refYear!, refMonth! - 1, refDay! - 1);
@@ -63,12 +69,12 @@ export function statementDate(raw: string, referenceDate: string): string | null
 
 const AMOUNT = /(?:R\$\s*)?[+-]?\s*(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2}(?!\d)/gi;
 const BALANCE = /\b(saldo|dispon[ií]vel|total\s+(?:recebido|enviado|debitos|creditos|movimentado)|limite|resumo|resultado do per[ií]odo)\b/i;
-const HEADER = /^(?:extrato(?:\s+da?\s+conta)?|movimenta[cç][oõ]es|lan[cç]amentos|data|descri[cç][aã]o|valor|per[ií]odo|buscar|filtrar|conta corrente|ag[eê]ncia|in[ií]cio|fim|ver mais|carregar mais|transa[cç][oõ]es|pagina \d+|p[aá]gina \d+)\s*[:\-]?\s*$/i;
+const HEADER = /^(?:extrato(?:\s+da?\s+conta)?|movimenta[cç][oõ]es|lan[cç]amentos|data|descri[cç][aã]o|valor|per[ií]odo|buscar|filtrar|conta corrente|ag[eê]ncia|in[ií]cio|fim|ver mais|carregar mais|transa[cç][oõ]es|pagina \d+|p[aá]gina \d+)\s*[:-]?\s*$/i;
 const INBOUND = /\b(pix recebido|recebimento|transferencia recebida|transferencia de|credito em conta|deposito recebido|deposito|salario|proventos|reembolso recebido|estorno|entrada|recebido de|recebida de|cashback)\b/;
 const OUTBOUND = /\b(pix enviado|pix realizado|pix para|transferencia enviada|transferencia para|ted enviada|compra|debito|pagamento|boleto|fatura paga|saque|tarifa|taxa|transferido para|enviado para|pago para|cobranca|cartao)\b/;
 
 function direction(line: string, moneySign: string): StatementKind {
-  const s = clean(line);
+  const s = normalizeStatementText(line);
   if (OUTBOUND.test(s)) return "saida";
   if (INBOUND.test(s)) return "entrada";
   if (/^\s*[-−]/.test(moneySign) || /(?:^|\s)d(?:ebito)?\s*$/.test(s)) return "saida";
@@ -77,7 +83,7 @@ function direction(line: string, moneySign: string): StatementKind {
 }
 
 export function statementCategory(description: string, kind: StatementKind): string {
-  const s = clean(description);
+  const s = normalizeStatementText(description);
   if (/\bshopee\b/.test(s)) return "Shopee";
   if (/\bpix\b|transferencia|ted\b/.test(s)) return "Pix";
   if (/mercado|supermercado|mercearia|atacadao|atacad|hortifruti|a[cç]ougue|padaria/.test(s)) return "Mercado";
@@ -101,7 +107,7 @@ function textWithoutDate(text: string): string {
   return text.replace(/\b\d{1,2}\s*[/.]\s*\d{1,2}(?:\s*[/.]\s*\d{2,4})?\b/g, " ")
     .replace(/\b\d{1,2}\s+(?:de\s+)?(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)(?:embro|eiro|il|ho|sto|ubro)?(?:\s+de\s+\d{4})?\b/gi, " ")
     .replace(/\b\d{1,2}:\d{2}(?::\d{2})?\b/g, " ")
-    .replace(/\b(?:CPF|CNPJ|Conta|Ag[eê]ncia)\s*[:\-]?\s*[\d.*\-\/]+/gi, " ")
+    .replace(/\b(?:CPF|CNPJ|Conta|Ag[eê]ncia)\s*[:-]?\s*[\d.*/-]+/gi, " ")
     .replace(/\s+/g, " ").trim();
 }
 
@@ -212,9 +218,9 @@ export function statementDuplicate(row: Pick<StatementRow, "date" | "description
   additional: Pick<StatementRow, "date" | "description" | "gross" | "kind" | "isPix">[] = []
 ): string | null {
   if (!row.date || !row.kind || !Number.isFinite(row.gross)) return null;
-  const normalized = clean(row.description);
+  const normalized = normalizeStatementText(row.description);
   const compareName = (name: string) => {
-    const candidate = clean(name);
+    const candidate = normalizeStatementText(name);
     return candidate === normalized || (candidate.length >= 8 && normalized.length >= 8 &&
       (candidate.includes(normalized) || normalized.includes(candidate)));
   };
@@ -244,6 +250,6 @@ export function statementDuplicate(row: Pick<StatementRow, "date" | "description
     const monthly = debt.payments[row.date.slice(0, 7)];
     return monthly && Math.abs(monthly.amount - row.gross) < .005 && compareName(debt.name);
   }))
-    return "Uma conta cadastrada já tem este valor no mês; confira para não duplicar.";
+    return monthlyDebtWarning;
   return null;
 }
